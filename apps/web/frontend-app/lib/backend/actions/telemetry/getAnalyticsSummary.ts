@@ -59,6 +59,9 @@ export interface AnalyticsSummary {
   // ── Series de tiempo ────────────────────────────────────────────────────
   dailySessions: DailySessionCount[]
   dailyNewUsers: DailyCount[]
+  // ── Listados Recientes ──────────────────────────────────────────────────
+  recentUsers: Array<{ id: string; name: string | null; email: string; avatarUrl: string | null; createdAt: Date }>
+  recentProjects: Array<{ id: string; name: string; createdAt: Date; ownerName: string | null; ownerEmail: string | null }>
 }
 
 // ── Función de datos reales (BD PostgreSQL / Supabase) ────────────────────────
@@ -106,7 +109,7 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
         .where(and(
           isNotNull(telemetryEvents.userId),
           gte(telemetryEvents.createdAt, fourteenDaysAgo),
-          sql`${telemetryEvents.createdAt} < ${sevenDaysAgo}`,
+          sql`${telemetryEvents.createdAt} < ${sevenDaysAgo.toISOString()}`,
         )),
     ])
 
@@ -150,7 +153,7 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
       EXTRACT(HOUR FROM created_at AT TIME ZONE 'UTC')::int AS hour,
       COUNT(*) as cnt
     FROM telemetry_events
-    WHERE created_at >= ${sevenDaysAgo}
+    WHERE created_at >= ${sevenDaysAgo.toISOString()}
     GROUP BY EXTRACT(HOUR FROM created_at AT TIME ZONE 'UTC')::int
     ORDER BY hour ASC
   `)
@@ -196,14 +199,21 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
     flag: countryFlagMap[r.country] ?? '🌍',
   }))
 
-  // ── Series de tiempo (últimos 30 días) ────────────────────────────────────
+  // ── Generar array de los últimos 14 días ──────────────────────────────────
+  const last14Days: string[] = []
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
+    last14Days.push(d.toISOString().split('T')[0])
+  }
+
+  // ── Series de tiempo (últimos 14 días) ────────────────────────────────────
   const sessionRows = await db.execute<{ date: string; platform: string; cnt: string }>(sql`
     SELECT
       TO_CHAR(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') as date,
       platform,
       COUNT(*) as cnt
     FROM telemetry_events
-    WHERE created_at >= ${thirtyDaysAgo}
+    WHERE created_at >= ${fourteenDaysAgo.toISOString()}
     GROUP BY TO_CHAR(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD'), platform
     ORDER BY date ASC
   `)
@@ -215,23 +225,49 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
     if (row.platform === 'desktop') entry.desktop = Number(row.cnt)
     sessionsMap.set(row.date, entry)
   }
-  const dailySessions: DailySessionCount[] = Array.from(sessionsMap.entries()).map(
-    ([date, v]) => ({ date, ...v }),
-  )
+  const dailySessions: DailySessionCount[] = last14Days.map((date) => ({
+    date,
+    ...(sessionsMap.get(date) ?? { web: 0, desktop: 0 }),
+  }))
 
   const userRows = await db.execute<{ date: string; cnt: string }>(sql`
     SELECT
       TO_CHAR(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') as date,
       COUNT(*) as cnt
     FROM users
-    WHERE created_at >= ${thirtyDaysAgo}
+    WHERE created_at >= ${fourteenDaysAgo.toISOString()}
     GROUP BY TO_CHAR(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD')
     ORDER BY date ASC
   `)
-  const dailyNewUsers: DailyCount[] = userRows.map((r) => ({
-    date: r.date,
-    count: Number(r.cnt),
+  const usersMap = new Map<string, number>()
+  for (const row of userRows) {
+    usersMap.set(row.date, Number(row.cnt))
+  }
+  const dailyNewUsers: DailyCount[] = last14Days.map((date) => ({
+    date,
+    count: usersMap.get(date) ?? 0,
   }))
+
+  // ── Listados Recientes ────────────────────────────────────────────────────
+  const recentUsers = await db.select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    avatarUrl: users.avatarUrl,
+    createdAt: users.createdAt,
+  }).from(users).orderBy(sql`${users.createdAt} DESC`).limit(10)
+
+  const recentProjects = await db.select({
+    id: projects.id,
+    name: projects.name,
+    createdAt: projects.createdAt,
+    ownerName: users.name,
+    ownerEmail: users.email,
+  })
+  .from(projects)
+  .leftJoin(users, eq(projects.ownerId, users.id))
+  .orderBy(sql`${projects.createdAt} DESC`)
+  .limit(10)
 
   return {
     totalUsers: Number(totalUsers),
@@ -256,5 +292,7 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
     hourlyActivity,
     dailySessions,
     dailyNewUsers,
+    recentUsers,
+    recentProjects,
   }
 }

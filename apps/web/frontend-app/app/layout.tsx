@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   description: "Genera diagramas ER desde SQL, colabora en tiempo real y comparte tus esquemas con tu equipo. Sin instalaciones.",
 };
 
+import { PresenceProvider } from "@/components/providers/PresenceProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,8 +35,10 @@ export default function RootLayout({
           enableSystem={true}
           storageKey="fluxy-theme"
         >
-          {children}
-          <Toaster />
+          <PresenceProvider>
+            {children}
+            <Toaster />
+          </PresenceProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -16,34 +16,29 @@ interface MetricCardProps {
 
 const accentMap = {
   blue: {
-    bg: 'bg-blue-500/10',
-    icon: 'text-blue-400',
-    border: 'border-blue-500/20',
-    glow: 'shadow-blue-500/5',
+    bg: 'bg-blue-50',
+    icon: 'text-blue-600',
+    border: 'border-blue-100',
   },
   emerald: {
-    bg: 'bg-emerald-500/10',
-    icon: 'text-emerald-400',
-    border: 'border-emerald-500/20',
-    glow: 'shadow-emerald-500/5',
+    bg: 'bg-emerald-50',
+    icon: 'text-emerald-600',
+    border: 'border-emerald-100',
   },
   violet: {
-    bg: 'bg-violet-500/10',
-    icon: 'text-violet-400',
-    border: 'border-violet-500/20',
-    glow: 'shadow-violet-500/5',
+    bg: 'bg-violet-50',
+    icon: 'text-violet-600',
+    border: 'border-violet-100',
   },
   amber: {
-    bg: 'bg-amber-500/10',
-    icon: 'text-amber-400',
-    border: 'border-amber-500/20',
-    glow: 'shadow-amber-500/5',
+    bg: 'bg-amber-50',
+    icon: 'text-amber-600',
+    border: 'border-amber-100',
   },
   rose: {
-    bg: 'bg-rose-500/10',
-    icon: 'text-rose-400',
-    border: 'border-rose-500/20',
-    glow: 'shadow-rose-500/5',
+    bg: 'bg-rose-50',
+    icon: 'text-rose-600',
+    border: 'border-rose-100',
   },
 }
 
@@ -61,42 +56,35 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl border bg-[#0d1117] p-5 shadow-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl',
-        colors.border,
-        colors.glow,
+        'relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md border-slate-100',
         className,
       )}
     >
-      {/* Glow background */}
-      <div
-        className={cn(
-          'absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-20 blur-2xl',
-          colors.bg.replace('/10', '/40'),
-        )}
-      />
-
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-widest text-slate-400">{title}</p>
-          <p className="mt-1 text-3xl font-bold tracking-tight text-white">
+          <p className="text-sm font-medium text-slate-500 mb-2">{title}</p>
+          <p className="text-3xl font-bold tracking-tight text-slate-900">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
-          {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
           {trend && (
-            <span
-              className={cn(
-                'mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-                trend.positive !== false
-                  ? 'bg-emerald-500/10 text-emerald-400'
-                  : 'bg-rose-500/10 text-rose-400',
-              )}
-            >
-              {trend.positive !== false ? '↑' : '↓'} {trend.value} {trend.label}
-            </span>
+            <div className="mt-3 flex items-center gap-2">
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
+                  trend.positive !== false
+                    ? 'bg-emerald-50 text-emerald-600'
+                    : 'bg-rose-50 text-rose-600',
+                )}
+              >
+                {trend.positive !== false ? '↑' : '↓'} {trend.value}
+              </span>
+              <span className="text-xs text-slate-500">{trend.label}</span>
+            </div>
           )}
+          {subtitle && !trend && <p className="mt-3 text-xs text-slate-500">{subtitle}</p>}
         </div>
-        <div className={cn('rounded-xl p-2.5', colors.bg)}>
-          <span className={cn('block h-5 w-5', colors.icon)}>{icon}</span>
+        <div className={cn('rounded-full p-3', colors.bg)}>
+          <span className={cn('block h-6 w-6', colors.icon)}>{icon}</span>
         </div>
       </div>
     </div>

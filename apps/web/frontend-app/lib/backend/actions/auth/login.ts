@@ -49,5 +49,10 @@ export async function loginAction(formData: FormData) {
     if (dbUser) await acceptPendingInvitations(dbUser.id, user.email)
   }
 
+  // Redirección especial para el administrador
+  if (user?.email === 'admin@fluxy.dev') {
+    redirect('/analytics')
+  }
+
   redirect(next?.startsWith('/') ? next : '/dashboard')
 }
