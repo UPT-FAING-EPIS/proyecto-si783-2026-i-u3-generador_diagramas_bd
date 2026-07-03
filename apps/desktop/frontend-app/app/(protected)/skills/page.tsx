@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { skillsAPI, type SkillStoreItem } from '@/lib/api/client'
+import { skillsAPI, syncAPI, type SkillStoreItem } from '@/lib/api/client'
 
 type InstallFilter = 'all' | 'installed' | 'enabled' | 'available'
 
@@ -38,9 +38,29 @@ export default function DesktopSkillsPage() {
     }
   }
 
+  async function syncSkillsFromCloud() {
+    try {
+      const account = await syncAPI.account()
+      if (!account.linked) return
+      await syncAPI.pullSkills()
+    } catch {
+      // La tienda debe seguir disponible en modo local.
+    }
+  }
+
+  async function syncSkillsToCloud() {
+    try {
+      const account = await syncAPI.account()
+      if (!account.linked) return
+      await syncAPI.pushSkills()
+    } catch {
+      // La instalacion local no depende de la nube.
+    }
+  }
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void loadSkills()
+      void syncSkillsFromCloud().finally(() => loadSkills())
     }, 0)
     return () => window.clearTimeout(timer)
   }, [])
@@ -48,6 +68,7 @@ export default function DesktopSkillsPage() {
   const install = (skillId: string) => {
     startTransition(async () => {
       await skillsAPI.install(skillId)
+      await syncSkillsToCloud()
       await loadSkills()
     })
   }
@@ -55,6 +76,7 @@ export default function DesktopSkillsPage() {
   const toggle = (skillId: string, enabled: boolean) => {
     startTransition(async () => {
       await skillsAPI.setEnabled(skillId, enabled)
+      await syncSkillsToCloud()
       await loadSkills()
     })
   }

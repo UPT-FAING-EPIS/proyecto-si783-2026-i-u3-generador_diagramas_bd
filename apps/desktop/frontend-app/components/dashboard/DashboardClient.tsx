@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Search, LayoutGrid, List, X, Plus } from 'lucide-react'
 import { ProjectGrid } from './ProjectGrid'
+import { ProjectCard } from './ProjectCard'
 import { ProjectListView } from './ProjectListView'
 import { CreateProjectModal } from './CreateProjectModal'
 import { HistorialSection } from './HistorialSection'
+import { syncAPI } from '@/lib/api/client'
 
 interface ProjectItem {
   project: {
@@ -15,7 +17,11 @@ interface ProjectItem {
     updatedAt: Date
     createdAt?: Date
     ownerId: string
+    tags?: string[] | null
     deleted_at?: string | Date | null
+    isPublic?: boolean
+    sourceDatabase?: string | null
+    lastSyncedAt?: Date | null
   }
   role: string
   members?: { id: string; name: string }[]
@@ -36,6 +42,7 @@ interface DashboardClientProps {
 export function DashboardClient({ projects, loading, error, onRetry, onProjectsChanged, currentUserId, currentUser, activeSection }: DashboardClientProps) {
   const [query, setQuery] = useState('')
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false)
+  const isSyncingRef = useRef(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
     try {
       if (typeof window === 'undefined') return 'grid'
@@ -50,6 +57,38 @@ export function DashboardClient({ projects, loading, error, onRetry, onProjectsC
     setViewMode(mode)
     try { localStorage.setItem('dbcanvas_view_mode', mode) } catch {}
   }
+
+  const runAutoSync = useCallback(async () => {
+    if (activeSection !== 'proyectos' || isSyncingRef.current) return
+    isSyncingRef.current = true
+    try {
+      const account = await syncAPI.account()
+      if (!account.linked) return
+      const result = await syncAPI.pullCloud()
+      if (result.ok) onProjectsChanged()
+    } catch {
+      // La sincronizacion no debe bloquear el modo local si Web no esta disponible.
+    } finally {
+      isSyncingRef.current = false
+    }
+  }, [activeSection, onProjectsChanged])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void runAutoSync(), 0)
+    const interval = window.setInterval(() => void runAutoSync(), 60_000)
+    const onFocus = () => void runAutoSync()
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') void runAutoSync()
+    }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.clearTimeout(timer)
+      window.clearInterval(interval)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [runAutoSync])
 
   // Filtrado según sección activa + búsqueda
   const filtered = useMemo(() => {
@@ -84,6 +123,15 @@ export function DashboardClient({ projects, loading, error, onRetry, onProjectsC
       item.project.name.toLowerCase().includes(query.toLowerCase())
     )
   }, [projects, query, activeSection])
+
+  const grouped = useMemo(() => {
+    const visible = filtered.filter((item) => !item.project.deleted_at)
+    return {
+      cloud: visible.filter((item) => item.project.isPublic),
+      database: visible.filter((item) => item.project.sourceDatabase && !item.project.isPublic),
+      blank: visible.filter((item) => !item.project.sourceDatabase && !item.project.isPublic),
+    }
+  }, [filtered])
 
   return (
     <div>
@@ -196,14 +244,14 @@ export function DashboardClient({ projects, loading, error, onRetry, onProjectsC
             Crea un nuevo proyecto para comenzar
           </p>
         </div>
+      ) : viewMode === 'grid' && activeSection === 'proyectos' && !query ? (
+        <div className="space-y-8">
+          <ProjectRail title="En la nube" description="Proyectos marcados para sincronizacion o colaboracion." projects={grouped.cloud} currentUserId={currentUserId} currentUser={currentUser} onProjectsChanged={onProjectsChanged} />
+          <ProjectRail title="Desde base de datos" description="Diagramas creados desde una conexion local." projects={grouped.database} currentUserId={currentUserId} currentUser={currentUser} onProjectsChanged={onProjectsChanged} />
+          <ProjectRail title="Diagramas libres locales" description="Canvas sin relacion directa a una base conectada." projects={grouped.blank} currentUserId={currentUserId} currentUser={currentUser} onProjectsChanged={onProjectsChanged} />
+        </div>
       ) : viewMode === 'grid' ? (
-        <ProjectGrid
-          projects={filtered}
-          currentUserId={currentUserId}
-          currentUser={currentUser}
-          onProjectsChanged={onProjectsChanged}
-          onCreateProject={() => document.getElementById('create-project-btn')?.click()}
-        />
+        <ProjectGrid projects={filtered} currentUserId={currentUserId} currentUser={currentUser} onProjectsChanged={onProjectsChanged} />
       ) : (
         <ProjectListView
           projects={filtered}
@@ -211,5 +259,49 @@ export function DashboardClient({ projects, loading, error, onRetry, onProjectsC
         />
       )}
     </div>
+  )
+}
+
+function ProjectRail({
+  title,
+  description,
+  projects,
+  currentUserId,
+  currentUser,
+  onProjectsChanged,
+}: {
+  title: string
+  description: string
+  projects: ProjectItem[]
+  currentUserId: string
+  currentUser?: { id: string; name: string } | null
+  onProjectsChanged: () => void
+}) {
+  if (projects.length === 0) return null
+  return (
+    <section>
+      <div className="mb-3 flex items-end justify-between">
+        <div>
+          <h3 className="text-base font-semibold text-white">{title}</h3>
+          <p className="text-xs text-[#6B7280]">{description}</p>
+        </div>
+        <span className="rounded-full border border-[#1E2A45] px-2.5 py-1 text-xs text-[#94A3B8]">{projects.length}</span>
+      </div>
+      <div className="flex gap-4 overflow-x-auto pb-3 [scrollbar-width:thin] [scrollbar-color:#334155_transparent]">
+        {projects.map(({ project, role, members }) => (
+          <div key={project.id} className="w-[270px] shrink-0">
+            <ProjectCard
+              project={project}
+              role={role}
+              isOwner={project.ownerId === currentUserId}
+              members={members ?? []}
+              tags={project.tags ?? []}
+              currentUser={currentUser}
+              onProjectsChanged={onProjectsChanged}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }

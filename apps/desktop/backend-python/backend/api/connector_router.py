@@ -21,6 +21,7 @@ from backend.models.schemas import (
     PolicyCheckRequest,
     PolicyCheckResponse,
     PolicyDecision,
+    SavedInsertRequest,
     TableRowsRequest,
     TableRowsResponse,
 )
@@ -102,9 +103,10 @@ def get_external_schema(req: ConexionRequest, db: Session = Depends(get_db)):
         if existing:
             existing.password_db = encrypted_pw
             existing.motor_bd = req.motor or "postgresql"
+            existing.nombre_alias = req.alias or existing.nombre_alias or f"{req.nombre_bd}@{req.host}"
         else:
             db.add(Conexion(
-                nombre_alias=f"{req.nombre_bd}@{req.host}",
+                nombre_alias=req.alias or f"{req.nombre_bd}@{req.host}",
                 motor_bd=req.motor or "postgresql",
                 host=req.host,
                 puerto=req.puerto,
@@ -122,18 +124,17 @@ def get_external_schema(req: ConexionRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error obteniendo esquema: {str(e)}")
 
 
-@router.post("/table-rows", response_model=TableRowsResponse)
-def list_table_rows(req: TableRowsRequest):
+def list_rows_for_connection(connection: ConexionRequest, table_name: str, page: int, page_size: int) -> TableRowsResponse:
     try:
-        motor = req.connection.motor.value if req.connection.motor else ""
-        with get_connector(req.connection) as connector:
+        motor = connection.motor.value if connection.motor else ""
+        with get_connector(connection) as connector:
             schema = analyze_schema(connector)
             allowed_tables = {table.name for table in schema.tables}
-            if req.table_name not in allowed_tables:
+            if table_name not in allowed_tables:
                 raise HTTPException(status_code=404, detail="Tabla no encontrada en la base de datos.")
 
-            table = quote_table(req.table_name, motor)
-            offset = (req.page - 1) * req.page_size
+            table = quote_table(table_name, motor)
+            offset = (page - 1) * page_size
             cursor = connector._connection.cursor()
             cursor.execute(f"SELECT COUNT(*) FROM {table}")
             count_row = cursor.fetchone()
@@ -143,10 +144,10 @@ def list_table_rows(req: TableRowsRequest):
                 cursor.execute(
                     f"SELECT * FROM {table} ORDER BY (SELECT NULL) OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
                     offset,
-                    req.page_size,
+                    page_size,
                 )
             else:
-                cursor.execute(f"SELECT * FROM {table} LIMIT %s OFFSET %s", (req.page_size, offset))
+                cursor.execute(f"SELECT * FROM {table} LIMIT %s OFFSET %s", (page_size, offset))
 
             columns = [description[0] for description in cursor.description]
             rows = [
@@ -156,18 +157,23 @@ def list_table_rows(req: TableRowsRequest):
             cursor.close()
 
         return TableRowsResponse(
-            table_name=req.table_name,
+            table_name=table_name,
             columns=columns,
             rows=jsonable_encoder(rows),
-            page=req.page,
-            page_size=req.page_size,
+            page=page,
+            page_size=page_size,
             total_rows=total_rows,
-            total_pages=max(1, math.ceil(total_rows / req.page_size)),
+            total_pages=max(1, math.ceil(total_rows / page_size)),
         )
     except HTTPException:
         raise
     except Exception as error:
         raise HTTPException(status_code=500, detail=f"No se pudieron listar los datos: {error}")
+
+
+@router.post("/table-rows", response_model=TableRowsResponse)
+def list_table_rows(req: TableRowsRequest):
+    return list_rows_for_connection(req.connection, req.table_name, req.page, req.page_size)
 
 
 @router.get("/saved", response_model=List[ConexionGuardadaResponse])
@@ -214,6 +220,7 @@ def find_connection_by_public_id(db: Session, conexion_id: str):
 
 def connection_request_from_model(conexion: Conexion) -> ConexionRequest:
     return ConexionRequest(
+        alias=conexion.nombre_alias,
         host=conexion.host,
         puerto=conexion.puerto,
         usuario=conexion.usuario_db or "",
@@ -237,6 +244,27 @@ def get_saved_connection_schema(conexion_id: str, db: Session = Depends(get_db))
         raise HTTPException(status_code=500, detail=f"Error obteniendo esquema: {error}")
 
 
+@router.get("/saved/{conexion_id}/table-rows/{table_name}", response_model=TableRowsResponse)
+def list_saved_table_rows(
+    conexion_id: str,
+    table_name: str,
+    page: int = 1,
+    page_size: int = 25,
+    db: Session = Depends(get_db),
+):
+    if page < 1:
+        raise HTTPException(status_code=422, detail="La pagina debe ser mayor o igual a 1.")
+    if page_size < 1 or page_size > 100:
+        raise HTTPException(status_code=422, detail="El tamano de pagina debe estar entre 1 y 100.")
+
+    conexion = find_connection_by_public_id(db, conexion_id)
+
+    if not conexion:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada.")
+
+    return list_rows_for_connection(connection_request_from_model(conexion), table_name, page, page_size)
+
+
 @router.delete("/saved/{conexion_id}")
 def delete_saved_connection(conexion_id: str, db: Session = Depends(get_db)):
     conexion = find_connection_by_public_id(db, conexion_id)
@@ -249,17 +277,26 @@ def delete_saved_connection(conexion_id: str, db: Session = Depends(get_db)):
     return {"message": "Conexion eliminada correctamente."}
 
 
-@router.post("/insert", response_model=InsertResponse)
-def insert_generated_data(req: InsertRequest, db: Session = Depends(get_db)):
+def insert_generated_data_for_connection(
+    connection: ConexionRequest,
+    schema: DatabaseSchema,
+    table_configs,
+    locale: str | None,
+    seed: int | None,
+    environment,
+    allow_direct_write: bool,
+    human_approved: bool,
+    db: Session,
+) -> InsertResponse:
     try:
         policy = evaluate_policy(
             operation="direct_insert",
-            environment=req.environment,
+            environment=environment,
             has_backup=False,
             has_sandbox=False,
-            human_approved=req.human_approved,
+            human_approved=human_approved,
         )
-        if not req.allow_direct_write or policy.decision != PolicyDecision.allow:
+        if not allow_direct_write or policy.decision != PolicyDecision.allow:
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -269,8 +306,8 @@ def insert_generated_data(req: InsertRequest, db: Session = Depends(get_db)):
             )
 
         pk_offsets = {}
-        with get_connector(req.connection) as connector:
-            for table_schema in req.schema.tables:
+        with get_connector(connection) as connector:
+            for table_schema in schema.tables:
                 table_name = table_schema.name
                 for col in table_schema.columns:
                     if col.is_primary_key and any(
@@ -279,7 +316,8 @@ def insert_generated_data(req: InsertRequest, db: Session = Depends(get_db)):
                     ):
                         try:
                             cursor = connector._connection.cursor()
-                            if req.connection.motor == "mysql":
+                            motor = connection.motor.value if connection.motor else ""
+                            if motor == "mysql":
                                 sql = f"SELECT MAX(`{col.name}`) FROM `{table_name}`"
                             else:
                                 sql = f'SELECT MAX("{col.name}") FROM "{table_name}"'
@@ -293,15 +331,15 @@ def insert_generated_data(req: InsertRequest, db: Session = Depends(get_db)):
                         except Exception:
                             pk_offsets[table_name] = 0
 
-        generator = DataGenerator(locale=req.locale or "es_ES", seed=req.seed)
-        generated_data = generator.generate(req.schema, req.table_configs, pk_offsets=pk_offsets)
+        generator = DataGenerator(locale=locale or "es_ES", seed=seed)
+        generated_data = generator.generate(schema, table_configs, pk_offsets=pk_offsets)
 
         total_inserted = 0
         total_errors = 0
         tables_processed = 0
         logs = []
 
-        with get_connector(req.connection) as connector:
+        with get_connector(connection) as connector:
             for table_name, table_data in generated_data.items():
                 columns = table_data["columns"]
                 rows = table_data["rows"]
@@ -317,9 +355,9 @@ def insert_generated_data(req: InsertRequest, db: Session = Depends(get_db)):
                     logs.append(f"Tabla '{table_name}': {inserted} insertados, {errors} errores.")
 
         conexion = db.query(Conexion).filter(
-            Conexion.host == req.connection.host,
-            Conexion.puerto == req.connection.puerto,
-            Conexion.nombre_bd == req.connection.nombre_bd,
+            Conexion.host == connection.host,
+            Conexion.puerto == connection.puerto,
+            Conexion.nombre_bd == connection.nombre_bd,
         ).first()
 
         if conexion:
@@ -338,3 +376,38 @@ def insert_generated_data(req: InsertRequest, db: Session = Depends(get_db)):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error durante la insercion: {str(e)}")
+
+
+@router.post("/insert", response_model=InsertResponse)
+def insert_generated_data(req: InsertRequest, db: Session = Depends(get_db)):
+    return insert_generated_data_for_connection(
+        connection=req.connection,
+        schema=req.schema,
+        table_configs=req.table_configs,
+        locale=req.locale,
+        seed=req.seed,
+        environment=req.environment,
+        allow_direct_write=req.allow_direct_write,
+        human_approved=req.human_approved,
+        db=db,
+    )
+
+
+@router.post("/saved/insert", response_model=InsertResponse)
+def insert_generated_data_saved(req: SavedInsertRequest, db: Session = Depends(get_db)):
+    conexion = find_connection_by_public_id(db, req.connection_id)
+
+    if not conexion:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada.")
+
+    return insert_generated_data_for_connection(
+        connection=connection_request_from_model(conexion),
+        schema=req.schema,
+        table_configs=req.table_configs,
+        locale=req.locale,
+        seed=req.seed,
+        environment=req.environment,
+        allow_direct_write=req.allow_direct_write,
+        human_approved=req.human_approved,
+        db=db,
+    )

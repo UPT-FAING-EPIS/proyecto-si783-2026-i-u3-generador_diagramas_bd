@@ -18,7 +18,7 @@ const DASHBOARD_ITEMS = [
 ];
 
 const MAIN_TOOLS = [
-  { icon: LayoutDashboard, label: 'Diagramas ER', href: '/dashboard' },
+  { icon: LayoutDashboard, label: 'Diagramas', href: '/dashboard' },
   { icon: Plug, label: 'Conexiones', href: '/connect' },
   { icon: Database, label: 'Generador de Datos', href: '/generator' },
   { icon: Store, label: 'Skill Store', href: '/skills' },
@@ -73,30 +73,6 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
 
       <div className="flex-1 min-h-0 overflow-y-auto px-2 py-4 flex flex-col gap-6 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] dark:[scrollbar-color:#334155_transparent]">
         
-        {/* Main Tools Group */}
-        <div>
-          <h3 className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 dark:text-gray-500">Herramientas</h3>
-          <div className="flex flex-col gap-0.5">
-            {MAIN_TOOLS.map(({ icon: Icon, label, href }) => {
-              const isActive = pathname === href || pathname?.startsWith(`${href}/`)
-              
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
-                    isActive
-                      ? 'bg-blue-600/20 text-blue-400 border-blue-500'
-                      : 'text-slate-600 hover:bg-slate-100 border-transparent dark:text-gray-400 dark:hover:bg-gray-800'
-                  }`}>
-                  <Icon size={16} />
-                  {label}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-
         <div>
           <h3 className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 dark:text-gray-500">Mi Espacio</h3>
           <div className="flex flex-col gap-0.5">
@@ -128,6 +104,29 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
                     {label}
                   </Link>
                 )
+            })}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 dark:text-gray-500">Herramientas</h3>
+          <div className="flex flex-col gap-0.5">
+            {MAIN_TOOLS.map(({ icon: Icon, label, href }) => {
+              const isActive = pathname === href || pathname?.startsWith(`${href}/`)
+              
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
+                    isActive
+                      ? 'bg-blue-600/20 text-blue-400 border-blue-500'
+                      : 'text-slate-600 hover:bg-slate-100 border-transparent dark:text-gray-400 dark:hover:bg-gray-800'
+                  }`}>
+                  <Icon size={16} />
+                  {label}
+                </Link>
+              )
             })}
           </div>
         </div>

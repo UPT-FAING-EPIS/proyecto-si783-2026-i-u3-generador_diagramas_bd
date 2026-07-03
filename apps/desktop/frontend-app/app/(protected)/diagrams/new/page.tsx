@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Brain, Database, FileEdit, Loader2, Wand2 } from 'lucide-react'
@@ -11,10 +12,10 @@ import type { EditorDialect } from '@/lib/editor-schema'
 import { useConnectionStore } from '@/lib/store/useConnectionStore'
 import { toast } from 'sonner'
 
-type SourceMode = 'blank' | 'database'
-type BlankFamily = 'sql' | 'nosql'
+type SourceMode = 'database' | 'blank'
+type DatabaseFamily = 'sql' | 'nosql'
 
-const SQL_DIALECTS: Array<{ value: EditorDialect; label: string }> = [
+const SQL_ENGINES: Array<{ value: EditorDialect; label: string }> = [
   { value: 'postgresql', label: 'PostgreSQL' },
   { value: 'mysql', label: 'MySQL' },
   { value: 'sqlserver', label: 'SQL Server' },
@@ -25,13 +26,17 @@ const NOSQL_ENGINES = [
   { value: 'neo4j', label: 'Neo4j' },
 ]
 
+const SQL_ENGINE_VALUES = SQL_ENGINES.map((engine) => engine.value)
+const NOSQL_ENGINE_VALUES = NOSQL_ENGINES.map((engine) => engine.value)
+
 export default function NewDiagramPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const projectId = searchParams?.get('projectId') as string
   const { setActiveConnection } = useConnectionStore()
 
-  const [mode, setMode] = useState<SourceMode>('blank')
+  const [family, setFamily] = useState<DatabaseFamily>('sql')
+  const [mode, setMode] = useState<SourceMode>('database')
   const [connections, setConnections] = useState<SavedConnection[]>([])
   const [selectedConnectionId, setSelectedConnectionId] = useState('')
   const [tables, setTables] = useState<{ name: string; rowCount: number }[]>([])
@@ -39,13 +44,17 @@ export default function NewDiagramPage() {
   const [isLoadingSchema, setIsLoadingSchema] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [diagramName, setDiagramName] = useState('Diagrama Principal')
-  const [blankFamily, setBlankFamily] = useState<BlankFamily>('sql')
-  const [blankDialect, setBlankDialect] = useState<EditorDialect>('postgresql')
+  const [blankSqlEngine, setBlankSqlEngine] = useState<EditorDialect>('postgresql')
   const [blankNoSqlEngine, setBlankNoSqlEngine] = useState('mongodb')
 
+  const compatibleConnections = useMemo(() => {
+    const allowed = family === 'sql' ? SQL_ENGINE_VALUES : NOSQL_ENGINE_VALUES
+    return connections.filter((connection) => allowed.includes(connection.engine as EditorDialect))
+  }, [connections, family])
+
   const selectedConnection = useMemo(
-    () => connections.find((connection) => connection.connection_id === selectedConnectionId) ?? null,
-    [connections, selectedConnectionId],
+    () => compatibleConnections.find((connection) => connection.connection_id === selectedConnectionId) ?? null,
+    [compatibleConnections, selectedConnectionId],
   )
 
   const selectedConfig = useMemo(() => {
@@ -62,8 +71,7 @@ export default function NewDiagramPage() {
 
   const loadConnections = useCallback(async () => {
     try {
-      const saved = await connectorAPI.listSaved()
-      setConnections(saved)
+      setConnections(await connectorAPI.listSaved())
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudieron cargar las conexiones.')
     }
@@ -99,7 +107,16 @@ export default function NewDiagramPage() {
   }, [loadConnections, projectId, router])
 
   useEffect(() => {
-    if (mode === 'database' && selectedConfig) {
+    const timer = window.setTimeout(() => {
+      setSelectedConnectionId('')
+      setTables([])
+      setSelectedTables([])
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [family])
+
+  useEffect(() => {
+    if (mode === 'database' && selectedConnection) {
       const timer = window.setTimeout(() => void loadSchema(), 0)
       return () => window.clearTimeout(timer)
     }
@@ -108,7 +125,7 @@ export default function NewDiagramPage() {
       setSelectedTables([])
     }, 0)
     return () => window.clearTimeout(timer)
-  }, [loadSchema, mode, selectedConfig])
+  }, [loadSchema, mode, selectedConnection])
 
   const handleToggleTable = (tableName: string) => {
     setSelectedTables((prev) => prev.includes(tableName) ? prev.filter((table) => table !== tableName) : [...prev, tableName])
@@ -120,13 +137,13 @@ export default function NewDiagramPage() {
       return
     }
     if (selectedTables.length === 0) {
-      toast.error('Selecciona al menos una tabla.')
+      toast.error(family === 'sql' ? 'Selecciona al menos una tabla.' : 'Selecciona al menos una coleccion/objeto.')
       return
     }
 
     setIsGenerating(true)
     try {
-      if (selectedConfig) setActiveConnection(selectedConfig)
+      setActiveConnection(selectedConfig)
       await diagramsAPI.generateSaved(projectId, {
         connection_id: selectedConnection.connection_id,
         selected_tables: selectedTables,
@@ -144,21 +161,21 @@ export default function NewDiagramPage() {
   const handleCreateBlank = async () => {
     setIsGenerating(true)
     try {
-      const activeDialect = blankFamily === 'sql' ? blankDialect : 'json'
-      const metadata = {
-        nodes: [],
-        edges: [],
-        meta: {
-          source: 'blank',
-          database_family: blankFamily,
-          engine: blankFamily === 'sql' ? blankDialect : blankNoSqlEngine,
-        },
-      }
+      const engine = family === 'sql' ? blankSqlEngine : blankNoSqlEngine
+      const activeDialect = family === 'sql' ? blankSqlEngine : 'json'
       await diagramsAPI.create({
         project_id: Number(projectId),
         name: diagramName,
-        schema_json: JSON.stringify(metadata),
-        sql_content: blankFamily === 'sql' ? '' : JSON.stringify({ engine: blankNoSqlEngine, collections: [] }, null, 2),
+        schema_json: JSON.stringify({
+          nodes: [],
+          edges: [],
+          meta: {
+            source: 'blank',
+            database_family: family,
+            engine,
+          },
+        }),
+        sql_content: family === 'sql' ? '' : JSON.stringify({ engine, collections: [] }, null, 2),
         active_dialect: activeDialect,
       })
       toast.success('Diagrama libre creado')
@@ -199,121 +216,83 @@ export default function NewDiagramPage() {
               <input
                 type="text"
                 value={diagramName}
-                onChange={(e) => setDiagramName(e.target.value)}
+                onChange={(event) => setDiagramName(event.target.value)}
                 className="h-11 w-full max-w-md rounded-lg border border-slate-200 bg-white px-4 text-sm outline-none focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
               />
+            </section>
 
-              <div className="mt-5 grid gap-3 md:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setMode('blank')}
-                  className={`rounded-lg border p-4 text-left transition ${mode === 'blank' ? 'border-[#1A6CF6] bg-blue-50 text-[#1A6CF6] dark:bg-blue-500/10' : 'border-slate-200 dark:border-[#1E2A45]'}`}
-                >
-                  <FileEdit className="mb-3 h-5 w-5" />
-                  <span className="block font-semibold">Canvas libre</span>
-                  <span className="mt-1 block text-sm opacity-75">Crear tablas y relaciones manualmente.</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode('database')}
-                  className={`rounded-lg border p-4 text-left transition ${mode === 'database' ? 'border-[#1A6CF6] bg-blue-50 text-[#1A6CF6] dark:bg-blue-500/10' : 'border-slate-200 dark:border-[#1E2A45]'}`}
-                >
-                  <Database className="mb-3 h-5 w-5" />
-                  <span className="block font-semibold">Desde base conectada</span>
-                  <span className="mt-1 block text-sm opacity-75">Escoger una conexion local y generar ER por schema.</span>
-                </button>
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+              <p className="text-sm font-semibold">1. Tipo de base de datos</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <ChoiceButton active={family === 'sql'} icon={<Database className="h-5 w-5" />} title="SQL" description="PostgreSQL, MySQL o SQL Server." onClick={() => setFamily('sql')} />
+                <ChoiceButton active={family === 'nosql'} icon={<Database className="h-5 w-5" />} title="NoSQL" description="MongoDB, Neo4j u objetos no relacionales." onClick={() => setFamily('nosql')} />
+              </div>
+            </section>
+
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+              <p className="text-sm font-semibold">2. Origen del diagrama</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <ChoiceButton active={mode === 'database'} icon={<Database className="h-5 w-5" />} title="Desde base conectada" description="Seleccionar una conexion local y escoger tablas u objetos." onClick={() => setMode('database')} />
+                <ChoiceButton active={mode === 'blank'} icon={<FileEdit className="h-5 w-5" />} title="Diagrama en blanco" description="Crear el canvas sin conectarse a una base." onClick={() => setMode('blank')} />
               </div>
             </section>
 
             {mode === 'blank' ? (
               <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
-                <p className="text-sm text-slate-600 dark:text-[#CBD5E1]">Nada se aplica a una base de datos. Puedes sincronizar este diagrama luego con Web.</p>
-                <div className="mt-5 grid gap-4 lg:grid-cols-[220px_1fr]">
-                  <div>
-                    <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Tipo de base</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(['sql', 'nosql'] as BlankFamily[]).map((family) => (
-                        <button
-                          key={family}
-                          type="button"
-                          onClick={() => setBlankFamily(family)}
-                          className={`h-11 rounded-lg border text-sm font-medium transition ${
-                            blankFamily === family
-                              ? 'border-[#1A6CF6] bg-blue-50 text-[#1A6CF6] dark:bg-blue-500/10'
-                              : 'border-slate-200 text-slate-600 hover:border-[#1A6CF6] dark:border-[#1E2A45] dark:text-[#CBD5E1]'
-                          }`}
-                        >
-                          {family === 'sql' ? 'SQL' : 'NoSQL'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Motor del diagrama</label>
-                    {blankFamily === 'sql' ? (
-                      <select
-                        value={blankDialect}
-                        onChange={(event) => setBlankDialect(event.target.value as EditorDialect)}
-                        className="h-11 w-full max-w-sm rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
-                      >
-                        {SQL_DIALECTS.map((dialect) => (
-                          <option key={dialect.value} value={dialect.value}>{dialect.label}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <select
-                        value={blankNoSqlEngine}
-                        onChange={(event) => setBlankNoSqlEngine(event.target.value)}
-                        className="h-11 w-full max-w-sm rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
-                      >
-                        {NOSQL_ENGINES.map((engine) => (
-                          <option key={engine.value} value={engine.value}>{engine.label}</option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                </div>
+                <p className="text-sm font-semibold">3. Motor del diagrama</p>
+                <select
+                  value={family === 'sql' ? blankSqlEngine : blankNoSqlEngine}
+                  onChange={(event) => family === 'sql' ? setBlankSqlEngine(event.target.value as EditorDialect) : setBlankNoSqlEngine(event.target.value)}
+                  className="mt-3 h-11 w-full max-w-sm rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                >
+                  {(family === 'sql' ? SQL_ENGINES : NOSQL_ENGINES).map((engine) => (
+                    <option key={engine.value} value={engine.value}>{engine.label}</option>
+                  ))}
+                </select>
                 <button type="button" onClick={handleCreateBlank} disabled={isGenerating} className="mt-4 inline-flex h-11 items-center gap-2 rounded-lg bg-[#1A6CF6] px-4 text-sm font-medium text-white hover:bg-[#1559d1] disabled:opacity-60">
                   {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileEdit className="h-4 w-4" />}
-                  Crear canvas libre
+                  Crear diagrama en blanco
                 </button>
               </section>
             ) : (
-              <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
+              <section className="grid gap-6 lg:grid-cols-[360px_1fr]">
                 <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
-                  <h2 className="font-semibold">Conexion local</h2>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-[#94A3B8]">Las credenciales no se sincronizan; solo se usa el schema para crear el diagrama.</p>
+                  <h2 className="font-semibold">3. Selecciona la base conectada</h2>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-[#94A3B8]">Mostrando solo conexiones {family === 'sql' ? 'SQL' : 'NoSQL'}.</p>
                   <select value={selectedConnectionId} onChange={(event) => setSelectedConnectionId(event.target.value)} className="mt-4 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-[#1E2A45] dark:bg-[#0B1322]">
                     <option value="">Selecciona una conexion</option>
-                    {connections.map((connection) => (
+                    {compatibleConnections.map((connection) => (
                       <option key={connection.connection_id} value={connection.connection_id}>
                         {connection.alias || connection.database} - {connection.engine}:{connection.port}
                       </option>
                     ))}
                   </select>
+
                   {selectedConnection && (
                     <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-[#1E2A45] dark:bg-[#0B1322]">
                       <p className="font-medium">{selectedConnection.database}</p>
-                      <p className="mt-1 text-slate-500 dark:text-[#94A3B8]">{selectedConnection.host_masked}:{selectedConnection.port}</p>
+                      <p className="mt-1 text-slate-500 dark:text-[#94A3B8]">{selectedConnection.engine} · {selectedConnection.host_masked}:{selectedConnection.port}</p>
                       <button type="button" onClick={() => router.push(`/agent-tools?tool=memory&scope=database&subject=${encodeURIComponent(selectedConnection.connection_id)}`)} className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-[#1A6CF6] hover:underline">
                         <Brain className="h-4 w-4" />
                         Editar memoria de esta BD
                       </button>
                     </div>
                   )}
+
                   <button type="button" onClick={handleGenerate} disabled={!selectedConnection || selectedTables.length === 0 || isGenerating} className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1A6CF6] text-sm font-medium text-white hover:bg-[#1559d1] disabled:opacity-60">
                     {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
                     Generar diagrama
                   </button>
                 </aside>
+
                 <div className={isLoadingSchema ? 'opacity-50' : ''}>
-                  {connections.length === 0 ? (
+                  {compatibleConnections.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#94A3B8]">
-                      No hay conexiones guardadas. Ve a Conexiones y agrega una base primero.
+                      No hay conexiones {family === 'sql' ? 'SQL' : 'NoSQL'} guardadas. Ve a Conexiones y agrega una base primero.
                     </div>
                   ) : !selectedConnection ? (
                     <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#94A3B8]">
-                      Selecciona una conexion local para cargar su schema y elegir tablas.
+                      Selecciona una conexion para cargar su schema y elegir {family === 'sql' ? 'tablas' : 'colecciones u objetos'}.
                     </div>
                   ) : (
                     <SchemaViewer
@@ -332,5 +311,35 @@ export default function NewDiagramPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+function ChoiceButton({
+  active,
+  icon,
+  title,
+  description,
+  onClick,
+}: {
+  active: boolean
+  icon: ReactNode
+  title: string
+  description: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-lg border p-4 text-left transition ${
+        active
+          ? 'border-[#1A6CF6] bg-blue-50 text-[#1A6CF6] dark:bg-blue-500/10'
+          : 'border-slate-200 text-slate-700 hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:text-[#CBD5E1]'
+      }`}
+    >
+      {icon}
+      <span className="mt-3 block font-semibold">{title}</span>
+      <span className="mt-1 block text-sm opacity-75">{description}</span>
+    </button>
   )
 }

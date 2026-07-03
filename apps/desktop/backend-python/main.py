@@ -47,6 +47,9 @@ def startup_event():
             "last_synced_at": "DATETIME",
             "updated_at": "DATETIME",
         },
+        "cloud_account_session": {
+            "refresh_token": "TEXT",
+        },
     }
     with engine.begin() as connection:
         for table, columns in additions.items():

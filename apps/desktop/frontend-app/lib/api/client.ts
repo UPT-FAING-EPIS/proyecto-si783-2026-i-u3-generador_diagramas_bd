@@ -352,6 +352,7 @@ export const versionsAPI = {
 };
 
 const mapConnectionForGenerator = (config: DatabaseConnection) => ({
+  alias: 'alias' in config ? config.alias : undefined,
   host: config.host || 'localhost',
   puerto: Number.parseInt(config.port || '5432', 10),
   usuario: config.username || 'postgres',
@@ -401,9 +402,15 @@ export const generatorAPI = {
         connection: mapConnectionForGenerator(payload.connection),
       }),
     }),
+  insertSavedData: (payload: JsonObject & { connection_id: string }) =>
+    apiCall<JsonObject>('/connect/saved/insert', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 };
 
 const mapConnectionForAnalyzer = (config: DatabaseConnection) => ({
+  alias: 'alias' in config ? config.alias : undefined,
   engine: config.engine || 'postgresql',
   host: config.host || 'localhost',
   port: Number.parseInt(config.port || '5432', 10),
@@ -462,6 +469,18 @@ export const connectorAPI = {
   listSaved: () => apiCall<SavedConnection[]>('/connect/saved'),
   savedSchema: (id: string) =>
     apiCall<{ tables: Array<string | { name: string }> }>(`/connect/saved/${encodeURIComponent(id)}/schema`),
+  savedTableRows: (id: string, tableName: string, page = 1, pageSize = 25) =>
+    apiCall<{
+      table_name: string;
+      columns: string[];
+      rows: unknown[][];
+      page: number;
+      page_size: number;
+      total_rows: number;
+      total_pages: number;
+    }>(
+      `/connect/saved/${encodeURIComponent(id)}/table-rows/${encodeURIComponent(tableName)}?page=${page}&page_size=${pageSize}`,
+    ),
   deleteSaved: (id: string) => apiCall<{ message: string }>(`/connect/saved/${id}`, { method: 'DELETE' }),
 };
 
@@ -533,10 +552,19 @@ export const syncAPI = {
   startDeviceLink: () => apiCall<DeviceLinkStart>('/sync/device/start', { method: 'POST' }),
   deviceStatus: (deviceCode: string) => apiCall<DeviceLinkStatus>(`/sync/device/status/${deviceCode}`),
   pullCloud: () =>
-    apiCall<{ ok: boolean; projects_imported: number; diagrams_imported: number; projects_seen: number }>(
+    apiCall<{ ok: boolean; projects_imported: number; diagrams_imported: number; projects_seen: number; skills_imported?: number; skills_seen?: number }>(
       '/sync/cloud/pull',
       { method: 'POST' },
     ),
+  pushProject: (projectId: string) =>
+    apiCall<{ ok: boolean; project_id: number; cloud_project_id?: string | null; cloud_diagram_id?: string | null }>(
+      `/sync/cloud/projects/${encodeURIComponent(projectId)}/push`,
+      { method: 'POST' },
+    ),
+  pullSkills: () =>
+    apiCall<{ ok: boolean; skills_imported: number; skills_seen: number }>('/sync/cloud/skills/pull', { method: 'POST' }),
+  pushSkills: () =>
+    apiCall<{ ok: boolean; skills_synced: number; skills_seen: number }>('/sync/cloud/skills/push', { method: 'POST' }),
 };
 
 export interface AgentMemoryItem {

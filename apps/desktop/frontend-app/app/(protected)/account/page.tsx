@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { open } from '@tauri-apps/plugin-shell'
 import { Cloud, Copy, ExternalLink, Monitor, RefreshCw, ShieldCheck, Users } from 'lucide-react'
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
@@ -53,14 +53,15 @@ export default function AccountPage() {
     }
   }
 
-  async function refreshAccount() {
+  const refreshAccount = useCallback(async () => {
     setError(null)
     try {
       const account = await syncAPI.account()
       if (account.linked && account.user_email) {
         setLinkedEmail(account.user_email)
         setDeviceLink(null)
-        setMessage(`Desktop sincronizado con ${account.user_email}.`)
+        await syncAPI.pullCloud().catch(() => null)
+        setMessage(`Desktop sincronizado con ${account.user_email}. Ya actualizamos tus diagramas y skills.`)
         return true
       }
       return false
@@ -68,9 +69,9 @@ export default function AccountPage() {
       setError(err instanceof Error ? err.message : 'No pude consultar la cuenta enlazada.')
       return false
     }
-  }
+  }, [])
 
-  async function checkStatus() {
+  const checkStatus = useCallback(async () => {
     if (!deviceLink) {
       await refreshAccount()
       return
@@ -81,7 +82,8 @@ export default function AccountPage() {
       if (status.status === 'linked') {
         setLinkedEmail(status.user_email ?? 'cuenta Fluxy')
         setDeviceLink(null)
-        setMessage(`Desktop sincronizado con ${status.user_email ?? 'tu cuenta Fluxy'}.`)
+        await syncAPI.pullCloud().catch(() => null)
+        setMessage(`Desktop sincronizado con ${status.user_email ?? 'tu cuenta Fluxy'}. Ya actualizamos tus diagramas y skills.`)
       } else {
         const accountLinked = await refreshAccount()
         if (!accountLinked) setMessage('Todavia pendiente. Confirma la sesion en la pagina de enlace.')
@@ -90,7 +92,15 @@ export default function AccountPage() {
       const accountLinked = await refreshAccount()
       if (!accountLinked) setError(err instanceof Error ? err.message : 'No pude consultar el estado del enlace.')
     }
-  }
+  }, [deviceLink, refreshAccount])
+
+  useEffect(() => {
+    if (!deviceLink) return
+    const interval = window.setInterval(() => {
+      void checkStatus()
+    }, Math.max(2, deviceLink.poll_interval) * 1000)
+    return () => window.clearInterval(interval)
+  }, [checkStatus, deviceLink])
 
   async function syncNow() {
     setError(null)

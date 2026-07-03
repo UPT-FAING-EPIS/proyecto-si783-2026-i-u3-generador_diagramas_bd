@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Bot, Cloud, HardDrive, ShieldCheck } from 'lucide-react'
+import Link from 'next/link'
+import { Bot, Cloud, Download, HardDrive, ShieldCheck } from 'lucide-react'
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
 import { Badge } from '@/components/ui/badge'
 
@@ -30,14 +31,23 @@ export function AgentToolsShell({ userName, userEmail, userAvatarUrl }: AgentToo
       <DashboardSidebar userName={userName} userEmail={userEmail} userAvatarUrl={userAvatarUrl} activeSection={activeSection} onSectionChange={setActiveSection} />
       <main className="flex-1 overflow-auto bg-white text-slate-950">
         <div className="border-b border-slate-200 px-6 py-5">
-          <div className="mx-auto flex max-w-6xl items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1A6CF6] text-white">
-              <Bot className="h-5 w-5" />
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1A6CF6] text-white">
+                <Bot className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold">Herramientas agenticas</h1>
+                <p className="text-sm text-slate-500">Capacidades para memoria, aprobaciones, auditoria y colaboracion.</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-semibold">Herramientas agenticas</h1>
-              <p className="text-sm text-slate-500">Capacidades para memoria, aprobaciones, auditoria y colaboracion.</p>
-            </div>
+            <Link
+              href="/desktop-link"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#1A6CF6] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/15 transition hover:bg-blue-700"
+            >
+              <Download className="h-4 w-4" />
+              Usar en Desktop
+            </Link>
           </div>
         </div>
         <section className="mx-auto grid max-w-6xl gap-4 px-6 py-8 md:grid-cols-2 xl:grid-cols-3">

@@ -47,6 +47,7 @@ class CloudAccountSession(Base):
     id = Column(Integer, primary_key=True, index=True, default=1)
     user_email = Column(String(255), nullable=False)
     access_token = Column(Text, nullable=False)
+    refresh_token = Column(Text, nullable=True)
     provider = Column(String(50), nullable=False, default="fluxy_web")
     status = Column(String(50), nullable=False, default="linked")
     linked_at = Column(DateTime, server_default=func.now())

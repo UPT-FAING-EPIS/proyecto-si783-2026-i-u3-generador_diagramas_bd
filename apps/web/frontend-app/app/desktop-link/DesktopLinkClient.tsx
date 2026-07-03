@@ -8,9 +8,10 @@ interface DesktopLinkClientProps {
   sidecarUrl: string
   userEmail: string
   accessToken: string
+  refreshToken?: string
 }
 
-export function DesktopLinkClient({ deviceCode, sidecarUrl, userEmail, accessToken }: DesktopLinkClientProps) {
+export function DesktopLinkClient({ deviceCode, sidecarUrl, userEmail, accessToken, refreshToken }: DesktopLinkClientProps) {
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -27,6 +28,7 @@ export function DesktopLinkClient({ deviceCode, sidecarUrl, userEmail, accessTok
           device_code: deviceCode,
           user_email: userEmail,
           access_token: accessToken,
+          refresh_token: refreshToken,
         }),
       })
       if (!response.ok) {

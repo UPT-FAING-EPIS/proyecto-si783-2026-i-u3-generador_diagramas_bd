@@ -11,6 +11,9 @@ interface ProjectData {
     ownerId: string
     tags?: string[] | null
     deleted_at?: string | Date | null
+    isPublic?: boolean
+    sourceDatabase?: string | null
+    lastSyncedAt?: Date | null
   }
   role: string
   members?: { id: string; name: string }[]

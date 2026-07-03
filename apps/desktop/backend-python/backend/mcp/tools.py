@@ -15,6 +15,20 @@ MCP_TOOLS = [
         "inputSchema": {"type": "object", "properties": {"conexion_id": {"type": "integer"}}, "required": ["conexion_id"]},
     },
     {
+        "name": "fluxy_inspect_schema",
+        "description": "Inspect tables, columns, primary keys and foreign keys for a saved local database connection.",
+        "inputSchema": {"type": "object", "properties": {"conexion_id": {"type": "integer"}}, "required": ["conexion_id"]},
+    },
+    {
+        "name": "fluxy_read_sql",
+        "description": "Execute a safe read-only SQL statement against a saved local SQL database connection.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"conexion_id": {"type": "integer"}, "sql": {"type": "string"}},
+            "required": ["conexion_id", "sql"],
+        },
+    },
+    {
         "name": "fluxy_execute_sql",
         "description": "Execute a guarded SQL statement against a saved local database connection.",
         "inputSchema": {
@@ -55,11 +69,15 @@ def text_result(text: str):
     return {"content": [{"type": "text", "text": text}]}
 
 
-def call_tool(name: str, arguments: dict, list_connections, get_profile, execute_sql):
+def call_tool(name: str, arguments: dict, list_connections, get_profile, inspect_schema, read_sql, execute_sql):
     if name == "fluxy_list_connections":
         return {"content": [{"type": "json", "json": list_connections()}]}
     if name == "fluxy_get_database_profile":
         return {"content": [{"type": "json", "json": get_profile(arguments["conexion_id"])}]}
+    if name == "fluxy_inspect_schema":
+        return {"content": [{"type": "json", "json": inspect_schema(arguments["conexion_id"])}]}
+    if name == "fluxy_read_sql":
+        return {"content": [{"type": "json", "json": read_sql(arguments["conexion_id"], arguments["sql"])}]}
     if name == "fluxy_execute_sql":
         return {"content": [{"type": "json", "json": execute_sql(arguments["conexion_id"], arguments["sql"])}]}
     if name == "fluxy_list_skills":

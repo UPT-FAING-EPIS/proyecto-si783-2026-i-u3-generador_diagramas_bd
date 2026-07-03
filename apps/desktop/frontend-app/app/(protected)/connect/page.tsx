@@ -17,6 +17,7 @@ export default function ConnectPage() {
   const [isLoadingSaved, setIsLoadingSaved] = useState(true);
 
   const [config, setConfig] = useState({
+    alias: '',
     engine: 'postgresql',
     host: 'localhost',
     port: '5432',
@@ -64,6 +65,7 @@ export default function ConnectPage() {
     setSuccess(null);
     try {
       const savedConfig = {
+        alias: saved.alias || saved.database,
         engine: saved.engine,
         host: saved.host,
         port: saved.port.toString(),
@@ -118,7 +120,7 @@ export default function ConnectPage() {
         </div>
 
         <section className="mx-auto max-w-7xl px-6 py-8">
-          <form onSubmit={handleConnect} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+          <form onSubmit={handleConnect} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
                 <h2 className="font-semibold">Agregar conexion</h2>
@@ -141,8 +143,20 @@ export default function ConnectPage() {
               </div>
             )}
 
-            <div className="grid gap-4 lg:grid-cols-6">
-              <label className="grid gap-1 lg:col-span-2">
+            <div className="grid gap-5">
+              <label className="grid max-w-xl gap-1.5">
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Nombre de la conexion</span>
+                <input
+                  value={config.alias}
+                  onChange={(e) => setConfig({ ...config, alias: e.target.value })}
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  placeholder="Ej. Produccion ventas, Staging inventario"
+                />
+                <span className="text-xs text-slate-400 dark:text-[#64748B]">Te ayuda a diferenciar conexiones aunque usen el mismo motor o host.</span>
+              </label>
+
+              <div className="grid gap-4 lg:grid-cols-[220px_minmax(220px,1fr)_160px_minmax(220px,1fr)]">
+              <label className="grid gap-1.5">
                 <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Motor</span>
                 <select
                   value={config.engine}
@@ -157,27 +171,7 @@ export default function ConnectPage() {
                   <option value="neo4j">Neo4j</option>
                 </select>
               </label>
-              <label className="grid gap-1 lg:col-span-2">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Host</span>
-                <input
-                  value={config.host}
-                  onChange={(e) => setConfig({ ...config, host: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
-                  placeholder="localhost"
-                  required
-                />
-              </label>
-              <label className="grid gap-1">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Puerto</span>
-                <input
-                  value={config.port}
-                  onChange={(e) => setConfig({ ...config, port: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
-                  placeholder="5432"
-                  required
-                />
-              </label>
-              <label className="grid gap-1">
+              <label className="grid gap-1.5">
                 <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Base</span>
                 <input
                   value={config.database}
@@ -187,7 +181,30 @@ export default function ConnectPage() {
                   required
                 />
               </label>
-              <label className="grid gap-1 lg:col-span-2">
+              <label className="grid gap-1.5">
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Puerto</span>
+                <input
+                  value={config.port}
+                  onChange={(e) => setConfig({ ...config, port: e.target.value })}
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  placeholder="5432"
+                  required
+                />
+              </label>
+              <label className="grid gap-1.5">
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Host</span>
+                <input
+                  value={config.host}
+                  onChange={(e) => setConfig({ ...config, host: e.target.value })}
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  placeholder="localhost"
+                  required
+                />
+              </label>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)_minmax(240px,380px)]">
+              <label className="grid gap-1.5">
                 <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Usuario</span>
                 <input
                   value={config.username}
@@ -197,7 +214,7 @@ export default function ConnectPage() {
                   required
                 />
               </label>
-              <label className="grid gap-1 lg:col-span-2">
+              <label className="grid gap-1.5">
                 <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Password</span>
                 <input
                   type="password"
@@ -207,7 +224,7 @@ export default function ConnectPage() {
                   placeholder="********"
                 />
               </label>
-              <div className="flex items-end lg:col-span-2">
+              <div className="flex items-end">
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -216,6 +233,7 @@ export default function ConnectPage() {
                   {isLoading ? <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" /> : <LinkIcon className="h-4 w-4" />}
                   Conectar y guardar
                 </button>
+              </div>
               </div>
             </div>
           </form>

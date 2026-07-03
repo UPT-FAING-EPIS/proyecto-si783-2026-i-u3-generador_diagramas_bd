@@ -18,6 +18,8 @@ export function CommitModal({ projectId, children }: { projectId: string; childr
   const [loading, setLoading] = useState(false)
 
   const { toObject } = useReactFlow()
+  const nodes = useEditorStore((state) => state.nodes)
+  const edges = useEditorStore((state) => state.edges)
   const sqlValue = useEditorStore((state) => state.sqlValue)
   const dialect = useEditorStore((state) => state.dialect)
 
@@ -28,7 +30,11 @@ export function CommitModal({ projectId, children }: { projectId: string; childr
     setLoading(true)
     
     // Obtener snapshot del estado actual del canvas
-    const rawFlow = toObject()
+    const rawFlow = {
+      ...toObject(),
+      nodes,
+      edges,
+    }
     // ✅ Serializar y deserializar para limpiar referencias circulares
     const flowJson = JSON.parse(JSON.stringify(rawFlow))
     

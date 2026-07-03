@@ -1,4 +1,5 @@
 import json
+import re
 import secrets
 import urllib.error
 import urllib.request
@@ -11,8 +12,10 @@ from pydantic import BaseModel
 
 from backend.core.database import get_db
 from backend.core.encryption import decrypt_password, encrypt_password
-from backend.models.models import CloudAccountSession, SyncQueueItem
+from backend.core.config import settings
+from backend.models.models import CloudAccountSession, LocalSkillInstallation, SyncQueueItem
 from backend.models.schemas import SyncQueueRequest, SyncQueueResponse
+from backend.skills.registry import install_skill, list_skills, set_skill_enabled
 from backend.sync.safe_payload import validate_safe_sync_payload
 from diagrams.models import Diagram, Project
 
@@ -24,6 +27,7 @@ class DeviceCompleteRequest(BaseModel):
     device_code: str
     user_email: str | None = None
     access_token: str
+    refresh_token: str | None = None
 
 
 def cleanup_device_sessions():
@@ -112,6 +116,8 @@ def complete_device_link(req: DeviceCompleteRequest, db: Session = Depends(get_d
         account.access_token = encrypt_password(req.access_token)
         account.provider = "fluxy_web"
         account.status = "linked"
+    if req.refresh_token:
+        account.refresh_token = encrypt_password(req.refresh_token)
     db.commit()
 
     return {
@@ -142,26 +148,106 @@ def _cloud_marker(cloud_id: str) -> str:
     return f"cloud_project_id:{cloud_id}"
 
 
-@router.post("/cloud/pull")
-def pull_cloud_projects(db: Session = Depends(get_db)):
-    account = db.query(CloudAccountSession).filter(CloudAccountSession.id == 1).first()
-    if not account or account.status != "linked":
-        raise HTTPException(status_code=401, detail="Desktop no esta enlazado con Fluxy Web.")
+def _extract_cloud_project_id(description: str | None) -> str | None:
+    if not description:
+        return None
+    match = re.search(r"cloud_project_id:([0-9a-fA-F-]+)", description)
+    return match.group(1) if match else None
 
+
+def _strip_cloud_markers(description: str | None) -> str:
+    if not description:
+        return ""
+    return "\n".join(
+        line for line in description.splitlines()
+        if not line.strip().startswith(("cloud_project_id:", "cloud_diagram_id:"))
+    ).strip()
+
+
+def _safe_json_object(value: str | None) -> dict:
+    if not value:
+        return {"nodes": [], "edges": []}
+    try:
+        parsed = json.loads(value)
+        return parsed if isinstance(parsed, dict) else {"nodes": [], "edges": []}
+    except Exception:
+        return {"nodes": [], "edges": []}
+
+
+def _refresh_access_token(account: CloudAccountSession, db: Session) -> str:
     token = decrypt_password(account.access_token)
+    if not account.refresh_token:
+        return token
+
+    refresh_token = decrypt_password(account.refresh_token)
     request = urllib.request.Request(
-        "http://localhost:3000/api/desktop-sync/projects",
-        headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
-        method="GET",
+        f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/token?grant_type=refresh_token",
+        data=json.dumps({"refresh_token": refresh_token}).encode("utf-8"),
+        headers={
+            "apikey": settings.SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {settings.SUPABASE_ANON_KEY}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        method="POST",
     )
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
             payload = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return token
+
+    next_access_token = payload.get("access_token")
+    next_refresh_token = payload.get("refresh_token")
+    if next_access_token:
+        account.access_token = encrypt_password(next_access_token)
+        token = next_access_token
+    if next_refresh_token:
+        account.refresh_token = encrypt_password(next_refresh_token)
+    account.status = "linked"
+    db.commit()
+    return token
+
+
+def _linked_account(db: Session) -> CloudAccountSession:
+    account = db.query(CloudAccountSession).filter(CloudAccountSession.id == 1).first()
+    if not account or account.status != "linked":
+        raise HTTPException(status_code=401, detail="Desktop no esta enlazado con Fluxy Web.")
+    return account
+
+
+def _web_json_request(db: Session, path: str, method: str = "GET", payload: dict | None = None) -> dict:
+    account = _linked_account(db)
+    token = _refresh_access_token(account, db)
+    data = None if payload is None else json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        f"http://localhost:3000{path}",
+        data=data,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        },
+        method=method,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8") or str(error)
+        if error.code == 401:
+            account.status = "expired"
+            db.commit()
         raise HTTPException(status_code=error.code, detail=f"Fluxy Web rechazo la sincronizacion: {detail}")
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(status_code=502, detail=f"No se pudo conectar con Fluxy Web: {error}")
+
+
+@router.post("/cloud/pull")
+def pull_cloud_projects(db: Session = Depends(get_db)):
+    payload = _web_json_request(db, "/api/desktop-sync/projects")
 
     projects_imported = 0
     diagrams_imported = 0
@@ -178,6 +264,8 @@ def pull_cloud_projects(db: Session = Depends(get_db)):
         else:
             project.name = cloud_project["name"]
             project.description = synced_description
+        project.is_public = True
+        project.share_access = "edit"
 
         for cloud_diagram in cloud_project.get("diagrams", []):
             diagram_marker = f"cloud_diagram_id:{cloud_diagram['id']}"
@@ -197,12 +285,92 @@ def pull_cloud_projects(db: Session = Depends(get_db)):
             diagram.last_synced_at = datetime.utcnow()
 
     db.commit()
+    skills_result = {"skills_imported": 0, "skills_seen": 0}
+    try:
+        skills_result = pull_cloud_skills(db)
+    except HTTPException:
+        pass
     return {
         "ok": True,
         "projects_imported": projects_imported,
         "diagrams_imported": diagrams_imported,
         "projects_seen": len(payload.get("projects", [])),
+        **skills_result,
     }
+
+
+@router.post("/cloud/projects/{project_id}/push")
+def push_cloud_project(project_id: int, db: Session = Depends(get_db)):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Proyecto local no encontrado.")
+
+    diagrams = db.query(Diagram).filter(Diagram.project_id == project.id).order_by(Diagram.updated_at.desc()).all()
+    payload = {
+        "cloudProjectId": _extract_cloud_project_id(project.description),
+        "project": {
+            "localId": project.id,
+            "name": project.name,
+            "description": _strip_cloud_markers(project.description),
+            "engineFamily": "nosql" if any((d.active_dialect or "").lower() in {"mongodb", "neo4j", "json"} for d in diagrams) else "sql",
+        },
+        "diagrams": [
+            {
+                "localId": diagram.id,
+                "name": diagram.name or "Diagrama Desktop",
+                "flowJson": _safe_json_object(diagram.schema_json),
+                "sourceCode": diagram.sql_content or "",
+                "dialect": diagram.active_dialect or "postgresql",
+            }
+            for diagram in diagrams[:1]
+        ],
+    }
+    result = _web_json_request(db, "/api/desktop-sync/projects/push", method="POST", payload=payload)
+    cloud_project_id = result.get("projectId")
+    if cloud_project_id:
+        cleaned_description = _strip_cloud_markers(project.description)
+        project.description = f"{cleaned_description}\n\n{_cloud_marker(cloud_project_id)}".strip()
+        project.is_public = True
+        project.share_access = "view"
+        for diagram in diagrams:
+            diagram.last_synced_at = datetime.utcnow()
+        db.commit()
+    return {"ok": True, "project_id": project.id, "cloud_project_id": cloud_project_id, "cloud_diagram_id": result.get("diagramId")}
+
+
+@router.post("/cloud/skills/pull")
+def pull_cloud_skills(db: Session = Depends(get_db)):
+    payload = _web_json_request(db, "/api/desktop-sync/skills")
+    skills = payload.get("skills", [])
+    imported = 0
+    for item in skills:
+        skill_id = item.get("skillId")
+        if not skill_id:
+            continue
+        if item.get("enabled", True):
+            skill = install_skill(db, skill_id)
+        else:
+            skill = set_skill_enabled(db, skill_id, False)
+        if skill:
+            imported += 1
+    return {"ok": True, "skills_imported": imported, "skills_seen": len(skills)}
+
+
+@router.post("/cloud/skills/push")
+def push_cloud_skills(db: Session = Depends(get_db)):
+    installations = db.query(LocalSkillInstallation).all()
+    payload = {
+        "skills": [
+            {
+                "skillId": item.skill_id,
+                "installedVersion": item.version,
+                "enabled": item.enabled,
+            }
+            for item in installations
+        ]
+    }
+    result = _web_json_request(db, "/api/desktop-sync/skills", method="POST", payload=payload)
+    return {"ok": True, "skills_synced": result.get("synced", 0), "skills_seen": len(payload["skills"])}
 
 
 @router.post("/queue", response_model=SyncQueueResponse)

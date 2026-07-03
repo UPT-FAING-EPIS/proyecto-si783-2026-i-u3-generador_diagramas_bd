@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     TEMP_DIR: str = "./tmp_exports"
     APP_CONFIG_DIR: str = "./local_config"
     SECRETS_KEY_PATH: str = "./local_config/secrets.key"
+    SUPABASE_URL: str = "https://qnkrdqxuhkkixksxghpv.supabase.co"
+    SUPABASE_ANON_KEY: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFua3JkcXh1aGtraXhrc3hnaHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NzExNTIsImV4cCI6MjA5MzI0NzE1Mn0.GyELYi-51D9Tan1lMd6Ql3wA5fRJikIYTJGr6BXGTQ4"
 
     @property
     def DATABASE_URL(self) -> str:

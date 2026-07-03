@@ -43,6 +43,7 @@ export default async function DesktopLinkPage({ searchParams }: DesktopLinkPageP
       sidecarUrl={sidecarUrl}
       userEmail={user.email ?? 'cuenta Fluxy'}
       accessToken={session.access_token}
+      refreshToken={session.refresh_token}
     />
   )
 }

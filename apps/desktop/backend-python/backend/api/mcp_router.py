@@ -89,6 +89,44 @@ def _validate_guarded_sql(sql_text: str) -> str:
     return sql
 
 
+def _validate_read_sql(sql_text: str) -> str:
+    sql = sql_text.strip()
+    lowered = sql.lower()
+
+    if not sql:
+        raise ValueError("SQL statement is required.")
+    if lowered.count(";") > 1 or (";" in lowered and not lowered.endswith(";")):
+        raise ValueError("Only one SQL statement is allowed per MCP call.")
+
+    blocked = [
+        " drop ",
+        " truncate ",
+        " delete ",
+        " update ",
+        " alter ",
+        " grant ",
+        " revoke ",
+        " copy ",
+        " insert ",
+        " create ",
+        " comment ",
+        " do ",
+        "\\",
+    ]
+    padded = f" {lowered} "
+    if any(token in padded for token in blocked):
+        raise ValueError("Only read-only SELECT, WITH, SHOW and EXPLAIN statements are allowed by this MCP tool.")
+
+    allowed_prefixes = ("select ", "with ", "show ", "explain ")
+    if not lowered.startswith(allowed_prefixes):
+        raise ValueError("Only read-only SELECT, WITH, SHOW and EXPLAIN statements are allowed by this MCP tool.")
+
+    if lowered.startswith(("select ", "with ")) and " limit " not in padded:
+        sql = sql.rstrip(";") + " LIMIT 100;"
+
+    return sql
+
+
 @router.post("/rpc", response_model=McpRpcResponse)
 def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
     if req.method == "initialize":
@@ -134,15 +172,10 @@ def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
                 capabilities=["inspect_schema", "generate_diagram", "synthetic_seed_preview"],
             ).model_dump()
 
-        def execute_sql(conexion_id: int, sql_text: str):
-            conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
-            if not conexion:
-                raise ValueError("Connection not found.")
+        def build_connection_request(conexion: Conexion) -> ConexionRequest:
             if not conexion.password_db:
                 raise ValueError("Connection has no stored credentials.")
-
-            guarded_sql = _validate_guarded_sql(sql_text)
-            req = ConexionRequest(
+            return ConexionRequest(
                 host=conexion.host,
                 puerto=conexion.puerto,
                 usuario=conexion.usuario_db or "",
@@ -150,6 +183,54 @@ def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
                 nombre_bd=conexion.nombre_bd,
                 motor=conexion.motor_bd,
             )
+
+        def inspect_schema(conexion_id: int):
+            conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+            if not conexion:
+                raise ValueError("Connection not found.")
+
+            req = build_connection_request(conexion)
+            with get_connector(req) as connector:
+                schema = connector.get_schema()
+            if hasattr(schema, "model_dump"):
+                return schema.model_dump()
+            return schema
+
+        def read_sql(conexion_id: int, sql_text: str):
+            conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+            if not conexion:
+                raise ValueError("Connection not found.")
+            if str(conexion.motor_bd).lower() in {"mongodb", "neo4j", "cassandra"}:
+                raise ValueError("Read SQL is only available for SQL database engines.")
+
+            read_only_sql = _validate_read_sql(sql_text)
+            req = build_connection_request(conexion)
+
+            with get_connector(req) as connector:
+                cursor = connector._connection.cursor()
+                try:
+                    cursor.execute(read_only_sql)
+                    columns = [col[0] for col in cursor.description] if cursor.description else []
+                    rows = cursor.fetchmany(100) if cursor.description else []
+                finally:
+                    cursor.close()
+
+            return {
+                "ok": True,
+                "conexion_id": conexion_id,
+                "statement": read_only_sql,
+                "columns": columns,
+                "rows": [list(row) for row in rows],
+                "rowcount": len(rows),
+            }
+
+        def execute_sql(conexion_id: int, sql_text: str):
+            conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+            if not conexion:
+                raise ValueError("Connection not found.")
+
+            guarded_sql = _validate_guarded_sql(sql_text)
+            req = build_connection_request(conexion)
 
             with get_connector(req) as connector:
                 cursor = connector._connection.cursor()
@@ -168,7 +249,10 @@ def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
             }
 
         try:
-            return McpRpcResponse(id=req.id, result=call_tool(tool_name, arguments, list_connections, get_profile, execute_sql))
+            return McpRpcResponse(
+                id=req.id,
+                result=call_tool(tool_name, arguments, list_connections, get_profile, inspect_schema, read_sql, execute_sql),
+            )
         except Exception as error:
             return mcp_error(req.id, -32000, str(error))
 

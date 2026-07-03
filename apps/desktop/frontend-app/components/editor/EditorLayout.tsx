@@ -9,6 +9,7 @@ import { EditorPanel } from './EditorPanel'
 import { SchemaInspector } from './SchemaInspector'
 import { ExportMenu } from './ExportMenu'
 import { VersionHistorySheet } from './VersionHistorySheet'
+import { CommitModal } from './CommitModal'
 import { PublicShareToggle } from './PublicShareToggle'
 import { DiffViewerModal } from './DiffViewerModal'
 import { useEditorStore } from '@/store/useEditorStore'
@@ -321,6 +322,7 @@ function EditorLayoutInner({
               Generar datos
             </button>
 
+            <CommitModal projectId={projectId} />
             <ExportMenu projectName={projectName} />
             <ThemeToggle />
           </div>

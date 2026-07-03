@@ -15,6 +15,11 @@ const NAV_ITEMS = [
   { icon: History, label: 'Historial', id: 'historial' }
 ];
 
+const TOOL_ITEMS = [
+  { icon: Store, label: 'Skill Store', href: '/skills' },
+  { icon: Bot, label: 'Herramientas Agenticas', href: '/agent-tools' },
+]
+
 interface DashboardSidebarProps {
   userName: string
   userEmail?: string
@@ -38,52 +43,56 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
         <span className="text-slate-950 font-semibold text-base">Fluxy</span>
       </div>
 
-      <nav className="flex-1 px-2 py-4 flex flex-col gap-0.5">
-        <Link
-          href="/skills"
-          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
-            isSkillsActive
-              ? 'bg-[#1A6CF6] text-white font-medium border-transparent shadow-sm'
-              : 'text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] border-transparent'
-          }`}
-        >
-          <Store size={16} />
-          Skill Store
-        </Link>
+      <nav className="flex-1 px-2 py-4 flex flex-col gap-6">
+        <div>
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Mi Espacio</h3>
+          <div className="flex flex-col gap-0.5">
+            {NAV_ITEMS.map(({ icon: Icon, label, id }) => {
+              const isActive = !isSkillsActive && !isAgentToolsActive && activeSection === id;
 
-        <Link
-          href="/agent-tools"
-          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
-            isAgentToolsActive
-              ? 'bg-[#1A6CF6] text-white font-medium border-transparent shadow-sm'
-              : 'text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] border-transparent'
-          }`}
-        >
-          <Bot size={16} />
-          Herramientas Agenticas
-        </Link>
+              return (
+                <button
+                  key={id}
+                  onClick={() => {
+                    onSectionChange(id);
+                    if (isSkillsActive || isAgentToolsActive) router.push('/dashboard');
+                  }}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
+                    isActive
+                      ? 'bg-[#1A6CF6] text-white font-medium shadow-sm border-transparent'
+                      : 'text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] border-transparent'
+                  }`}
+                >
+                  <Icon size={16} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-        {NAV_ITEMS.map(({ icon: Icon, label, id }) => {
-          const isActive = !isSkillsActive && !isAgentToolsActive && activeSection === id;
-
-          return (
-            <button
-              key={id}
-              onClick={() => {
-                onSectionChange(id);
-                if (isSkillsActive || isAgentToolsActive) router.push('/dashboard');
-              }}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
-                isActive
-                  ? 'bg-[#1A6CF6] text-white font-medium shadow-sm border-transparent'
-                  : 'text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] border-transparent'
-              }`}
-            >
-              <Icon size={16} />
-              {label}
-            </button>
-          );
-        })}
+        <div>
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Herramientas</h3>
+          <div className="flex flex-col gap-0.5">
+            {TOOL_ITEMS.map(({ icon: Icon, label, href }) => {
+              const isActive = pathname === href || pathname?.startsWith(`${href}/`);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
+                    isActive
+                      ? 'bg-[#1A6CF6] text-white font-medium border-transparent shadow-sm'
+                      : 'text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] border-transparent'
+                  }`}
+                >
+                  <Icon size={16} />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </nav>
 
       <div className="px-3 py-4 border-t border-slate-100">

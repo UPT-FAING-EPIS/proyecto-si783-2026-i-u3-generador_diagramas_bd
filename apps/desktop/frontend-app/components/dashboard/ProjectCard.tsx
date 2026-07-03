@@ -2,11 +2,12 @@
 
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import Link from 'next/link'
-import { Clock, MoreVertical, Trash2, RotateCcw } from 'lucide-react'
+import { Clock, MoreVertical, Trash2, RotateCcw, Cloud, HardDrive, UploadCloud, Database } from 'lucide-react'
 import { getRelativeDate } from '@/lib/relativeDate'
 import { getTagColor } from '@/components/ui/TagInput'
 import { useState, useRef, useEffect } from 'react'
 import { deleteProjectAction, restoreProjectAction, permanentlyDeleteProjectAction } from '@/lib/backend/actions/projects/delete'
+import { syncAPI } from '@/lib/api/client'
 import { toast } from 'sonner'
 
 interface Project {
@@ -17,6 +18,9 @@ interface Project {
   createdAt?: Date
   ownerId: string
   deleted_at?: string | Date | null
+  isPublic?: boolean
+  sourceDatabase?: string | null
+  lastSyncedAt?: Date | null
 }
 
 interface ProjectCardProps {
@@ -29,10 +33,12 @@ interface ProjectCardProps {
   onProjectsChanged?: () => void
 }
 
-export function ProjectCard({ project, role, isOwner = false, tags, onProjectsChanged }: ProjectCardProps) {
+export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged }: ProjectCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const isDeleted = Boolean(project.deleted_at)
+  const isCloud = Boolean(project.isPublic)
+  const isDatabaseDiagram = Boolean(project.sourceDatabase)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -79,6 +85,16 @@ export function ProjectCard({ project, role, isOwner = false, tags, onProjectsCh
     onProjectsChanged?.()
   }
 
+  const handleSaveToCloud = async () => {
+    try {
+      await syncAPI.pushProject(project.id)
+      toast.success('Proyecto subido a tu cuenta Fluxy Web')
+      onProjectsChanged?.()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo subir el proyecto a la nube.')
+    }
+  }
+
   return (
     <Link href={isDeleted ? '#' : `/editor?projectId=${project.id}`} onClick={(event) => { if (isDeleted) event.preventDefault() }} className="block h-full">
       <Card className={`h-full flex flex-col bg-gray-900 group relative rounded-xl border border-gray-800 transition-all duration-200 ${isDeleted ? 'cursor-default opacity-80' : 'cursor-pointer hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/20'}`}>
@@ -91,6 +107,10 @@ export function ProjectCard({ project, role, isOwner = false, tags, onProjectsCh
               opacity: 0.3,
             }}
           />
+          <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/35 px-2 py-1 text-[11px] font-medium text-white">
+            {isCloud ? <Cloud size={12} /> : <HardDrive size={12} />}
+            {isCloud ? 'Nube' : 'Local'}
+          </span>
 
           <div className="absolute top-2 right-2 z-20" ref={menuRef}>
             <button
@@ -134,18 +154,34 @@ export function ProjectCard({ project, role, isOwner = false, tags, onProjectsCh
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      setIsMenuOpen(false)
-                      handleDelete()
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-950/40 transition-colors rounded-lg"
-                  >
-                    <Trash2 size={16} />
-                    Eliminar
-                  </button>
+                  <>
+                    {!isCloud && (
+                      <button
+                        onClick={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          setIsMenuOpen(false)
+                          handleSaveToCloud()
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-blue-300 hover:bg-blue-950/40 transition-colors rounded-t-lg"
+                      >
+                        <UploadCloud size={16} />
+                        Guardar en la nube
+                      </button>
+                    )}
+                    <button
+                      onClick={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        setIsMenuOpen(false)
+                        handleDelete()
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-950/40 transition-colors ${isCloud ? 'rounded-lg' : 'rounded-b-lg border-t border-gray-800'}`}
+                    >
+                      <Trash2 size={16} />
+                      Eliminar
+                    </button>
+                  </>
                 )}
               </div>
             )}
@@ -167,6 +203,13 @@ export function ProjectCard({ project, role, isOwner = false, tags, onProjectsCh
               {project.description}
             </p>
           )}
+
+          <div className="mb-2 flex flex-wrap gap-1">
+            <span className="inline-flex items-center gap-1 rounded-full border border-gray-700 bg-gray-800 px-2 py-0.5 text-xs text-gray-300">
+              <Database size={12} />
+              {isCloud ? 'Sincronizado desde Web' : isDatabaseDiagram ? project.sourceDatabase : 'Diagrama libre'}
+            </span>
+          </div>
 
           {tags && tags.length > 0 && (
             <div className="flex flex-wrap gap-1">

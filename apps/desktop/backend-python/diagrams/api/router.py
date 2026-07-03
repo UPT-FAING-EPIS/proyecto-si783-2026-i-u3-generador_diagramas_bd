@@ -192,11 +192,6 @@ def schema_to_flow(tables, existing_flow=None):
 def introspect_selected_schema(connection: ConexionRequest, selected_tables: List[str], strict=True):
     with get_connector(connection) as connector:
         full_schema = analyze_schema(connector)
-    if full_schema.motor not in {"postgresql", "mysql", "sqlserver"}:
-        raise HTTPException(
-            status_code=400,
-            detail="ER SQL diagrams currently support PostgreSQL, MySQL and SQL Server.",
-        )
     selected = set(selected_tables)
     tables = [table for table in full_schema.tables if table.name in selected]
     missing = selected.difference(table.name for table in tables)
@@ -206,6 +201,31 @@ def introspect_selected_schema(connection: ConexionRequest, selected_tables: Lis
             detail=f"Tables not found in database: {', '.join(sorted(missing))}",
         )
     return full_schema, tables
+
+
+def schema_to_json_document(tables, engine: str) -> str:
+    return json.dumps(
+        {
+            "engine": engine,
+            "objects": [
+                {
+                    "name": table.name,
+                    "fields": [
+                        {
+                            "name": column.name,
+                            "type": column.data_type,
+                            "nullable": column.is_nullable,
+                            "primary": column.is_primary_key,
+                            "reference": column.foreign_key,
+                        }
+                        for column in table.columns
+                    ],
+                }
+                for table in tables
+            ],
+        },
+        indent=2,
+    )
 
 router = APIRouter(tags=["ER Diagrams"])
 
@@ -382,7 +402,7 @@ def generate_diagram_from_db(req: GenerateDiagramRequest, projectId: int = Query
         diagram = Diagram(
             name=req.name,
             schema_json=flow_json,
-            sql_content=schema_to_sql(selected_tables, dialect),
+            sql_content=schema_to_sql(selected_tables, dialect) if dialect != "json" else schema_to_json_document(selected_tables, full_schema.motor),
             active_dialect=dialect,
             source_database=f"{full_schema.motor}:{full_schema.database_name}",
             selected_tables_json=json.dumps(req.selected_tables),
@@ -431,7 +451,7 @@ def refresh_diagram(diagram_id: int, req: RefreshDiagramRequest, db: Session = D
         full_schema, tables = introspect_selected_schema(req.connection, selected_tables, strict=False)
         dialect = full_schema.motor if full_schema.motor in {"postgresql", "mysql", "sqlserver"} else "json"
         diagram.schema_json = json.dumps(schema_to_flow(tables, existing_flow))
-        diagram.sql_content = schema_to_sql(tables, dialect)
+        diagram.sql_content = schema_to_sql(tables, dialect) if dialect != "json" else schema_to_json_document(tables, full_schema.motor)
         diagram.active_dialect = dialect
         diagram.source_database = f"{full_schema.motor}:{full_schema.database_name}"
         diagram.selected_tables_json = json.dumps([table.name for table in tables])

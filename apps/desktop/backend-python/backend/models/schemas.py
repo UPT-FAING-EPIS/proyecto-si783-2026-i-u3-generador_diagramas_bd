@@ -28,6 +28,7 @@ class PolicyDecision(str, Enum):
 
 
 class ConexionRequest(BaseModel):
+    alias: Optional[str] = None
     host: str = Field(..., min_length=1)
     puerto: int = Field(..., ge=1, le=65535)
     usuario: str
@@ -191,6 +192,17 @@ class ExportResponse(BaseModel):
 
 class InsertRequest(BaseModel):
     connection: ConexionRequest
+    schema: DatabaseSchema
+    table_configs: List[TableGenerationConfig]
+    locale: Optional[str] = "es_ES"
+    seed: Optional[int] = None
+    environment: DatabaseEnvironmentEnum = DatabaseEnvironmentEnum.unknown
+    allow_direct_write: bool = False
+    human_approved: bool = False
+
+
+class SavedInsertRequest(BaseModel):
+    connection_id: str
     schema: DatabaseSchema
     table_configs: List[TableGenerationConfig]
     locale: Optional[str] = "es_ES"
