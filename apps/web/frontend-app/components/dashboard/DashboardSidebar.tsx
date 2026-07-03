@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Home, Clock, Users, Trash2, History, LogOut, Settings, Store, Bot } from 'lucide-react';
 import { logoutAction } from '@/lib/backend/actions/auth/logout';
 import { getInitials, getAvatarColor } from '@/lib/utils/avatar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Proyectos', id: 'proyectos' },
@@ -35,12 +36,12 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
   const isAgentToolsActive = pathname === '/agent-tools' || pathname?.startsWith('/agent-tools/');
 
   return (
-    <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 h-screen sticky top-0 bg-white border-r border-slate-200">
+    <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 h-screen sticky top-0 bg-background border-r border-border">
       <div className="flex items-center gap-2.5 px-4 py-5 border-b border-slate-100">
         <div className="h-8 w-8 rounded-lg bg-[#1A6CF6] flex items-center justify-center text-white text-xs font-bold">
           F
         </div>
-        <span className="text-slate-950 font-semibold text-base">Fluxy</span>
+        <span className="text-foreground font-semibold text-base">Fluxy</span>
       </div>
 
       <nav className="flex-1 px-2 py-4 flex flex-col gap-6">
@@ -60,7 +61,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
                     isActive
                       ? 'bg-[#1A6CF6] text-white font-medium shadow-sm border-transparent'
-                      : 'text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] border-transparent'
+                      : 'text-muted-foreground hover:bg-muted hover:text-primary border-transparent'
                   }`}
                 >
                   <Icon size={16} />
@@ -83,7 +84,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
                     isActive
                       ? 'bg-[#1A6CF6] text-white font-medium border-transparent shadow-sm'
-                      : 'text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] border-transparent'
+                      : 'text-muted-foreground hover:bg-muted hover:text-primary border-transparent'
                   }`}
                 >
                   <Icon size={16} />
@@ -98,7 +99,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
       <div className="px-3 py-4 border-t border-slate-100">
         <Link
           href="/profile"
-          className="flex items-center gap-2.5 mb-3 px-1 py-1 rounded-lg transition-colors hover:bg-slate-50"
+          className="flex items-center gap-2.5 mb-3 px-1 py-1 rounded-lg transition-colors hover:bg-muted"
         >
           {userAvatarUrl ? (
             <Image
@@ -118,14 +119,14 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-sm text-slate-950 font-medium truncate">{userName}</p>
-            {userEmail && <p className="text-xs text-slate-500 truncate">{userEmail}</p>}
+            <p className="text-sm text-foreground font-medium truncate">{userName}</p>
+            {userEmail && <p className="text-xs text-muted-foreground truncate">{userEmail}</p>}
           </div>
         </Link>
 
         <Link
           href="/profile"
-          className="flex items-center gap-2 text-xs w-full px-3 py-2 rounded-lg transition-colors text-slate-600 hover:text-[#1A6CF6] hover:bg-blue-50 mb-1"
+          className="flex items-center gap-2 text-xs w-full px-3 py-2 rounded-lg transition-colors text-muted-foreground hover:text-primary hover:bg-muted mb-1"
         >
           <Settings size={14} />
           Configuracion
@@ -133,12 +134,16 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
         <form action={logoutAction}>
           <button
             type="submit"
-            className="flex items-center gap-2 text-xs w-full px-3 py-2 rounded-lg transition-colors text-slate-600 hover:text-[#1A6CF6] hover:bg-blue-50"
+            className="flex items-center gap-2 text-xs w-full px-3 py-2 rounded-lg transition-colors text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           >
             <LogOut size={14} />
             Salir
           </button>
         </form>
+
+        <div className="mt-2 pt-2 border-t border-border flex justify-center">
+          <ThemeToggle />
+        </div>
       </div>
     </aside>
   );

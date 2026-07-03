@@ -28,8 +28,8 @@ export function ProjectGrid({ projects, currentUserId, currentUser }: ProjectGri
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="text-5xl mb-4">🗂️</div>
-          <h3 className="text-white font-semibold mb-2">No tienes proyectos aún</h3>
-          <p className="text-[#6B7280] text-sm">
+          <h3 className="text-foreground font-semibold mb-2">No tienes proyectos aún</h3>
+          <p className="text-muted-foreground text-sm">
             Crea tu primer diagrama haciendo clic en &quot;Nuevo proyecto&quot;
           </p>
         </div>

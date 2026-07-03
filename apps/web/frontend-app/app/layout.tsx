@@ -29,8 +29,8 @@ export default function RootLayout({
       <body className={`${inter.variable} min-h-full flex flex-col font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
+          defaultTheme="system"
+          enableSystem={true}
           storageKey="fluxy-theme"
         >
           {children}

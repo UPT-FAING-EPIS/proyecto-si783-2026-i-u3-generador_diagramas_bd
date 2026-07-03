@@ -29,7 +29,7 @@ export default async function DashboardPage() {
   const projects = await getProjectsByUser()
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-background text-foreground">
       <Suspense fallback={<div className="hidden lg:block w-[220px] flex-shrink-0" />}>
         <DashboardPageContent
           userName={userName}

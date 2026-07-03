@@ -50,20 +50,16 @@ export function DashboardPageContent({
         onSectionChange={setActiveSection}
       />
       <main className="flex-1 flex flex-col">
-        <header className="border-b border-slate-200 bg-white sticky top-0 z-10 shadow-sm">
+        <header className="border-b border-border bg-background sticky top-0 z-10 shadow-sm">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3 lg:hidden">
-              <div className="w-9 h-9 rounded-lg bg-[#1A6CF6]/10 flex items-center justify-center">
-                <Database className="w-5 h-5 text-[#1A6CF6]" />
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Database className="w-5 h-5 text-primary" />
               </div>
-              <span className="font-bold text-xl tracking-tight text-slate-900">Fluxy</span>
+              <span className="font-bold text-xl tracking-tight text-foreground">Fluxy</span>
             </div>
-            <form action={logoutAction}>
-              <Button type="submit" variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                <LogOut className="w-4 h-4 mr-2" />
-                Salir
-              </Button>
-            </form>
+            {/* Top right space empty */}
+            <div></div>
           </div>
         </header>
         <div className="flex-1 overflow-auto">

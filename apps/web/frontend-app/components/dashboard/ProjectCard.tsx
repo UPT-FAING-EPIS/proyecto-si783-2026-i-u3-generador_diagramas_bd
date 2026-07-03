@@ -160,8 +160,8 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
           <div className="absolute top-3 left-3 z-10">
             <div className={`text-xs font-bold px-3 py-1 rounded-full shadow-sm backdrop-blur-md ${
               role === 'owner' 
-                ? 'bg-white text-slate-700 border border-slate-200' 
-                : 'bg-white text-slate-700 border border-slate-200'
+                ? 'bg-background text-foreground border border-border' 
+                : 'bg-background text-foreground border border-border'
             }`}>
               {role === 'owner' ? 'Pro' : 'Free'}
             </div>
@@ -189,7 +189,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                   e.stopPropagation()
                   setIsMenuOpen(!isMenuOpen)
                 }}
-                className="p-1.5 rounded-full bg-white/50 hover:bg-white transition-colors text-slate-600 shadow-sm backdrop-blur-md border border-slate-200/50"
+                className="p-1.5 rounded-full bg-background/50 hover:bg-background transition-colors text-foreground shadow-sm backdrop-blur-md border border-border"
                 disabled={isProcessing}
               >
                 <MoreVertical size={16} />
@@ -325,8 +325,8 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
 
           {/* Input inline para renombrar */}
           {isRenaming && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-30 rounded-xl">
-              <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xl w-80">
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-30 rounded-xl">
+              <div className="bg-background p-4 rounded-lg border border-border shadow-xl w-80">
                 <input
                   ref={inputRef}
                   type="text"
@@ -342,7 +342,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                       setNewName(project.name)
                     }
                   }}
-                  className="w-full px-3 py-2 bg-white text-slate-900 rounded border border-slate-300 focus:border-[#1A6CF6] outline-none"
+                  className="w-full px-3 py-2 bg-background text-foreground rounded border border-border focus:border-primary outline-none"
                   placeholder="Nuevo nombre del proyecto"
                   autoFocus
                 />
@@ -352,13 +352,13 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                       setIsRenaming(false)
                       setNewName(project.name)
                     }}
-                    className="flex-1 px-3 py-1 text-sm bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors"
+                    className="flex-1 px-3 py-1 text-sm bg-muted text-muted-foreground rounded hover:bg-muted/80 transition-colors"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleRename}
-                    className="flex-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    className="flex-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
                     disabled={isProcessing}
                   >
                     {isProcessing ? 'Guardando...' : 'Guardar'}
@@ -367,19 +367,18 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
               </div>
             </div>
           )}
+        </div>
 
-          {/* Nombre del proyecto (en la portada, parte inferior) */}
+        <CardContent className="flex-grow pb-2 px-4 pt-4">
+          {/* Nombre del proyecto */}
           {!isRenaming && (
-            <h3 className="text-slate-900 font-bold text-base leading-tight z-10 relative">
+            <h3 className="text-foreground font-bold text-lg leading-tight mb-2">
               {project.name}
             </h3>
           )}
-        </div>
-
-        <CardContent className="flex-grow pb-2 px-3 pt-3">
           {/* Description */}
           {project.description && (
-            <p className="text-sm text-slate-500 line-clamp-2 mb-2">
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
               {project.description}
             </p>
           )}
@@ -406,7 +405,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
           )}
         </CardContent>
 
-        <CardFooter className="p-3 bg-slate-50 border-t border-slate-100 mt-auto">
+        <CardFooter className="p-4 bg-muted/30 border-t border-border mt-auto">
           <div className="flex items-center justify-between w-full">
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
               isOwner 
@@ -416,7 +415,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
               {isOwner ? 'Propietario' : 'Colaborador'}
             </span>
 
-            <div className="flex items-center gap-1 text-slate-400 text-xs">
+            <div className="flex items-center gap-1 text-muted-foreground text-xs">
               <Clock size={14} />
               <span>Hace {getRelativeDate(project.updatedAt ?? project.createdAt)}</span>
             </div>

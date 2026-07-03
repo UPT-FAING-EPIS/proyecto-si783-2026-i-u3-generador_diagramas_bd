@@ -105,18 +105,18 @@ export function HistorialSection({ userId }: HistorialSectionProps) {
   if (loading) {
     return (
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
           <Clock size={18} />
           Historial de actividad
         </h3>
         {/* Skeleton loaders */}
         {Array.from({ length: 5 }).map((_, index) => (
           <div key={index} className="animate-pulse">
-            <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: '#111827' }}>
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: '#374151' }}></div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
+              <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700"></div>
               <div className="flex-1">
-                <div className="h-4 w-3/4 rounded mb-2" style={{ backgroundColor: '#374151' }}></div>
-                <div className="h-3 w-1/4 rounded" style={{ backgroundColor: '#4B5563' }}></div>
+                <div className="h-4 w-3/4 rounded mb-2 bg-slate-200 dark:bg-slate-700"></div>
+                <div className="h-3 w-1/4 rounded bg-slate-300 dark:bg-slate-600"></div>
               </div>
             </div>
           </div>
@@ -129,7 +129,7 @@ export function HistorialSection({ userId }: HistorialSectionProps) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <Clock size={48} style={{ color: '#6B7280' }} className="mb-4" />
-        <p className="text-white font-medium mb-1">Aún no hay actividad registrada</p>
+        <p className="font-medium mb-1">Aún no hay actividad registrada</p>
         <p className="text-sm" style={{ color: '#6B7280' }}>
           Comienza creando o abriendo un proyecto
         </p>
@@ -139,7 +139,7 @@ export function HistorialSection({ userId }: HistorialSectionProps) {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+      <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
         <Clock size={18} />
         Historial de actividad
       </h3>
@@ -148,15 +148,14 @@ export function HistorialSection({ userId }: HistorialSectionProps) {
         {activities.map((item) => (
           <div
             key={item.id}
-            className="flex items-start gap-3 p-3 rounded-lg transition-colors hover:bg-opacity-50"
-            style={{ backgroundColor: '#111827' }}
+            className="flex items-start gap-3 p-3 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 bg-slate-50 dark:bg-slate-800/50"
           >
             <div className="flex-shrink-0 mt-0.5">
               {getActionIcon(item.action)}
             </div>
             
             <div className="flex-1 min-w-0">
-              <p className="text-white text-sm font-medium">
+              <p className="text-sm font-medium">
                 {getActionText(item)}
               </p>
               <p className="text-xs" style={{ color: '#6B7280' }}>

@@ -90,17 +90,17 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
       {activeSection === 'papelera' ? (
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-foreground">
               Papelera
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               {filtered.length} proyecto{filtered.length !== 1 ? 's' : ''} eliminado{filtered.length !== 1 ? 's' : ''}
             </p>
           </div>
         </div>
       ) : (
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-slate-900">Mis Proyectos</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Mis Proyectos</h2>
           <button
             onClick={() => setIsCreateProjectOpen(true)}
             className="bg-gradient-to-r from-[#1A6CF6] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 transition-all hover:-translate-y-[1px] flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
@@ -127,10 +127,9 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Buscar proyectos..."
-            className="w-full pl-9 pr-8 py-2 rounded-lg text-sm text-slate-900 placeholder-slate-400 outline-none transition-all shadow-sm focus:ring-2 focus:ring-[#1A6CF6]/20"
-            style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}
-            onFocus={e => (e.currentTarget.style.borderColor = '#1A6CF6')}
-            onBlur={e => (e.currentTarget.style.borderColor = '#E2E8F0')}
+            className="w-full pl-9 pr-8 py-2 rounded-lg text-sm text-foreground bg-background border border-border placeholder:text-muted-foreground outline-none transition-all shadow-sm focus:ring-2 focus:ring-primary/20"
+            onFocus={e => (e.currentTarget.style.borderColor = 'var(--primary)')}
+            onBlur={e => (e.currentTarget.style.borderColor = '')}
           />
           {query && (
             <button
@@ -145,27 +144,18 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
 
         {/* Toggle grid/lista */}
         <div
-          className="flex items-center rounded-lg overflow-hidden flex-shrink-0"
-          style={{ border: '1px solid #E2E8F0' }}
+          className="flex items-center rounded-lg overflow-hidden flex-shrink-0 border border-border"
         >
           <button
             onClick={() => handleViewMode('grid')}
-            className="p-2 transition-colors"
-            style={{
-              backgroundColor: viewMode === 'grid' ? '#F1F5F9' : 'transparent',
-              color: viewMode === 'grid' ? '#0F172A' : '#64748B',
-            }}
+            className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-muted text-foreground' : 'bg-transparent text-muted-foreground'}`}
             title="Vista de grilla"
           >
             <LayoutGrid size={15} />
           </button>
           <button
             onClick={() => handleViewMode('list')}
-            className="p-2 transition-colors"
-            style={{
-              backgroundColor: viewMode === 'list' ? '#F1F5F9' : 'transparent',
-              color: viewMode === 'list' ? '#0F172A' : '#64748B',
-            }}
+            className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-muted text-foreground' : 'bg-transparent text-muted-foreground'}`}
             title="Vista de lista"
           >
             <List size={15} />
@@ -181,7 +171,7 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
             <Trash2 className="w-8 h-8 text-slate-400" />
           </div>
-          <p className="text-slate-900 font-medium text-lg">
+          <p className="text-foreground font-medium text-lg">
             La papelera está vacía
           </p>
           <p className="text-slate-500 text-sm mt-2 max-w-xs">
@@ -191,7 +181,7 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
         </div>
       ) : filtered.length === 0 && query ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-slate-900 font-medium mb-1">
+          <p className="text-foreground font-medium mb-1">
             Sin resultados para &ldquo;{query}&rdquo;
           </p>
           <p className="text-sm text-slate-500 mb-4">
@@ -206,7 +196,7 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-slate-900 font-medium mb-1">
+          <p className="text-foreground font-medium mb-1">
             Sin proyectos en esta sección
           </p>
           <p className="text-sm text-slate-500">
