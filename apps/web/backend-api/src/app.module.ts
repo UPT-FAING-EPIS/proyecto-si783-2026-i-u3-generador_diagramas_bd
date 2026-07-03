@@ -4,6 +4,7 @@ import { CommentsModule } from './comments/comments.module';
 import { DiagramsModule } from './diagrams/diagrams.module';
 import { ProjectsModule } from './projects/projects.module';
 import { PublicLinksModule } from './public-links/public-links.module';
+import { TelemetryModule } from './telemetry/telemetry.module';
 import { UsersModule } from './users/users.module';
 import { VersionsModule } from './versions/versions.module';
 
@@ -15,7 +16,9 @@ import { VersionsModule } from './versions/versions.module';
     VersionsModule,
     CommentsModule,
     PublicLinksModule,
+    TelemetryModule,
   ],
   controllers: [AppController],
 })
 export class AppModule {}
+

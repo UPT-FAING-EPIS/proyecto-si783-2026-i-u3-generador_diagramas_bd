@@ -201,3 +201,18 @@ export const environmentGuards = pgTable('environment_guards', {
     unique('environment_guards_user_env_unique').on(table.userId, table.environment)
   ];
 });
+
+// ─── Telemetría ───────────────────────────────────────────────────────────────
+// Registra sesiones de usuarios (autenticados y anónimos) en web y desktop.
+export const telemetryEvents = pgTable('telemetry_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  // null cuando el usuario no está autenticado (sesión anónima)
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+  // 'web' | 'desktop'
+  platform: text('platform').notNull(),
+  // 'session_start' | 'page_view' | 'session_end'
+  event: text('event').notNull(),
+  // Datos adicionales: userAgent, país, versión de la app, etc.
+  metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
