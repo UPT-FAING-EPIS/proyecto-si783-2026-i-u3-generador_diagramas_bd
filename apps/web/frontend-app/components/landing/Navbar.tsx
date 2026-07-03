@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Menu, X } from 'lucide-react';
+import { Database, Menu, X, Monitor } from 'lucide-react';
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -20,10 +20,14 @@ export default function Navbar() {
 
         {/* Center Links (Desktop) */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-          <Link href="#producto" className="text-slate-600 hover:text-slate-900 transition-colors">Producto</Link>
-          <Link href="#caracteristicas" className="text-slate-600 hover:text-slate-900 transition-colors">Características</Link>
-          <Link href="#precios" className="text-slate-600 hover:text-slate-900 transition-colors">Precios</Link>
-          <Link href="#docs" className="text-slate-600 hover:text-slate-900 transition-colors">Docs</Link>
+          <Link href="/#producto" className="text-slate-600 hover:text-slate-900 transition-colors">Producto</Link>
+          <Link href="/#caracteristicas" className="text-slate-600 hover:text-slate-900 transition-colors">Características</Link>
+          <Link href="/#precios" className="text-slate-600 hover:text-slate-900 transition-colors">Precios</Link>
+          <Link href="/desktop" className="text-blue-600 font-bold hover:text-blue-700 transition-colors flex items-center gap-1">
+            <Monitor size={16} />
+            Escritorio
+          </Link>
+          <Link href="/#docs" className="text-slate-600 hover:text-slate-900 transition-colors">Docs</Link>
         </div>
 
         {/* Right Actions (Desktop) */}
@@ -62,10 +66,14 @@ export default function Navbar() {
             className="absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-xl md:hidden flex flex-col px-6 py-6 gap-6"
           >
             <div className="flex flex-col gap-4 text-base font-semibold">
-              <Link href="#producto" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 hover:text-[#1A6CF6]">Producto</Link>
-              <Link href="#caracteristicas" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 hover:text-[#1A6CF6]">Características</Link>
-              <Link href="#precios" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 hover:text-[#1A6CF6]">Precios</Link>
-              <Link href="#docs" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 hover:text-[#1A6CF6]">Docs</Link>
+              <Link href="/#producto" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 hover:text-[#1A6CF6]">Producto</Link>
+              <Link href="/#caracteristicas" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 hover:text-[#1A6CF6]">Características</Link>
+              <Link href="/#precios" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 hover:text-[#1A6CF6]">Precios</Link>
+              <Link href="/desktop" onClick={() => setIsMobileMenuOpen(false)} className="text-blue-600 hover:text-blue-700 flex items-center gap-2">
+                <Monitor size={20} />
+                App de Escritorio
+              </Link>
+              <Link href="/#docs" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-700 hover:text-[#1A6CF6]">Docs</Link>
             </div>
             <div className="h-px bg-slate-100 w-full" />
             <div className="flex flex-col gap-3">

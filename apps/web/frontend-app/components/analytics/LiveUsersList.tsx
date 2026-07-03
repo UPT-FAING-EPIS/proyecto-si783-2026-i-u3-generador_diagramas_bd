@@ -26,26 +26,41 @@ export function LiveUsersList() {
         <h3 className="text-sm font-bold text-slate-900">Usuarios en vivo ({users.length})</h3>
       </div>
       
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col gap-3">
         {users.map((u) => (
-          <div key={u.id} className="flex flex-col items-center p-3 rounded-xl bg-slate-50 border border-slate-100 transition hover:bg-slate-100 min-w-[100px]">
-            <div className="relative mb-3">
-              {u.avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={u.avatar} alt={u.name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-600 font-bold border-2 border-slate-200 shadow-sm">
-                  {u.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>
+          <div key={u.id} className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100 transition hover:bg-slate-100">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                {u.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={u.avatar} alt={u.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-slate-600 font-bold border-2 border-slate-200 shadow-sm">
+                    {u.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-slate-900">{u.name}</span>
+                {u.isAnonymous ? (
+                  <span className="text-xs text-slate-500">Navegando en la web</span>
+                ) : (
+                  <span className="text-xs text-slate-500">{u.email}</span>
+                )}
+              </div>
             </div>
-            <span className="text-xs font-bold text-slate-900 text-center truncate w-full" title={u.name}>{u.name}</span>
-            {u.isAnonymous ? (
-              <span className="text-[10px] font-medium text-slate-500 mt-0.5 bg-slate-200 px-2 py-0.5 rounded-full">Visitante</span>
-            ) : (
-              <span className="text-[10px] font-medium text-blue-600 mt-0.5 truncate max-w-full bg-blue-50 px-2 py-0.5 rounded-full" title={u.email}>{u.email?.split('@')[0]}</span>
-            )}
+            
+            <div className="flex flex-col items-end gap-1.5">
+               <span className="text-xs text-slate-400">
+                 {new Date(u.joinedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+               </span>
+               {u.isAnonymous ? (
+                 <span className="text-[10px] font-medium text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">Visitante</span>
+               ) : (
+                 <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Registrado</span>
+               )}
+            </div>
           </div>
         ))}
       </div>

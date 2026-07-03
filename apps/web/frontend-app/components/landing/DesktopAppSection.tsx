@@ -1,12 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Download, Monitor, Zap, Shield, Sparkles } from 'lucide-react';
+import { Download, Monitor, Database, LayoutTemplate, Workflow, Zap, Command } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DesktopAppSection() {
   return (
-    <section id="desktop-app" className="py-24 relative overflow-hidden bg-white mt-12 border-y border-slate-200/50">
+    <section id="desktop-app" className="pt-24 pb-16 relative overflow-hidden bg-[#fafafa]">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           
@@ -16,93 +16,107 @@ export default function DesktopAppSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-8 max-w-xl"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 w-fit text-blue-600 text-sm font-semibold">
-              <Sparkles size={16} />
-              <span>Nuevo Lanzamiento</span>
-            </div>
-            
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
-              Lleva Fluxy a tu escritorio. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Más poder, cero distracciones.</span>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1]">
+              Lleva Fluxy a tu <br />
+              escritorio.
             </h2>
             
-            <p className="text-lg text-slate-600">
-              Disfruta de una experiencia nativa increíblemente rápida. Nuestra nueva aplicación de escritorio te permite diseñar bases de datos con mayor fluidez, integración profunda con el sistema y atajos de teclado avanzados.
+            <p className="text-xl text-slate-500 font-medium leading-relaxed">
+              Disfruta de una experiencia nativa increíblemente rápida. <span className="text-slate-900">Más poder, cero distracciones.</span>
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <div>
               <Link 
                 href="/download" 
-                className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-[#1a1a1a] text-white px-8 py-4 rounded-full font-semibold transition-all shadow-xl shadow-black/10 hover:shadow-2xl hover:-translate-y-0.5"
               >
-                <Download size={20} />
                 Descargar para Windows
-              </Link>
-              <Link 
-                href="/download" 
-                className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3.5 rounded-xl font-bold transition-all border border-slate-200"
-              >
-                <Monitor size={20} />
-                Ver otras plataformas
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 mt-6">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-                  <Zap size={20} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Máximo Rendimiento</h4>
-                  <p className="text-xs text-slate-500 mt-1">Renderizado nativo acelerado para proyectos inmensos.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-violet-50 text-violet-600">
-                  <Shield size={20} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Trabajo Seguro</h4>
-                  <p className="text-xs text-slate-500 mt-1">Autoguardado local y sincronización en segundo plano.</p>
-                </div>
+            <div className="flex items-center gap-4 mt-8 pt-4">
+              <span className="text-sm font-semibold text-slate-500">Únete a cientos de equipos</span>
+              <div className="flex -space-x-3">
+                <img src="https://i.pravatar.cc/100?img=1" alt="User" className="w-8 h-8 rounded-full border-2 border-[#fafafa]" />
+                <img src="https://i.pravatar.cc/100?img=2" alt="User" className="w-8 h-8 rounded-full border-2 border-[#fafafa]" />
+                <img src="https://i.pravatar.cc/100?img=3" alt="User" className="w-8 h-8 rounded-full border-2 border-[#fafafa]" />
+                <img src="https://i.pravatar.cc/100?img=4" alt="User" className="w-8 h-8 rounded-full border-2 border-[#fafafa]" />
               </div>
             </div>
           </motion.div>
 
-          {/* Image/Visual Content */}
+          {/* Abstract Atomic Visual Content */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative w-full aspect-square flex items-center justify-center"
           >
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 rounded-[2.5rem] blur-3xl transform -rotate-6" />
-            <div className="relative rounded-3xl border border-slate-200/60 bg-white/50 backdrop-blur-sm p-4 shadow-2xl">
-              <div className="w-full h-8 flex items-center gap-2 px-2 pb-2 mb-2 border-b border-slate-100">
-                <div className="w-3 h-3 rounded-full bg-rose-400" />
-                <div className="w-3 h-3 rounded-full bg-amber-400" />
-                <div className="w-3 h-3 rounded-full bg-emerald-400" />
+            {/* Center Logo/Text */}
+            <div className="relative z-20 text-6xl font-black text-slate-900 tracking-tighter">
+              Fluxy
+            </div>
+
+            {/* Orbit Lines */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {/* Horizontal Orbit */}
+              <div className="absolute w-[90%] h-[35%] border-[1px] border-slate-200 rounded-[100%]" />
+              {/* Angled Orbit 1 */}
+              <div className="absolute w-[90%] h-[35%] border-[1px] border-slate-200 rounded-[100%] rotate-[60deg]" />
+              {/* Angled Orbit 2 */}
+              <div className="absolute w-[90%] h-[35%] border-[1px] border-slate-200 rounded-[100%] -rotate-[60deg]" />
+            </div>
+
+            {/* Orbit Nodes / Icons */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* Top Node */}
+              <div className="absolute -translate-y-[120px] translate-x-[40px] z-10">
+                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform rotate-12">
+                  <Database className="text-white w-6 h-6" />
+                </div>
               </div>
-              <div className="aspect-[4/3] rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center relative">
-                {/* Abstract mockup of the app */}
-                <div className="absolute inset-4 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col">
-                  <div className="h-10 border-b border-slate-100 flex items-center px-4 bg-slate-50 rounded-t-xl gap-4">
-                    <div className="w-32 h-4 bg-slate-200 rounded animate-pulse" />
-                    <div className="w-16 h-4 bg-slate-200 rounded animate-pulse" />
-                  </div>
-                  <div className="flex-1 flex p-4 gap-4 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
-                    <div className="w-1/4 h-full bg-white border border-slate-100 rounded-lg shadow-sm" />
-                    <div className="flex-1 h-full bg-white border border-blue-200 rounded-lg shadow-md relative overflow-hidden flex items-center justify-center">
-                       <div className="w-48 h-32 bg-blue-50 border-2 border-blue-200 rounded-lg absolute" />
-                       <div className="w-40 h-24 bg-emerald-50 border-2 border-emerald-200 rounded-lg absolute translate-x-32 translate-y-20" />
-                    </div>
-                  </div>
+              
+              {/* Bottom Node */}
+              <div className="absolute translate-y-[130px] -translate-x-[20px] z-10">
+                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6">
+                  <Command className="text-white w-6 h-6" />
+                </div>
+              </div>
+              
+              {/* Left Node */}
+              <div className="absolute -translate-x-[160px] translate-y-[10px] z-10">
+                <div className="w-12 h-12 bg-pink-500 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-12">
+                  <LayoutTemplate className="text-white w-6 h-6" />
+                </div>
+              </div>
+
+              {/* Right Node */}
+              <div className="absolute translate-x-[150px] translate-y-[70px] z-10">
+                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg transform rotate-6">
+                  <Workflow className="text-white w-6 h-6" />
+                </div>
+              </div>
+
+              {/* Top Left Node */}
+              <div className="absolute -translate-x-[80px] -translate-y-[90px] z-10">
+                <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <Zap className="text-white w-5 h-5" />
+                </div>
+              </div>
+              
+              {/* Right Edge Node */}
+              <div className="absolute translate-x-[200px] -translate-y-[10px] z-10">
+                <div className="w-10 h-10 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center shadow-md">
+                  <Monitor className="text-slate-600 w-5 h-5" />
                 </div>
               </div>
             </div>
+            
+            {/* Subtle radial gradient behind for depth */}
+            <div className="absolute inset-0 bg-radial-gradient from-white/40 to-transparent pointer-events-none" />
           </motion.div>
           
         </div>
