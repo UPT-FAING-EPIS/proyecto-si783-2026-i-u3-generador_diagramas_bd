@@ -48,7 +48,7 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
       
       if (session?.user) {
         state = {
-          id: session.user.id,
+          id: `${session.user.id}_${sessionId}`,
           isAnonymous: false,
           name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuario',
           email: session.user.email,
@@ -74,7 +74,7 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
       const newState = channel.presenceState<PresenceState>()
       const onlineUsers = Object.values(newState).flat()
       
-      // Remover duplicados por ID (si tienen múltiples pestañas abiertas)
+      // Remover duplicados estrictos por ID de sesión (protege de reconexiones)
       const uniqueUsers = Array.from(new Map(onlineUsers.map(u => [u.id, u])).values())
       setUsers(uniqueUsers)
     })

@@ -4,6 +4,7 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorks from "@/components/landing/HowItWorks";
 import FeaturesSection from "@/components/landing/FeaturesSection";
+import DesktopAppSection from "@/components/landing/DesktopAppSection";
 import BottomCTA from "@/components/landing/BottomCTA";
 import Footer from "@/components/landing/Footer";
 import { useScroll, useTransform, motion } from "framer-motion";
@@ -45,6 +46,7 @@ export default function HomePage() {
         <div className="relative z-10 w-full pt-10">
           <HowItWorks />
           <FeaturesSection />
+          <DesktopAppSection />
           <BottomCTA />
           <Footer />
         </div>

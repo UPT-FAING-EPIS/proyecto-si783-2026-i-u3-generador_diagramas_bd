@@ -8,8 +8,9 @@ export default function Footer() {
         
         <div className="md:col-span-2 flex flex-col items-start">
           <Link href="/" className="flex items-center gap-2 mb-6">
-            <div className="p-2 bg-[#1A6CF6]/20 rounded-xl">
+            <div className="flex items-center gap-2 font-bold tracking-tight text-white">
               <Database className="w-6 h-6 text-[#1A6CF6]" />
+              Fluxy
             </div>
           </Link>
           <p className="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
@@ -78,7 +79,7 @@ export default function Footer() {
       {/* Giant Typography at the bottom - Premium Watermark Style */}
       <div className="w-full flex justify-center mt-12 md:mt-20 relative pointer-events-none select-none">
         <h1 className="text-[28vw] md:text-[25vw] font-black leading-[0.75] bg-clip-text text-transparent bg-gradient-to-b from-white/[0.06] to-transparent tracking-tighter text-center whitespace-nowrap translate-y-[46%]">
-          FLUXSQL
+          FLUXY
         </h1>
       </div>
     </footer>

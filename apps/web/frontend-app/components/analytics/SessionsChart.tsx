@@ -18,47 +18,53 @@ export function SessionsChart({ data }: SessionsChartProps) {
   return (
     <div className="space-y-3">
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-slate-400">
+      <div className="flex items-center gap-4 text-xs font-medium text-slate-500 mb-2">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />
+          <span className="inline-block h-3 w-3 rounded-sm bg-blue-500" />
           Web
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-violet-500" />
+          <span className="inline-block h-3 w-3 rounded-sm bg-violet-500" />
           Desktop
         </span>
       </div>
 
       {/* Chart */}
-      <div className="flex h-40 items-end gap-0.5 overflow-x-auto pb-1">
+      <div className="flex h-64 items-end gap-1 overflow-visible mt-4 w-full">
         {data.map((d) => {
-          const webH = Math.round((d.web / maxVal) * 100)
-          const deskH = Math.round((d.desktop / maxVal) * 100)
+          const webH = Math.max(Math.round((d.web / maxVal) * 100), d.web > 0 ? 2 : 0)
+          const deskH = Math.max(Math.round((d.desktop / maxVal) * 100), d.desktop > 0 ? 2 : 0)
           const label = d.date.slice(5) // MM-DD
 
           return (
-            <div key={d.date} className="group relative flex min-w-[20px] flex-1 flex-col items-center">
+            <div key={d.date} className="group relative flex flex-1 flex-col items-center h-full justify-end">
               {/* Tooltip */}
-              <div className="pointer-events-none absolute bottom-full mb-2 hidden rounded-lg border border-slate-700 bg-[#0d1117] px-2.5 py-1.5 text-xs shadow-xl group-hover:flex flex-col gap-0.5 z-10 min-w-[90px]">
-                <span className="font-semibold text-white">{d.date}</span>
-                <span className="text-blue-400">Web: {d.web}</span>
-                <span className="text-violet-400">Desktop: {d.desktop}</span>
+              <div className="pointer-events-none absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-xl flex-col gap-1 z-50 min-w-[100px] flex items-center justify-center">
+                <span className="font-bold text-slate-800 border-b border-slate-100 pb-1 w-full text-center">{d.date}</span>
+                <div className="flex justify-between w-full mt-1">
+                  <span className="font-semibold text-blue-500">Web</span>
+                  <span className="font-bold text-slate-700">{d.web}</span>
+                </div>
+                <div className="flex justify-between w-full">
+                  <span className="font-semibold text-violet-500">Desktop</span>
+                  <span className="font-bold text-slate-700">{d.desktop}</span>
+                </div>
               </div>
 
-              {/* Bars */}
-              <div className="flex h-full w-full items-end gap-px">
+              {/* Bars container with faint background track */}
+              <div className="flex h-full w-full items-end gap-0.5 bg-slate-50/50 rounded-t-sm hover:bg-slate-100 transition-colors">
                 <div
-                  className="flex-1 rounded-t bg-blue-500/70 transition-all duration-300 group-hover:bg-blue-400"
-                  style={{ height: `${webH}%` }}
+                  className="flex-1 rounded-t-sm bg-blue-500 transition-all duration-300 group-hover:bg-blue-400"
+                  style={{ height: `${webH}%`, minHeight: webH > 0 ? '4px' : '0' }}
                 />
                 <div
-                  className="flex-1 rounded-t bg-violet-500/70 transition-all duration-300 group-hover:bg-violet-400"
-                  style={{ height: `${deskH}%` }}
+                  className="flex-1 rounded-t-sm bg-violet-500 transition-all duration-300 group-hover:bg-violet-400"
+                  style={{ height: `${deskH}%`, minHeight: deskH > 0 ? '4px' : '0' }}
                 />
               </div>
 
               {/* X Label */}
-              <span className="mt-1 hidden text-[9px] text-slate-600 sm:block">{label}</span>
+              <span className="mt-2 text-[10px] font-medium text-slate-500">{label}</span>
             </div>
           )
         })}
