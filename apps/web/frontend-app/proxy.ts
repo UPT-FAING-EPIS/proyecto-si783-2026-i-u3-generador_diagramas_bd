@@ -9,7 +9,7 @@ export async function proxy(request: NextRequest) {
   // MOCK
   if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('qnkrdqxuhkkixksxghpv')) {
     const user = null
-    const PUBLIC_ROUTES = ['/', '/login', '/register', '/desktop-link']
+    const PUBLIC_ROUTES = ['/', '/login', '/register', '/desktop', '/desktop-link']
     const isPublicRoute = PUBLIC_ROUTES.some(route =>
       request.nextUrl.pathname === route
     )
@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const PUBLIC_ROUTES = ['/', '/login', '/register', '/desktop-link']
+  const PUBLIC_ROUTES = ['/', '/login', '/register', '/desktop', '/desktop-link']
   const isPublicRoute = PUBLIC_ROUTES.some(route =>
     request.nextUrl.pathname === route
   ) || request.nextUrl.pathname.startsWith('/api/desktop-sync')

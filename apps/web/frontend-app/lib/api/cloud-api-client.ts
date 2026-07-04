@@ -1,4 +1,4 @@
-const DEFAULT_API_URL = 'http://localhost:3001';
+const DEFAULT_API_URL = '/cloud-api';
 
 export interface FluxSQLCloudClientOptions {
   baseUrl?: string;
