@@ -28,12 +28,14 @@ export default function DesktopAppSection() {
             </p>
 
             <div>
-              <Link 
-                href="/download" 
+              <a 
+                href="https://github.com/UPT-FAING-EPIS/proyecto-si783-2026-i-u3-generador_diagramas_bd"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-3 bg-[#0a0a0a] hover:bg-[#1a1a1a] text-white px-8 py-4 rounded-full font-semibold transition-all shadow-xl shadow-black/10 hover:shadow-2xl hover:-translate-y-0.5"
               >
                 Descargar para Windows
-              </Link>
+              </a>
             </div>
 
             <div className="flex items-center gap-4 mt-8 pt-4">

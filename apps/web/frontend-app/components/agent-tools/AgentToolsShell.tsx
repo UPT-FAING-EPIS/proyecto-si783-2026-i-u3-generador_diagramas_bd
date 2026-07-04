@@ -42,7 +42,9 @@ export function AgentToolsShell({ userName, userEmail, userAvatarUrl }: AgentToo
               </div>
             </div>
             <Link
-              href="/desktop-link"
+              href="https://github.com/UPT-FAING-EPIS/proyecto-si783-2026-i-u3-generador_diagramas_bd"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-lg bg-[#1A6CF6] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/15 transition hover:bg-blue-700"
             >
               <Download className="h-4 w-4" />
