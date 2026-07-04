@@ -270,32 +270,234 @@ flowchart TD
     DESK -.->|HTTPS Sync| API
 ```
 
-### 6.2.2 Diagrama de casos de uso
+### 6.2.2 Inventario de Casos de Uso (20 CUs)
 
+Para abarcar exhaustivamente el sistema implementado en la arquitectura híbrida (Tauri, Next.js, NestJS y FastAPI), se han definido **20 Casos de Uso** reales agrupados por módulos funcionales.
+
+#### Módulo I: Autenticación y Nube (NestJS API)
+1. **CU-01:** Iniciar sesión de usuario (JWT).
+2. **CU-02:** Registrar nueva cuenta de usuario.
+3. **CU-03:** Cerrar sesión de usuario.
+4. **CU-04:** Visualizar galería de proyectos guardados.
+5. **CU-05:** Crear nuevo proyecto de modelado en blanco.
+6. **CU-06:** Guardar / Sincronizar estado del diagrama (Push).
+7. **CU-07:** Cargar / Restaurar diagrama desde la nube (Pull).
+8. **CU-08:** Eliminar proyecto de la nube.
+
+#### Módulo II: Modelado Manual (Parsers TypeScript)
+9. **CU-09:** Ingresar script SQL DDL manualmente.
+10. **CU-10:** Parsear script DDL a diagrama en tiempo real.
+11. **CU-11:** Ingresar estructura mediante JSON Schema.
+12. **CU-12:** Parsear JSON Schema a diagrama.
+
+#### Módulo III: Interacción y Exportación (UI Mermaid.js)
+13. **CU-13:** Ampliar o reducir lienzo (Zoom In/Out).
+14. **CU-14:** Desplazarse por el diagrama (Paneo).
+15. **CU-15:** Exportar diagrama a imagen PNG.
+16. **CU-16:** Exportar diagrama a vector SVG.
+17. **CU-17:** Exportar diagrama a código Mermaid nativo.
+
+#### Módulo IV: Extracción Local (Sidecar FastAPI)
+18. **CU-18:** Registrar credenciales de Base de Datos local.
+19. **CU-19:** Ejecutar introspección de Base de Datos local.
+20. **CU-20:** Transformar metadatos crudos a `SchemaModel`.
+
+### 6.2.3 Escenarios y Diagramas de Casos de Uso
+
+A continuación se detallan y grafican los 20 Casos de Uso implementados en FluxSQL.
+
+#### CU-01: Iniciar sesión de usuario
+**Actor:** Usuario
+**Descripción:** El usuario se autentica contra el API Cloud para obtener un JWT válido.
 ```mermaid
-flowchart LR
-    U["Usuario estándar"] --> UC1["Gestionar proyectos y versiones"]
-    U --> UC2["Dibujar diagrama manualmente (DDL)"]
-    U --> UC3["Exportar PNG/SVG"]
-    
-    T["Usuario técnico / DBA"] --> UC1
-    T --> UC3
-    T --> UC4["Conectar BD Local vía Sidecar"]
-    T --> UC5["Extraer metadata de BD"]
-    T --> UC6["Sincronizar a Cloud API"]
-    
-    UC4 --> S["FluxSQL Sidecar"]
-    UC5 --> S
+sequenceDiagram
+    Usuario->>UI: Ingresa email y contraseña
+    UI->>NestJS Cloud: POST /auth/login
+    NestJS Cloud-->>UI: 200 OK (Devuelve JWT Token)
 ```
 
-### 6.2.3 Escenarios de casos de uso (narrativas)
+#### CU-02: Registrar nueva cuenta de usuario
+**Actor:** Usuario
+**Descripción:** Creación de una nueva identidad en la base de datos de usuarios en la nube.
+```mermaid
+sequenceDiagram
+    Usuario->>UI: Completa formulario de registro
+    UI->>NestJS Cloud: POST /auth/register
+    NestJS Cloud-->>UI: 201 Created (Usuario registrado)
+```
 
-| Caso de uso                   | Actor   | Flujo principal                                                                                | Resultado                                           |
-|-------------------------------|---------|------------------------------------------------------------------------------------------------|-----------------------------------------------------|
-| CU-01 Dibujar DDL manual      | Usuario | Ingresa DDL en el editor; el parser evalúa sintaxis y actualiza modelo visual.                 | Diagrama actualizado en pantalla en < 500ms.        |
-| CU-02 Extraer esquema BD      | DBA     | Ingresa credenciales locales; Sidecar conecta, extrae info cruda y convierte a SchemaModel JSON| Diagrama relacional fiel a la base de datos local.  |
-| CU-03 Sincronizar nube        | Usuario | Clic en "Guardar versión". La Desktop App envía el `SchemaModel` por HTTPS al API de NestJS.   | Nueva versión disponible online para el equipo.     |
-| CU-04 Exportar gráfico        | Usuario | Clic en "Exportar PNG". El motor Mermaid extrae un canvas renderizado y fuerza descarga.       | Archivo de imagen generado.                         |
+#### CU-03: Cerrar sesión de usuario
+**Actor:** Usuario
+**Descripción:** Se destruye el token local del usuario, finalizando su acceso a la nube.
+```mermaid
+flowchart LR
+    U["Usuario"] -->|Cierra sesión| A["Limpia LocalStorage"]
+    A --> B["Redirige a /login"]
+```
+
+#### CU-04: Visualizar galería de proyectos guardados
+**Actor:** Usuario Autenticado
+**Descripción:** El sistema consulta al Cloud API todos los diagramas asociados al usuario.
+```mermaid
+sequenceDiagram
+    UI->>NestJS Cloud: GET /projects (con JWT)
+    NestJS Cloud-->>UI: 200 OK (Array de Proyectos)
+    UI->>Usuario: Muestra galería de tarjetas
+```
+
+#### CU-05: Crear nuevo proyecto de modelado
+**Actor:** Usuario Autenticado
+**Descripción:** Se inicializa un lienzo en blanco para un nuevo diagrama de base de datos.
+```mermaid
+flowchart LR
+    A["Usuario hace clic en Nuevo"] --> B["UI genera UUID temporal"]
+    B --> C["Se inicializa SchemaModel vacío"]
+    C --> D["Abre lienzo de Mermaid"]
+```
+
+#### CU-06: Guardar / Sincronizar estado del diagrama (Push)
+**Actor:** Usuario Autenticado
+**Descripción:** Se envía el JSON abstracto del diagrama actual hacia el backend NestJS.
+```mermaid
+sequenceDiagram
+    Usuario->>UI: Clic en Guardar
+    UI->>NestJS Cloud: PUT /projects/{id} (SchemaModel)
+    NestJS Cloud-->>UI: 200 OK (Sincronizado)
+```
+
+#### CU-07: Cargar / Restaurar diagrama desde la nube (Pull)
+**Actor:** Usuario Autenticado
+**Descripción:** Descarga un diagrama previamente guardado y lo renderiza en pantalla.
+```mermaid
+sequenceDiagram
+    UI->>NestJS Cloud: GET /projects/{id}
+    NestJS Cloud-->>UI: 200 OK (Retorna SchemaModel)
+    UI->>UI: Mermaid dibuja diagrama
+```
+
+#### CU-08: Eliminar proyecto de la nube
+**Actor:** Usuario Autenticado
+**Descripción:** Eliminación lógica o física de un proyecto en la base de datos remota.
+```mermaid
+flowchart LR
+    A["Usuario confirma eliminación"] --> B["DELETE /projects/{id}"]
+    B --> C["NestJS borra registro"]
+    C --> D["UI actualiza galería"]
+```
+
+#### CU-09: Ingresar script SQL DDL manualmente
+**Actor:** Usuario (Frontend)
+**Descripción:** Interacción con el editor de código integrado (Monaco Editor) para escribir sentencias CREATE TABLE.
+```mermaid
+flowchart LR
+    U["Usuario"] -->|Escribe DDL| E["Monaco Editor"]
+    E -->|Resalta sintaxis SQL| U
+```
+
+#### CU-10: Parsear script DDL a diagrama
+**Actor:** Parser Automático (Client-side)
+**Descripción:** El código DDL se compila en el navegador a un objeto JSON, generando el modelo visual.
+```mermaid
+sequenceDiagram
+    Editor->>SQLDDLParser: Pasa string SQL DDL (Debounce 300ms)
+    SQLDDLParser-->>UI: Retorna SchemaModel
+    UI->>UI: Dibuja ERD en Mermaid
+```
+
+#### CU-11: Ingresar estructura mediante JSON Schema
+**Actor:** Usuario (Frontend)
+**Descripción:** Similar al DDL, pero ingresando objetos JSON para modelado de colecciones NoSQL.
+```mermaid
+flowchart LR
+    U["Usuario"] -->|Escribe JSON| E["Monaco Editor JSON"]
+    E -->|Valida llaves| U
+```
+
+#### CU-12: Parsear JSON Schema a diagrama
+**Actor:** Parser Automático (Client-side)
+**Descripción:** Transforma la jerarquía JSON en un esquema relacional visual.
+```mermaid
+sequenceDiagram
+    Editor->>JSONParser: Pasa string JSON
+    JSONParser-->>UI: Retorna SchemaModel
+    UI->>UI: Dibuja ERD en Mermaid
+```
+
+#### CU-13: Ampliar o reducir lienzo (Zoom)
+**Actor:** Usuario
+**Descripción:** Uso del scroll o botones para acercar/alejar la vista del diagrama Mermaid.
+```mermaid
+flowchart LR
+    A["Usuario hace Scroll"] --> B["D3.js Zoom Module"]
+    B --> C["Escala SVG ViewBox"]
+```
+
+#### CU-14: Desplazarse por el diagrama (Paneo)
+**Actor:** Usuario
+**Descripción:** Arrastrar el lienzo para inspeccionar áreas ocultas de diagramas masivos.
+```mermaid
+flowchart LR
+    A["Usuario arrastra ratón"] --> B["D3.js Pan Module"]
+    B --> C["Traslada SVG ViewBox X, Y"]
+```
+
+#### CU-15: Exportar diagrama a imagen PNG
+**Actor:** Usuario
+**Descripción:** Renderiza el SVG actual a un Canvas HTML5 y lo descarga como `.png`.
+```mermaid
+sequenceDiagram
+    Usuario->>UI: Clic Exportar PNG
+    UI->>UI: Convierte SVG a Canvas
+    UI->>Usuario: Forza descarga de archivo png
+```
+
+#### CU-16: Exportar diagrama a vector SVG
+**Actor:** Usuario
+**Descripción:** Descarga limpia del nodo DOM SVG generado por Mermaid.
+```mermaid
+flowchart LR
+    A["Extraer tag svg"] --> B["Codificar a Base64 / Blob"]
+    B --> C["Descargar archivo svg"]
+```
+
+#### CU-17: Exportar diagrama a código Mermaid
+**Actor:** Usuario
+**Descripción:** Se recupera el texto plano que alimenta al renderizador gráfico.
+```mermaid
+flowchart LR
+    A["Obtener string mmd"] --> B["Crear Blob texto plano"]
+    B --> C["Descargar archivo mmd"]
+```
+
+#### CU-18: Registrar credenciales de Base de Datos local
+**Actor:** DBA / Usuario Técnico (Desktop)
+**Descripción:** Guarda en la aplicación de escritorio las IPs y claves de acceso.
+```mermaid
+sequenceDiagram
+    DBA->>Tauri UI: Ingresa Host, DB, User, Pass
+    Tauri UI->>OS Keyring: Almacena contraseña cifrada
+    Tauri UI->>Local Storage: Almacena Host y Puerto
+```
+
+#### CU-19: Ejecutar introspección de Base de Datos local
+**Actor:** Python Sidecar (Backend Local)
+**Descripción:** Se conecta al motor local y consulta la tabla `information_schema` o `sqlite_master`.
+```mermaid
+sequenceDiagram
+    Tauri UI->>FastAPI Sidecar: POST /extract
+    FastAPI Sidecar->>DB Local: SELECT * FROM information_schema
+    DB Local-->>FastAPI Sidecar: Retorna tablas, columnas y FKs
+```
+
+#### CU-20: Transformar metadatos crudos a SchemaModel
+**Actor:** Python Sidecar (Backend Local)
+**Descripción:** Convierte los tipos de datos dispares (PG, MySQL) a la interfaz universal JSON.
+```mermaid
+flowchart LR
+    A["Metadatos Crudos PG / MySQL"] --> B["Python Schema Mapper"]
+    B --> C["Serializa a SchemaModel JSON"]
+    C --> D["Retorna JSON a Tauri UI"]
+```
 
 ## 6.3 Modelo Lógico
 

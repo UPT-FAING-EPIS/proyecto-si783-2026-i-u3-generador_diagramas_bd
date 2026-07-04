@@ -226,16 +226,16 @@ Se utilizó una adaptación de la metodología iterativa e incremental enfocada 
 4. **Fase 4: Sincronización Segura:** Levantar el backend de NestJS con políticas estrictas de DTOs, asegurando que la conexión local nunca viajase.
 5. **Fase 5: Empaquetado:** Automatización con GitHub Actions y Tauri Builder.
 
-## Módulos Implementados
+## Módulos y Casos de Uso Implementados
 
-| Módulo | Responsabilidad central | Repositorio / Ruta |
-|--------|-------------------------|--------------------|
-| `apps/web` | Portal colaborativo y editor manual. | Next.js App Router |
-| `apps/desktop` | Contenedor Tauri y binding local. | Tauri + WebView |
-| `apps/backend-api` | Rutas REST para versión y JWT Auth. | NestJS Modules |
-| `apps/backend-python`| Ejecutor de queries nativos y cifrado. | FastAPI Routers |
-| `packages/parsers` | Generación pura de abstracciones lógicas. | TS Library |
-| `packages/ui` | Sistema de diseño Tailwind compartido. | React Components |
+El sistema fue estructurado en 4 dominios funcionales que abarcan **20 Casos de Uso** documentados exhaustivamente en la Especificación de Requerimientos (FD03).
+
+| Módulo Lógico | Casos de Uso Abarcados | Componente Principal en Monorepo |
+|---------------|-------------------------|----------------------------------|
+| **I. Autenticación y Nube** | CU-01 al CU-08 (Auth, Proyectos, Push/Pull) | `apps/backend-api` (NestJS) |
+| **II. Modelado Manual** | CU-09 al CU-12 (Parseo DDL y JSON Schema) | `packages/parsers` (TypeScript) |
+| **III. Interacción Visual**| CU-13 al CU-17 (Zoom, Paneo, Exportación PNG/SVG)| `packages/ui` (React / Mermaid.js) |
+| **IV. Extracción Local**| CU-18 al CU-20 (Credenciales seguras, Introspección)| `apps/desktop/backend-python` (FastAPI) |
 
 ## Arquitectura y Flujo de Análisis
 

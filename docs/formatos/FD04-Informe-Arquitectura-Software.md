@@ -171,19 +171,50 @@ No incluye herramientas para migración destructiva de bases de datos, ya que el
 
 ```mermaid
 flowchart LR
-    U["Usuario estándar"] --> UC1["Gestionar proyectos y diagramas"]
-    U --> UC2["Dibujar diagrama manualmente"]
-    U --> UC3["Exportar diagrama a PNG/SVG"]
-    
-    T["Usuario técnico"] --> UC1
-    T --> UC3
-    T --> UC4["Conectar BD Local vía Sidecar"]
-    T --> UC5["Extraer esquema"]
-    T --> UC6["Sincronizar hacia Cloud API"]
-    T --> UC7["Ejecutar Skills locales"]
-    
-    A["Administrador"] --> UC8["Consultar Dashboard y Auditoría"]
-    A --> UC9["Gestionar perfiles de acceso"]
+    subgraph M1 ["Módulo I: Autenticación y Nube"]
+        direction TB
+        CU01["CU-01: Iniciar sesión JWT"]
+        CU02["CU-02: Registrar cuenta"]
+        CU03["CU-03: Cerrar sesión"]
+        CU04["CU-04: Ver galería"]
+        CU05["CU-05: Crear proyecto"]
+        CU06["CU-06: Sincronizar Push"]
+        CU07["CU-07: Restaurar Pull"]
+        CU08["CU-08: Eliminar proyecto"]
+    end
+
+    subgraph M2 ["Módulo II: Modelado Manual"]
+        direction TB
+        CU09["CU-09: Ingresar DDL"]
+        CU10["CU-10: Parsear DDL"]
+        CU11["CU-11: Ingresar JSON Schema"]
+        CU12["CU-12: Parsear JSON"]
+    end
+
+    subgraph M3 ["Módulo III: Interacción Visual"]
+        direction TB
+        CU13["CU-13: Zoom In/Out"]
+        CU14["CU-14: Paneo de lienzo"]
+        CU15["CU-15: Exportar PNG"]
+        CU16["CU-16: Exportar SVG"]
+        CU17["CU-17: Exportar Mermaid"]
+    end
+
+    subgraph M4 ["Módulo IV: Extracción Local"]
+        direction TB
+        CU18["CU-18: Registrar credenciales"]
+        CU19["CU-19: Introspección BD"]
+        CU20["CU-20: Convertir a SchemaModel"]
+    end
+
+    U["Usuario Frontend"] --> M1
+    U --> M2
+    U --> M3
+    DBA["Usuario Técnico / DBA"] --> M4
+    DBA --> M1
+    DBA --> M3
+    SYS["Sistema / Parsers"] --> M4
+    SYS --> M2
 ```
 
 ## 3.2 Vista lógica
