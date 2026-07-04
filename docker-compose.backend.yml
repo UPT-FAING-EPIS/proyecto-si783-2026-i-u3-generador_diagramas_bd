@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/web/backend-api/Dockerfile
+    container_name: fluxsql-backend-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000,https://*.vercel.app}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+    ports:
+      - "${API_PORT:-3001}:3001"

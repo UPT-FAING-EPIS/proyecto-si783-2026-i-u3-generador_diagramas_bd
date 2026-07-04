@@ -123,5 +123,15 @@ export async function getMockAnalyticsSummary(): Promise<AnalyticsSummary> {
     // ── Series de tiempo ────────────────────────────────────────────────────
     dailySessions:  generateDailySessionsLast30Days(),
     dailyNewUsers:  generateDailyNewUsersLast30Days(),
+
+    // ── Listados Recientes ──────────────────────────────────────────────────
+    recentUsers: [
+      { id: '1', name: 'Alice', email: 'alice@example.com', avatarUrl: null, createdAt: new Date() },
+      { id: '2', name: 'Bob', email: 'bob@example.com', avatarUrl: null, createdAt: new Date() },
+    ],
+    recentProjects: [
+      { id: '1', name: 'Project A', createdAt: new Date(), ownerName: 'Alice', ownerEmail: 'alice@example.com' },
+      { id: '2', name: 'Project B', createdAt: new Date(), ownerName: 'Bob', ownerEmail: 'bob@example.com' },
+    ]
   }
 }

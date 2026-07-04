@@ -1,0 +1,75 @@
+name: Desktop Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example desktop-v0.1.1"
+        required: true
+        default: "desktop-v0.1.0"
+  push:
+    tags:
+      - "desktop-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows-installer:
+    name: Build Windows installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install NSIS
+        shell: powershell
+        run: choco install nsis -y
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build desktop installer
+        run: pnpm --filter @fluxsql/desktop desktop:build
+
+      - name: Calculate checksum
+        id: checksum
+        shell: powershell
+        run: |
+          $asset = "apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis/FluxSQL_0.1.0_x64-setup.exe"
+          $hash = (Get-FileHash $asset -Algorithm SHA256).Hash
+          "sha256=$hash" >> $env:GITHUB_OUTPUT
+          "FluxSQL_0.1.0_x64-setup.exe SHA256: $hash" | Out-File -FilePath desktop-release-notes.txt -Encoding utf8
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FluxSQL_0.1.0_x64-setup
+          path: apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis/FluxSQL_0.1.0_x64-setup.exe
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: FluxSQL Desktop ${{ github.event.inputs.tag || github.ref_name }}
+          body_path: desktop-release-notes.txt
+          files: apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis/FluxSQL_0.1.0_x64-setup.exe

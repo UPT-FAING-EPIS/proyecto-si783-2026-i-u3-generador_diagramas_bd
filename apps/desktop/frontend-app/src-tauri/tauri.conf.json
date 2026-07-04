@@ -37,6 +37,9 @@
     "resources": [
       "../../../../scripts/fluxsql-mcp-stdio.mjs"
     ],
+    "externalBin": [
+      "binaries/fluxsql-sidecar"
+    ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
     }
