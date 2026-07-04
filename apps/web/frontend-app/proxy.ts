@@ -47,6 +47,7 @@ export async function proxy(request: NextRequest) {
   const isPublicRoute = PUBLIC_ROUTES.some(route =>
     request.nextUrl.pathname === route
   ) || request.nextUrl.pathname.startsWith('/api/desktop-sync')
+    || request.nextUrl.pathname.startsWith('/cloud-api')
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
