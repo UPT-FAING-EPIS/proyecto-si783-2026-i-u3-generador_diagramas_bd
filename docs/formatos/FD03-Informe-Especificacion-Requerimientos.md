@@ -12,7 +12,7 @@
 
 **Plataforma de Modelado y Sincronización de Diagramas (FluxSQL)**
 
-Curso: *Gestión de Proyectos / Ingeniería de Software*
+Curso: *Base de Datos II*
 
 Docente: *Mag. Patrick Cuadros Quiroga*
 
@@ -114,7 +114,7 @@ de software de calidad con impacto académico y social.
 flowchart TD
     UPT["Universidad Privada de Tacna"] --> FI["Facultad de Ingeniería"]
     FI --> EPIS["Escuela Profesional de Ingeniería de Sistemas"]
-    EPIS --> CURSO["Curso: Gestión de Proyectos / Ing. Software"]
+    EPIS --> CURSO["Curso: Base de Datos II"]
     CURSO --> DOC["Docente Evaluador"]
     CURSO --> EQ["Equipo del Proyecto FluxSQL"]
 ```

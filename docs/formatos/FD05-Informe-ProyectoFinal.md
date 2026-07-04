@@ -12,7 +12,7 @@
 
 **Plataforma de Modelado y Sincronización de Diagramas (FluxSQL)**
 
-Curso: *Gestión de Proyectos / Ingeniería de Software*
+Curso: *Base de Datos II*
 
 Docente: *Mag. Patrick Cuadros Quiroga*
 
