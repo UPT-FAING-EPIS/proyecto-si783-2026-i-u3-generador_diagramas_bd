@@ -171,19 +171,19 @@ No incluye herramientas para migración destructiva de bases de datos, ya que el
 
 ```mermaid
 flowchart LR
-    U[Usuario estándar] --> UC1[Gestionar proyectos y diagramas]
-    U --> UC2[Dibujar diagrama manualmente]
-    U --> UC3[Exportar diagrama a PNG/SVG]
+    U["Usuario estándar"] --> UC1["Gestionar proyectos y diagramas"]
+    U --> UC2["Dibujar diagrama manualmente"]
+    U --> UC3["Exportar diagrama a PNG/SVG"]
     
-    T[Usuario técnico] --> UC1
+    T["Usuario técnico"] --> UC1
     T --> UC3
-    T --> UC4[Conectar BD Local vía Sidecar]
-    T --> UC5[Extraer esquema]
-    T --> UC6[Sincronizar hacia Cloud API]
-    T --> UC7[Ejecutar Skills locales]
+    T --> UC4["Conectar BD Local vía Sidecar"]
+    T --> UC5["Extraer esquema"]
+    T --> UC6["Sincronizar hacia Cloud API"]
+    T --> UC7["Ejecutar Skills locales"]
     
-    A[Administrador] --> UC8[Consultar Dashboard y Auditoría]
-    A --> UC9[Gestionar perfiles de acceso]
+    A["Administrador"] --> UC8["Consultar Dashboard y Auditoría"]
+    A --> UC9["Gestionar perfiles de acceso"]
 ```
 
 ## 3.2 Vista lógica
@@ -192,12 +192,12 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    WEB[apps/web]
-    DESK[apps/desktop]
-    API[apps/backend-api]
-    SIDECAR[apps/backend-python]
-    UI[@fluxsql/ui]
-    PARSERS[@fluxsql/parsers]
+    WEB["apps/web"]
+    DESK["apps/desktop"]
+    API["apps/backend-api"]
+    SIDECAR["apps/backend-python"]
+    UI["@fluxsql/ui"]
+    PARSERS["@fluxsql/parsers"]
 
     WEB --> UI
     WEB --> PARSERS
@@ -208,8 +208,8 @@ flowchart TD
     DESK -.->|IPC/HTTP| SIDECAR
     DESK -.->|HTTP/Sync| API
 
-    SIDECAR --> LOCAL_DB[(Bases de datos locales)]
-    API --> CLOUD_DB[(PostgreSQL Cloud)]
+    SIDECAR --> LOCAL_DB[("Bases de datos locales")]
+    API --> CLOUD_DB[("PostgreSQL Cloud")]
 ```
 
 ### 3.2.2 Diagrama de secuencia (vista de diseño)
@@ -239,13 +239,13 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    A[1 Usuario guarda cambios] --> B[2 UIController orquesta petición]
-    B --> C[3 SchemaStore local valida objeto]
-    C --> D[4 SyncManager]
-    D --> E[5 CloudApiClient envía payload]
-    E --> F[6 NestJS Router]
-    F --> G[7 DiagramService verifica permisos]
-    G --> H[8 Database Repository Cloud]
+    A["1 Usuario guarda cambios"] --> B["2 UIController orquesta petición"]
+    B --> C["3 SchemaStore local valida objeto"]
+    C --> D["4 SyncManager"]
+    D --> E["5 CloudApiClient envía payload"]
+    E --> F["6 NestJS Router"]
+    F --> G["7 DiagramService verifica permisos"]
+    G --> H["8 Database Repository Cloud"]
 ```
 
 ### 3.2.4 Diagrama de objetos
@@ -345,24 +345,24 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    subgraph C1[Capa de Presentación Web/Desktop]
-        NEXT[Next.js App Router]
-        TAURI[Tauri Core Binaries]
+    subgraph C1["Capa de Presentación Web/Desktop"]
+        NEXT["Next.js App Router"]
+        TAURI["Tauri Core Binaries"]
     end
 
-    subgraph C2[Lógica de Aplicación Local]
-        FASTAPI[Sidecar FastAPI]
-        MCP[MCP Bridge]
+    subgraph C2["Lógica de Aplicación Local"]
+        FASTAPI["Sidecar FastAPI"]
+        MCP["MCP Bridge"]
     end
 
-    subgraph C3[Core Cloud API]
-        NEST[NestJS Modules]
-        AUTH[Auth/JWT Guard]
+    subgraph C3["Core Cloud API"]
+        NEST["NestJS Modules"]
+        AUTH["Auth/JWT Guard"]
     end
 
-    subgraph C4[Integraciones y Parsers]
-        PARSERS[@fluxsql/parsers]
-        DRIVERS[Python DB Drivers: psycopg2, pymysql]
+    subgraph C4["Integraciones y Parsers"]
+        PARSERS["@fluxsql/parsers"]
+        DRIVERS["Python DB Drivers: psycopg2, pymysql"]
     end
 
     TAURI --> NEXT
@@ -378,16 +378,16 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    C0[Tauri Window] --> C1[Next.js Frontend]
-    C1 --> C2[SchemaParser.ts]
-    C1 --> C3[SidecarClient.ts]
-    C1 --> C4[CloudSyncService.ts]
-    C3 --> C5[FastAPI Router (Local)]
-    C5 --> C6[CryptoService.py]
-    C5 --> C7[ExtractorFactory.py]
-    C4 --> C8[NestJS API (Cloud)]
-    C8 --> C9[DiagramsController.ts]
-    C8 --> C10[Prisma ORM]
+    C0["Tauri Window"] --> C1["Next.js Frontend"]
+    C1 --> C2["SchemaParser.ts"]
+    C1 --> C3["SidecarClient.ts"]
+    C1 --> C4["CloudSyncService.ts"]
+    C3 --> C5["FastAPI Router (Local)"]
+    C5 --> C6["CryptoService.py"]
+    C5 --> C7["ExtractorFactory.py"]
+    C4 --> C8["NestJS API (Cloud)"]
+    C8 --> C9["DiagramsController.ts"]
+    C8 --> C10["Prisma ORM"]
 ```
 
 ## 3.4 Vista de procesos
@@ -396,19 +396,19 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A([Inicio]) --> B[Usuario solicita modelado]
-    B --> C{¿Modo local o manual?}
-    C -- Local --> D[Sidecar consulta BD]
-    D --> E[Generación de SchemaModel]
-    C -- Manual --> F[Usuario escribe código DDL]
-    F --> G[Parser web genera SchemaModel]
-    E --> H[Renderizado visual con Mermaid]
+    A(["Inicio"]) --> B["Usuario solicita modelado"]
+    B --> C{"¿Modo local o manual?"}
+    C -- "Local" --> D["Sidecar consulta BD"]
+    D --> E["Generación de SchemaModel"]
+    C -- "Manual" --> F["Usuario escribe código DDL"]
+    F --> G["Parser web genera SchemaModel"]
+    E --> H["Renderizado visual con Mermaid"]
     G --> H
-    H --> I{¿Sincronizar a la nube?}
-    I -- Sí --> J[Cloud API valida sesión JWT]
-    J --> K[Se inserta JSON en base de datos Cloud]
-    I -- No --> L[Se guarda localmente]
-    K --> M([Fin])
+    H --> I{"¿Sincronizar a la nube?"}
+    I -- "Sí" --> J["Cloud API valida sesión JWT"]
+    J --> K["Se inserta JSON en base de datos Cloud"]
+    I -- "No" --> L["Se guarda localmente"]
+    K --> M(["Fin"])
     L --> M
 ```
 
@@ -418,25 +418,25 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph Cloud[Vercel / AWS Cloud]
-        API[NestJS Docker Container]
-        DB[(Cloud PostgreSQL)]
+    subgraph Cloud["Vercel / AWS Cloud"]
+        API["NestJS Docker Container"]
+        DB[("Cloud PostgreSQL")]
         API <--> DB
     end
 
-    subgraph Local[Entorno del Usuario]
-        OS[Windows / macOS / Linux]
-        subgraph FluxApp[App Desktop Instalada]
-            UI[Binario Tauri]
-            SC[Binario Python FastAPI]
+    subgraph Local["Entorno del Usuario"]
+        OS["Windows / macOS / Linux"]
+        subgraph FluxApp["App Desktop Instalada"]
+            UI["Binario Tauri"]
+            SC["Binario Python FastAPI"]
         end
         OS --- UI
         UI <--> SC
-        DB_USER[(Base de Datos del Usuario)]
+        DB_USER[("Base de Datos del Usuario")]
         SC <--> DB_USER
     end
 
-    UI == Sincronización HTTPS ==> API
+    UI == "Sincronización HTTPS" ==> API
 ```
 
 # 4. Atributos de calidad del software

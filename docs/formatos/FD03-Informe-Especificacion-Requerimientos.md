@@ -112,11 +112,11 @@ de software de calidad con impacto académico y social.
 
 ```mermaid
 flowchart TD
-    UPT[Universidad Privada de Tacna] --> FI[Facultad de Ingeniería]
-    FI --> EPIS[Escuela Profesional de Ingeniería de Sistemas]
-    EPIS --> CURSO[Curso: Gestión de Proyectos / Ing. Software]
-    CURSO --> DOC[Docente Evaluador]
-    CURSO --> EQ[Equipo del Proyecto FluxSQL]
+    UPT["Universidad Privada de Tacna"] --> FI["Facultad de Ingeniería"]
+    FI --> EPIS["Escuela Profesional de Ingeniería de Sistemas"]
+    EPIS --> CURSO["Curso: Gestión de Proyectos / Ing. Software"]
+    CURSO --> DOC["Docente Evaluador"]
+    CURSO --> EQ["Equipo del Proyecto FluxSQL"]
 ```
 
 # 3. Visionamiento de la Empresa
@@ -182,13 +182,13 @@ Modelado híbrido y automatizado con FluxSQL.
 
 ```mermaid
 flowchart LR
-    A[Usuario instala FluxSQL Desktop] --> B[Registra credenciales seguras de BD local]
-    B --> C[Local Sidecar extrae metadatos (Information Schema)]
-    C --> D[Sidecar convierte a SchemaModel JSON]
-    D --> E[Tauri UI renderiza diagrama Mermaid automáticamente]
-    E --> F[Usuario edita el diagrama o añade notas]
-    F --> G[Sincronización a Cloud API NestJS sin enviar credenciales]
-    G --> H[Equipo consulta la versión actualizada en Web App]
+    A["Usuario instala FluxSQL Desktop"] --> B["Registra credenciales seguras de BD local"]
+    B --> C["Local Sidecar extrae metadatos (Information Schema)"]
+    C --> D["Sidecar convierte a SchemaModel JSON"]
+    D --> E["Tauri UI renderiza diagrama Mermaid automáticamente"]
+    E --> F["Usuario edita el diagrama o añade notas"]
+    F --> G["Sincronización a Cloud API NestJS sin enviar credenciales"]
+    G --> H["Equipo consulta la versión actualizada en Web App"]
 ```
 
 # 5. Especificacion de Requerimientos de Software
@@ -254,12 +254,12 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    WEB[apps/web : Next.js UI]
-    DESK[apps/desktop : Tauri]
-    API[apps/backend-api : NestJS]
-    SIDE[apps/desktop/backend-python : FastAPI]
-    PKG_UI[packages/ui : React Components]
-    PKG_PRS[packages/parsers : Data Modeling]
+    WEB["apps/web : Next.js UI"]
+    DESK["apps/desktop : Tauri"]
+    API["apps/backend-api : NestJS"]
+    SIDE["apps/desktop/backend-python : FastAPI"]
+    PKG_UI["packages/ui : React Components"]
+    PKG_PRS["packages/parsers : Data Modeling"]
 
     WEB --> PKG_UI
     WEB --> PKG_PRS
@@ -274,17 +274,17 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    U[Usuario estándar] --> UC1[Gestionar proyectos y versiones]
-    U --> UC2[Dibujar diagrama manualmente (DDL)]
-    U --> UC3[Exportar PNG/SVG]
+    U["Usuario estándar"] --> UC1["Gestionar proyectos y versiones"]
+    U --> UC2["Dibujar diagrama manualmente (DDL)"]
+    U --> UC3["Exportar PNG/SVG"]
     
-    T[Usuario técnico / DBA] --> UC1
+    T["Usuario técnico / DBA"] --> UC1
     T --> UC3
-    T --> UC4[Conectar BD Local vía Sidecar]
-    T --> UC5[Extraer metadata de BD]
-    T --> UC6[Sincronizar a Cloud API]
+    T --> UC4["Conectar BD Local vía Sidecar"]
+    T --> UC5["Extraer metadata de BD"]
+    T --> UC6["Sincronizar a Cloud API"]
     
-    UC4 --> S[FluxSQL Sidecar]
+    UC4 --> S["FluxSQL Sidecar"]
     UC5 --> S
 ```
 
@@ -315,16 +315,16 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A([Inicio]) --> B[Desktop App: Usuario pide extracción local]
-    B --> C[Sidecar: ConnectionManager recupera credencial]
-    C --> D[Sidecar: Extractor se conecta a BD Local]
-    D --> E[Sidecar: Transforma metadatos a SchemaModel]
-    E --> F[Tauri UI: Recibe SchemaModel y renderiza Mermaid]
-    F --> G{¿El usuario sincroniza?}
-    G -- Sí --> H[CloudSyncService envía JSON a NestJS]
-    H --> I[DiagramsController lo inserta en DB de la nube]
-    G -- No --> J[Se preserva estado local]
-    I --> K([Fin])
+    A(["Inicio"]) --> B["Desktop App: Usuario pide extracción local"]
+    B --> C["Sidecar: ConnectionManager recupera credencial"]
+    C --> D["Sidecar: Extractor se conecta a BD Local"]
+    D --> E["Sidecar: Transforma metadatos a SchemaModel"]
+    E --> F["Tauri UI: Recibe SchemaModel y renderiza Mermaid"]
+    F --> G{"¿El usuario sincroniza?"}
+    G -- "Sí" --> H["CloudSyncService envía JSON a NestJS"]
+    H --> I["DiagramsController lo inserta en DB de la nube"]
+    G -- "No" --> J["Se preserva estado local"]
+    I --> K(["Fin"])
     J --> K
 ```
 

@@ -243,14 +243,14 @@ La arquitectura distribuye la carga: el peso lógico (introspección) descansa l
 
 ```mermaid
 flowchart LR
-    A[Usuario (Desktop)] -->|Pide extracción| B[Tauri WebView]
-    B -->|Llamada localhost| C[Sidecar Python FastAPI]
-    C -->|Query Pragma/Info Schema| D[(Base de Datos Local)]
+    A["Usuario (Desktop)"] -->|Pide extracción| B["Tauri WebView"]
+    B -->|Llamada localhost| C["Sidecar Python FastAPI"]
+    C -->|Query Pragma/Info Schema| D[("Base de Datos Local")]
     D -->|Tablas y Foráneas crudas| C
     C -->|Mapeo estructurado JSON| B
-    B -->|Editor Dibuja ERD| E((Diagrama Interactivo))
-    B -->|Sync Https con JWT| F[Cloud API NestJS]
-    F -->|Guarda Snapshot| G[(Cloud PostgreSQL)]
+    B -->|Editor Dibuja ERD| E(("Diagrama Interactivo"))
+    B -->|Sync Https con JWT| F["Cloud API NestJS"]
+    F -->|Guarda Snapshot| G[("Cloud PostgreSQL")]
 ```
 
 ### Decisión sobre el Parser Unidireccional
