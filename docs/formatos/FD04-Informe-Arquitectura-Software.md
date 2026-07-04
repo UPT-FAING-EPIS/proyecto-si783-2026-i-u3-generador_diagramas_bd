@@ -578,7 +578,7 @@ flowchart TD
     end
 
     subgraph Local["Entorno del Usuario"]
-        OS["Windows / macOS / Linux"]
+        OS["Windows / macOS"]
         subgraph FluxApp["App Desktop Instalada"]
             UI["Binario Tauri"]
             SC["Binario Python FastAPI"]
