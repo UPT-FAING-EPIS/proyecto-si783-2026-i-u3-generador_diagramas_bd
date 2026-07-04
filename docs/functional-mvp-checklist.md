@@ -21,7 +21,7 @@ Done when:
 ## Web App
 
 - Move rescued Next.js code into `apps/web/frontend-app`.
-- Rename visible product text to Fluxy.
+- Rename visible product text to FluxSQL.
 - Keep project dashboard.
 - Keep diagram editor.
 - Keep export actions.
@@ -52,7 +52,7 @@ Done when:
 
 - Move Tauri shell into `apps/desktop/frontend-app/src-tauri`.
 - Point desktop frontend to shared web UI or desktop build.
-- Rename app title and bundle metadata to Fluxy.
+- Rename app title and bundle metadata to FluxSQL.
 - Start or connect to the FastAPI local sidecar.
 - Support offline mode without login.
 
@@ -156,7 +156,7 @@ Done when:
 
 Done when:
 
-- An agent can call Fluxy locally.
+- An agent can call FluxSQL locally.
 - Agent cannot access raw credentials.
 - Risky operations do not execute directly.
 

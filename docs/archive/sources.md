@@ -1,6 +1,6 @@
 # Archived Source References
 
-Fluxy was bootstrapped as a clean monorepo. Previous Git history was intentionally not imported.
+FluxSQL was bootstrapped as a clean monorepo. Previous Git history was intentionally not imported.
 
 ## Local Rescue Snapshots
 

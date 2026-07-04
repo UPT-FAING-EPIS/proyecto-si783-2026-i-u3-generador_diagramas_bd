@@ -1,4 +1,4 @@
-# Fluxy Docs
+# FluxSQL Docs
 
 Documentation in this repo is organized around implementation phases.
 

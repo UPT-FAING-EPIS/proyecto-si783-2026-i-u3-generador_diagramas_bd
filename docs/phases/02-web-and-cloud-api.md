@@ -6,7 +6,7 @@ Make the cloud product coherent: NestJS API owns cloud data and web uses it thro
 
 ## Tasks
 
-- Rename visible product strings from FluxSQL to Fluxy.
+- Rename visible product strings from FluxSQL to FluxSQL.
 - Keep the visual editor and dashboard.
 - Move project, diagram, version and collaboration persistence behind the NestJS API.
 - Keep Supabase only if it remains the selected auth/storage provider behind NestJS.
@@ -38,9 +38,9 @@ Make the cloud product coherent: NestJS API owns cloud data and web uses it thro
 
 ## Exit Criteria
 
-- Fluxy branding is applied to the moved web/API surface. Done.
+- FluxSQL branding is applied to the moved web/API surface. Done.
 - NestJS API exposes cloud-safe modules for users, projects, diagrams, versions, comments and public links. Done.
-- Web has a typed `FluxyCloudApiClient` for NestJS calls. Done.
+- Web has a typed `FluxSQLCloudApiClient` for NestJS calls. Done.
 - Cloud artifact policy endpoint documents that credentials, backups, dumps and private query results are not accepted. Done.
 - Web can create, list and edit cloud projects through NestJS. Contract ready; persistence wiring is pending.
 - Diagrams are persisted through cloud API. Contract ready; persistence wiring is pending.
@@ -52,6 +52,6 @@ Phase 02 is contract-complete and ready for persistence wiring. The API currentl
 
 ## Verification
 
-- `pnpm list -r --depth -1` detects the Fluxy app workspaces.
-- `pnpm --filter @fluxy/api build` passes.
+- `pnpm list -r --depth -1` detects the FluxSQL app workspaces.
+- `pnpm --filter @fluxsql/api build` passes.
 - `rg "FluxSQL|fluxsql" apps/web/frontend-app apps/web/backend-api apps/desktop/frontend-app/src-tauri` returns no matches.

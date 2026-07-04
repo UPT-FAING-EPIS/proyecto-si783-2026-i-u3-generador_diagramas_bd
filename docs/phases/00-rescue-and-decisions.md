@@ -13,7 +13,7 @@ Preserve every useful piece before deleting old local repositories.
 
 ## Decisions Locked
 
-- Product name is Fluxy.
+- Product name is FluxSQL.
 - Repository is clean, without previous Git history.
 - Cloud backend is NestJS.
 - Desktop is 100 percent functional without login.

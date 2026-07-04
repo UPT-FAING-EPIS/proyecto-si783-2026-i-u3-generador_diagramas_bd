@@ -1,6 +1,7 @@
 packages:
-  - "apps/web/*"
-  - "apps/desktop/frontend-app"
+  - "frontend-app"
+  - "backend-app"
+  - "desktop-app/frontend-app"
 allowBuilds:
   esbuild: true
   sharp: true

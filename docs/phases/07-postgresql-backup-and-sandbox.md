@@ -21,9 +21,9 @@ Make safe PostgreSQL workflows real before broadening to other engines.
 
 ## Exit Criteria
 
-- Fluxy can create a local PostgreSQL backup. Done when `pg_dump` is available; otherwise returns `unavailable`.
-- Fluxy can create a Docker sandbox when Docker is available. Done through `/api/v1/safety/postgresql/sandbox`.
-- Fluxy can test a migration against sandbox. Baseline creates sandbox/fallback; migration application is deferred to safe migration workflow.
+- FluxSQL can create a local PostgreSQL backup. Done when `pg_dump` is available; otherwise returns `unavailable`.
+- FluxSQL can create a Docker sandbox when Docker is available. Done through `/api/v1/safety/postgresql/sandbox`.
+- FluxSQL can test a migration against sandbox. Baseline creates sandbox/fallback; migration application is deferred to safe migration workflow.
 - User receives a report before any real database change. Baseline endpoints return explicit status and fallback before real writes.
 
 ## Current Status

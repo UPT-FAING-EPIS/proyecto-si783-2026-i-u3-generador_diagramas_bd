@@ -2,13 +2,13 @@
 
 ## Goal
 
-Make Fluxy Desktop a local-first application that works without login.
+Make FluxSQL Desktop a local-first application that works without login.
 
 ## Tasks
 
 - Move Tauri into `apps/desktop/frontend-app/src-tauri`.
 - Move FastAPI sidecar into `apps/desktop/backend-python`.
-- Update app name, bundle identifier and window title to Fluxy.
+- Update app name, bundle identifier and window title to FluxSQL.
 - Start the local sidecar from Tauri.
 - Keep local SQLite for offline projects, diagrams and connection profiles.
 - Add a local API client in the frontend.
@@ -32,9 +32,9 @@ desktop-hybrid:
 - Desktop Tauri app is moved to `apps/desktop/frontend-app/src-tauri`. Done in Phase 01.
 - FastAPI sidecar is moved to `apps/desktop/backend-python`. Done in Phase 01.
 - Tauri sidecar boot path points to `apps/desktop/backend-python`. Done.
-- Tauri production sidecar binary is named `fluxy-sidecar`. Done.
+- Tauri production sidecar binary is named `fluxsql-sidecar`. Done.
 - Runtime helpers support `web`, `desktop-local` and `desktop-hybrid`. Done.
-- Web has a `FluxyLocalApiClient` for the sidecar. Done.
+- Web has a `FluxSQLLocalApiClient` for the sidecar. Done.
 - Desktop opens without login. Pending full app runtime test.
 - Desktop can create local projects. Existing local diagram/project routers preserved; full UI wiring pending.
 - Desktop can connect to a local database and inspect schema. Existing sidecar route preserved.

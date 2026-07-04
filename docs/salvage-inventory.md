@@ -14,8 +14,8 @@ Save:
 
 - `frontend-app`: Next.js app, visual editor, dashboard, diagram UI, export UI, auth integration ideas.
 - `backend-app`: NestJS seed for the final cloud API.
-- `doc`: product and academic references that can be rewritten as Fluxy docs.
-- Root README: useful product positioning, but rename FluxSQL to Fluxy.
+- `doc`: product and academic references that can be rewritten as FluxSQL docs.
+- Root README: useful product positioning, but rename FluxSQL to FluxSQL.
 
 Do not blindly keep:
 
@@ -48,7 +48,7 @@ Must change before production:
 - Saved connection responses must not return decrypted passwords.
 - Direct insert endpoints must move behind policy checks.
 - Local secret storage must be separated from cloud auth secrets.
-- App name, bundle identifier and visible branding must become Fluxy.
+- App name, bundle identifier and visible branding must become FluxSQL.
 
 ```txt
 base/sources/data-generator-main
@@ -72,7 +72,7 @@ Do not carry forward as product modules:
 - Separate frontend application.
 - Duplicate authentication model.
 - Duplicate admin dashboard.
-- Direct insert behavior without Fluxy policy.
+- Direct insert behavior without FluxSQL policy.
 - Documentation copied without editing.
 
 ## Salvage Buckets
@@ -115,4 +115,4 @@ Future target: curated docs under `docs/product`, `docs/architecture` and `docs/
 
 ## Final Rule
 
-`base/` was only the rescue area and is no longer part of the active product tree. Code is real only after it is moved into `apps/` or persisted through the Fluxy skill catalog and adapted to Fluxy rules.
+`base/` was only the rescue area and is no longer part of the active product tree. Code is real only after it is moved into `apps/` or persisted through the FluxSQL skill catalog and adapted to FluxSQL rules.

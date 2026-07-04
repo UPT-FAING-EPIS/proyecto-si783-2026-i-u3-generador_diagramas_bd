@@ -2,7 +2,7 @@
 
 ## Goal
 
-Turn the rescued data generator into Fluxy's internal `seed_data` skill.
+Turn the rescued data generator into FluxSQL's internal `seed_data` skill.
 
 ## Tasks
 

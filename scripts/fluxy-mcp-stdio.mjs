@@ -43,7 +43,7 @@ async function handleLine(line) {
       id: request.id,
       error: {
         code: -32000,
-        message: `Fluxy sidecar is not reachable at ${endpoint}: ${error.message}`,
+        message: `FluxSQL sidecar is not reachable at ${endpoint}: ${error.message}`,
       },
     });
   }

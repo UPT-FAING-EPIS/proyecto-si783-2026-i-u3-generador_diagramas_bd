@@ -2,7 +2,7 @@
 
 ## Goal
 
-Create the final Fluxy repository structure and move rescued code into its future home.
+Create the final FluxSQL repository structure and move rescued code into its future home.
 
 ## Tasks
 
@@ -34,4 +34,4 @@ Create the final Fluxy repository structure and move rescued code into its futur
 
 ## Current Status
 
-Phase 01 is structurally complete. The next phase must make the web app and NestJS API coherent as Fluxy cloud surfaces.
+Phase 01 is structurally complete. The next phase must make the web app and NestJS API coherent as FluxSQL cloud surfaces.

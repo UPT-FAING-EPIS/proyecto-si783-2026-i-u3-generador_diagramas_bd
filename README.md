@@ -1,15 +1,15 @@
-# Fluxy
+# FluxSQL
 
-Fluxy is the clean monorepo for the Fluxy product.
+FluxSQL is the clean monorepo for the FluxSQL product.
 
 The product direction is:
 
 ```txt
-Fluxy Web = cloud projects, collaboration, diagrams, versions and sync.
-Fluxy Cloud API = NestJS backend for accounts, projects and team-ready controls.
-Fluxy Desktop = local-first app with Tauri, FastAPI sidecar, real database connections and offline mode.
-Fluxy Skills = free installable workflows managed from the app, with per-user/per-profile enablement.
-Fluxy MCP = local bridge for AI agents.
+FluxSQL Web = cloud projects, collaboration, diagrams, versions and sync.
+FluxSQL Cloud API = NestJS backend for accounts, projects and team-ready controls.
+FluxSQL Desktop = local-first app with Tauri, FastAPI sidecar, real database connections and offline mode.
+FluxSQL Skills = free installable workflows managed from the app, with per-user/per-profile enablement.
+FluxSQL MCP = local bridge for AI agents.
 ```
 
 Repository shape:

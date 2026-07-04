@@ -1,6 +1,6 @@
 # Development Phases
 
-Final product name: Fluxy.
+Final product name: FluxSQL.
 
 Repository strategy: clean monorepo, no imported Git history.
 
@@ -13,7 +13,7 @@ MVP database safety scope: PostgreSQL for backup and sandbox. Other engines may 
 ## Target Monorepo
 
 ```txt
-fluxy-agent/
+fluxsql-agent/
   apps/
     web/
       frontend-app/
@@ -46,8 +46,8 @@ fluxy-agent/
 
 ## Product Rules
 
-- Fluxy cloud never receives database credentials.
-- Fluxy cloud never receives backups, dumps or private query results.
+- FluxSQL cloud never receives database credentials.
+- FluxSQL cloud never receives backups, dumps or private query results.
 - Desktop works offline.
 - Direct writes to real databases are blocked by default.
 - Risky actions require policy, backup, sandbox and human approval when applicable.

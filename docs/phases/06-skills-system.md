@@ -2,7 +2,7 @@
 
 ## Goal
 
-Create free, installable, versioned and user-manageable Fluxy skills.
+Create free, installable, versioned and user-manageable FluxSQL skills.
 
 ## Tasks
 
@@ -36,7 +36,7 @@ Create free, installable, versioned and user-manageable Fluxy skills.
 id: postgresql-safe-migration
 name: PostgreSQL Safe Migration
 version: 1.0.0
-author: Fluxy
+author: FluxSQL
 license: free
 category: safety
 engines:

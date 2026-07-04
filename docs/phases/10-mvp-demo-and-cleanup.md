@@ -6,7 +6,7 @@ Prepare a product demo and remove obsolete staging material only after the new r
 
 ## Demo Flow
 
-1. Open Fluxy Desktop.
+1. Open FluxSQL Desktop.
 2. Use it without login.
 3. Connect to local PostgreSQL.
 4. Generate a diagram from the real database.
@@ -15,10 +15,10 @@ Prepare a product demo and remove obsolete staging material only after the new r
 7. Log in.
 8. Sync diagram to cloud.
 9. Ask an AI agent through MCP to review the database.
-10. Fluxy creates backup.
-11. Fluxy creates sandbox.
-12. Fluxy tests a migration in sandbox.
-13. Fluxy generates report.
+10. FluxSQL creates backup.
+11. FluxSQL creates sandbox.
+12. FluxSQL tests a migration in sandbox.
+13. FluxSQL generates report.
 14. User approves or discards.
 
 ## Cleanup Rules

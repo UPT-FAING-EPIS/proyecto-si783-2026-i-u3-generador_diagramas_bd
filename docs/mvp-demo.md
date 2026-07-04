@@ -1,4 +1,4 @@
-# Fluxy MVP Demo
+# FluxSQL MVP Demo
 
 This is the target demo flow for the current MVP baseline.
 
@@ -30,7 +30,7 @@ This is the target demo flow for the current MVP baseline.
    pnpm run dev:local-sidecar
    ```
 
-4. Open Fluxy Desktop or the web app against the local sidecar.
+4. Open FluxSQL Desktop or the web app against the local sidecar.
 
 5. Use desktop without login.
 
@@ -48,7 +48,7 @@ This is the target demo flow for the current MVP baseline.
      "id": 1,
      "method": "tools/call",
      "params": {
-       "name": "fluxy_run_skill",
+       "name": "fluxsql_run_skill",
        "arguments": {
          "skill_id": "review_database",
          "instruction": "review schema quality"
@@ -65,7 +65,7 @@ This is the target demo flow for the current MVP baseline.
      "id": 2,
      "method": "tools/call",
      "params": {
-       "name": "fluxy_run_skill",
+       "name": "fluxsql_run_skill",
        "arguments": {
          "skill_id": "safe_migration_basic"
        }
@@ -79,7 +79,7 @@ This is the target demo flow for the current MVP baseline.
    GET /api/v1/safety/postgresql/tools
    ```
 
-12. If Docker is available, create a sandbox. If not, Fluxy returns `report_only` fallback.
+12. If Docker is available, create a sandbox. If not, FluxSQL returns `report_only` fallback.
 
 13. Create an audit log and Markdown report.
 
@@ -100,7 +100,7 @@ This is the target demo flow for the current MVP baseline.
 ## Known Follow-ups
 
 - Wire the existing UI flows to the new local API clients end to end.
-- Add PyInstaller packaging for `fluxy-sidecar`.
+- Add PyInstaller packaging for `fluxsql-sidecar`.
 - Re-enable Tauri `externalBin` once the sidecar binary exists.
 - Add automatic audit records from every skill runner execution.
 - Add cloud sync worker that drains the local safe sync queue after login.
