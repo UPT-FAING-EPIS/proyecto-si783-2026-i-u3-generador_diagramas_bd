@@ -281,29 +281,92 @@ flowchart LR
 
 ### 3.2.4 Diagrama de objetos
 
-Muestra el estado temporal del objeto `SchemaModel` al extraer un esquema simple de una tabla de usuarios.
+Muestra el estado en tiempo de ejecución de los objetos principales del sistema durante una operación típica de extracción y sincronización.
+
+*Figura 5. Diagrama de objetos del sistema FluxSQL en tiempo de ejecución.*
 
 ```mermaid
 classDiagram
-    object CurrentSchema {
-        name = "InventarioDB"
-        createdAt = "2026-07-04"
-    }
-    
-    object TableProducts {
-        name = "productos"
-        type = "table"
-    }
-    
-    object ColID {
-        name = "id"
-        type = "uuid"
-        isPrimaryKey = true
+    class appInstance ["NestJS App Instance"] {
+        port = 3001
+        env = "production"
+        cors = "enabled"
     }
 
-    CurrentSchema --|> TableProducts : contains
-    TableProducts --|> ColID : hasAttribute
+    class authGuard ["AuthGuard JWT"] {
+        strategy = "jwt"
+        secretKey = "***env***"
+    }
+
+    class currentUser ["Usuario Autenticado"] {
+        id = "uuid-8a3f..."
+        email = "dba@empresa.com"
+        role = "admin"
+    }
+
+    class activeProject ["Proyecto Activo"] {
+        id = "uuid-proj-001"
+        nombre = "InventarioDB"
+        createdAt = "2026-07-04"
+        status = "synced"
+    }
+
+    class currentSchema ["SchemaModel JSON"] {
+        version = 3
+        entitiesCount = 12
+        relationshipsCount = 8
+    }
+
+    class tableProductos ["Entity: productos"] {
+        name = "productos"
+        attributesCount = 6
+        hasPK = true
+    }
+
+    class tableCategorias ["Entity: categorias"] {
+        name = "categorias"
+        attributesCount = 3
+        hasPK = true
+    }
+
+    class fkRelation ["Relationship: FK"] {
+        from = "productos.categoria_id"
+        to = "categorias.id"
+        type = "ManyToOne"
+    }
+
+    class sidecarProcess ["Sidecar FastAPI"] {
+        pid = 12045
+        host = "127.0.0.1"
+        port = 8100
+        status = "running"
+    }
+
+    class pgExtractor ["PostgresExtractor Instance"] {
+        driver = "psycopg2"
+        targetDB = "inventario_db"
+        connectionTimeout = 5000
+    }
+
+    class parserWorker ["SQLDDLParser Worker"] {
+        debounceMs = 300
+        lastInput = "CREATE TABLE..."
+        status = "idle"
+    }
+
+    appInstance --> authGuard : protects
+    authGuard --> currentUser : authenticates
+    currentUser --> activeProject : owns
+    activeProject --> currentSchema : contains
+    currentSchema --> tableProductos : has entity
+    currentSchema --> tableCategorias : has entity
+    currentSchema --> fkRelation : has relation
+    sidecarProcess --> pgExtractor : manages
+    pgExtractor --> currentSchema : produces
+    parserWorker --> currentSchema : produces
 ```
+
+*Nota.* Elaboración propia. Representa instancias activas durante la ejecución del flujo de extracción local.
 
 ### 3.2.5 Diagrama de clases
 
@@ -342,33 +405,90 @@ classDiagram
 
 ### 3.2.6 Diagrama de base de datos
 
-Diagrama lógico de la base de datos distribuida en la nube (PostgreSQL gestionado por NestJS).
+Diagrama lógico completo de la base de datos distribuida en la nube (PostgreSQL gestionado por NestJS), mostrando todas las entidades, atributos y relaciones del sistema.
+
+*Figura 7. Diagrama Entidad-Relación de la base de datos Cloud de FluxSQL.*
 
 ```mermaid
 erDiagram
     USUARIO {
         uuid id PK
-        string email
+        string email UK
         string password_hash
         string nombre
+        string apellido
+        string avatar_url
+        timestamp created_at
+        timestamp updated_at
+        boolean is_active
     }
     PROYECTO {
         uuid id PK
         uuid owner_id FK
         string nombre
+        string descripcion
+        string motor_db
+        string estado
         timestamp created_at
+        timestamp updated_at
     }
     DIAGRAMA {
         uuid id PK
         uuid proyecto_id FK
         string nombre
+        int version
         jsonb schema_model
+        text mermaid_code
         text status
+        timestamp created_at
+        timestamp updated_at
     }
-    
-    USUARIO ||--o{ PROYECTO : gestiona
-    PROYECTO ||--o{ DIAGRAMA : posee
+    COLABORADOR {
+        uuid id PK
+        uuid proyecto_id FK
+        uuid usuario_id FK
+        string rol
+        timestamp invited_at
+        timestamp accepted_at
+    }
+    HISTORIAL_VERSION {
+        uuid id PK
+        uuid diagrama_id FK
+        uuid modified_by FK
+        int version_number
+        jsonb schema_snapshot
+        string change_description
+        timestamp created_at
+    }
+    TOKEN_ACCESO {
+        uuid id PK
+        uuid usuario_id FK
+        string token_hash
+        string tipo
+        timestamp expires_at
+        timestamp created_at
+        boolean revoked
+    }
+    CONFIGURACION_USUARIO {
+        uuid id PK
+        uuid usuario_id FK
+        string tema_ui
+        string idioma
+        boolean notificaciones
+        jsonb preferencias_editor
+    }
+
+    USUARIO ||--o{ PROYECTO : "es dueño de"
+    USUARIO ||--o{ COLABORADOR : "participa como"
+    USUARIO ||--o{ TOKEN_ACCESO : "posee"
+    USUARIO ||--|| CONFIGURACION_USUARIO : "tiene"
+    PROYECTO ||--o{ DIAGRAMA : "contiene"
+    PROYECTO ||--o{ COLABORADOR : "incluye a"
+    DIAGRAMA ||--o{ HISTORIAL_VERSION : "registra"
+    USUARIO ||--o{ HISTORIAL_VERSION : "modifica"
 ```
+
+*Nota.* Elaboración propia. Representa el modelo relacional completo persistido en PostgreSQL Cloud.
 
 ## 3.3 Vista de implementación (vista de desarrollo)
 
@@ -447,6 +567,8 @@ flowchart TD
 
 ### 3.5.1 Diagrama de despliegue
 
+*Figura 12. Diagrama de despliegue del sistema FluxSQL.*
+
 ```mermaid
 flowchart TD
     subgraph Cloud["Vercel / AWS Cloud"]
@@ -467,8 +589,10 @@ flowchart TD
         SC <--> DB_USER
     end
 
-    UI == "Sincronización HTTPS" ==> API
+    UI -. "Sincronización HTTPS" .-> API
 ```
+
+*Nota.* Elaboración propia.
 
 # 4. Atributos de calidad del software
 
