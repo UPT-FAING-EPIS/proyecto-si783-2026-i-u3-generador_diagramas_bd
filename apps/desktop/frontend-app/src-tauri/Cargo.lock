@@ -1110,7 +1110,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fluxy-desktop"
+name = "fluxsql-desktop"
 version = "0.1.0"
 dependencies = [
  "log",

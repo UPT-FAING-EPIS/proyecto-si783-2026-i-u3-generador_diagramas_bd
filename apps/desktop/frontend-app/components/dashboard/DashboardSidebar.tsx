@@ -20,7 +20,6 @@ const DASHBOARD_ITEMS = [
 const MAIN_TOOLS = [
   { icon: LayoutDashboard, label: 'Diagramas', href: '/dashboard' },
   { icon: Plug, label: 'Conexiones', href: '/connect' },
-  { icon: Database, label: 'Generador de Datos', href: '/generator' },
   { icon: Store, label: 'Skill Store', href: '/skills' },
   { icon: Bot, label: 'Herramientas Agenticas', href: '/agent-tools' },
   { icon: Network, label: 'MCP Local', href: '/mcp' },
