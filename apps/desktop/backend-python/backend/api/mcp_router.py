@@ -31,11 +31,11 @@ def resolve_stdio_bridge_path() -> str:
 
     current = Path(__file__).resolve()
     for parent in current.parents:
-        candidate = parent / "scripts" / "fluxy-mcp-stdio.mjs"
+        candidate = parent / "scripts" / "fluxsql-mcp-stdio.mjs"
         if candidate.exists():
             return str(candidate)
 
-    return "fluxy-mcp-stdio"
+    return "fluxsql-mcp-stdio"
 
 
 @router.get("/config")

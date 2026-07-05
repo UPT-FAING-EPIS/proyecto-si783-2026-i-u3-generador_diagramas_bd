@@ -1,0 +1,4 @@
+interface:
+  display_name: "FluxSQL Workbench"
+  short_description: "Operate FluxSQL apps, sidecar, MCP and extension."
+  default_prompt: "Use FluxSQL Workbench to run, test, package or troubleshoot this repository."

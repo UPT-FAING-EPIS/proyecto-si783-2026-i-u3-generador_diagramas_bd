@@ -18,6 +18,7 @@ class Settings(BaseSettings):
 
     # ── Frontend / CORS ────────────────────────────────────────
     ALLOWED_ORIGINS: str = "http://localhost:1420,http://localhost:3000,tauri://localhost"
+    FLUXSQL_WEB_URL: str = "https://fluxsql-bd-frontend-app.vercel.app"
 
     # ── Faker ──────────────────────────────────────────────────
     FAKER_LOCALE: str = "es_ES"

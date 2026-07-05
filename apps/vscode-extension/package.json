@@ -1,0 +1,152 @@
+{
+  "name": "fluxsql",
+  "displayName": "FluxSQL - Database Diagram Generator",
+  "description": "Generate visual ER diagrams from PostgreSQL SQL files, then export Mermaid, SVG and JSON.",
+  "version": "0.0.1",
+  "publisher": "JeffersonVargas",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iovargasjeff/fluxsql-bd.git",
+    "directory": "apps/vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/iovargasjeff/fluxsql-bd/issues"
+  },
+  "homepage": "https://github.com/iovargasjeff/fluxsql-bd#readme",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Visualization",
+    "Data Science",
+    "Other"
+  ],
+  "keywords": [
+    "sql",
+    "database",
+    "diagram",
+    "erd",
+    "postgresql",
+    "schema",
+    "mermaid",
+    "svg",
+    "fluxsql",
+    "developer-tools"
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0F172A",
+    "theme": "dark"
+  },
+  "pricing": "Free",
+  "preview": true,
+  "markdown": "github",
+  "qna": "marketplace",
+  "extensionKind": [
+    "workspace",
+    "ui"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true,
+      "description": "FluxSQL only parses the SQL text you open and writes exports when you run export commands."
+    },
+    "virtualWorkspaces": true
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:fluxsql.openDiagramEditor",
+    "onCommand:fluxsql.generateFromSqlFile",
+    "onCommand:fluxsql.generateFromSelection",
+    "onCommand:fluxsql.exportMermaid",
+    "onCommand:fluxsql.exportJson",
+    "onCommand:fluxsql.exportSvg",
+    "onCommand:fluxsql.exportAll"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "fluxsql.openDiagramEditor",
+        "title": "Open Diagram Editor",
+        "category": "FluxSQL"
+      },
+      {
+        "command": "fluxsql.generateFromSqlFile",
+        "title": "Generate Diagram from SQL File",
+        "category": "FluxSQL"
+      },
+      {
+        "command": "fluxsql.generateFromSelection",
+        "title": "Generate Diagram from Selection",
+        "category": "FluxSQL"
+      },
+      {
+        "command": "fluxsql.exportMermaid",
+        "title": "Export Diagram as Mermaid",
+        "category": "FluxSQL"
+      },
+      {
+        "command": "fluxsql.exportJson",
+        "title": "Export Diagram as JSON",
+        "category": "FluxSQL"
+      },
+      {
+        "command": "fluxsql.exportSvg",
+        "title": "Export Diagram as SVG",
+        "category": "FluxSQL"
+      },
+      {
+        "command": "fluxsql.exportAll",
+        "title": "Export All Diagram Artifacts",
+        "category": "FluxSQL"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "fluxsql.generateFromSelection",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "fluxsql.generateFromSqlFile",
+          "when": "resourceExtname == .sql"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "FluxSQL",
+      "properties": {
+        "fluxsql.autoOpenPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open the diagram preview after generation."
+        },
+        "fluxsql.outputDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Directory where generated .mmd and .fluxsql.json files are saved. Empty means beside the active SQL file."
+        },
+        "fluxsql.sidecarUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8000",
+          "description": "Local FluxSQL sidecar URL reserved for future advanced generation."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "test": "tsx --test test/*.test.ts",
+    "vscode:prepublish": "pnpm compile",
+    "package": "pnpm compile && vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.6.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

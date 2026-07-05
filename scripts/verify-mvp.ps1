@@ -11,6 +11,10 @@ pnpm run build:web
 Write-Host "Checking web lint..."
 pnpm run lint:web
 
+Write-Host "Checking VS Code extension..."
+pnpm run build:vscode-extension
+pnpm --filter ./apps/vscode-extension test
+
 Write-Host "Checking Tauri desktop..."
 Push-Location "apps/desktop/frontend-app/src-tauri"
 cargo check

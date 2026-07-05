@@ -1,0 +1,30 @@
+{
+  "name": "fluxsql-codex-skill",
+  "version": "0.1.0",
+  "description": "Install the FluxSQL Workbench Codex skill for FluxSQL web, desktop, sidecar, MCP, Docker databases and VS Code extension workflows.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "fluxsql-codex-skill": "./bin/fluxsql-codex-skill.mjs"
+  },
+  "files": [
+    "bin/",
+    "skill/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "pack:check": "npm pack --dry-run"
+  },
+  "keywords": [
+    "codex",
+    "agent-skills",
+    "fluxsql",
+    "database",
+    "mcp",
+    "vscode-extension"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

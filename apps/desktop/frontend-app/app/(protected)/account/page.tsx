@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { syncAPI, type DeviceLinkStart } from '@/lib/api/client'
 
 export default function AccountPage() {
-  const fallbackUrl = 'http://localhost:3000/desktop-link'
+  const fallbackUrl = 'https://fluxsql-bd-frontend-app.vercel.app/desktop-link'
   const [deviceLink, setDeviceLink] = useState<DeviceLinkStart | null>(null)
   const [linkedEmail, setLinkedEmail] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)

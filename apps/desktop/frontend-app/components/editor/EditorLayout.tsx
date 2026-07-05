@@ -63,7 +63,7 @@ function EditorLayoutInner({
   const [saving, setSaving] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [savedLabel, setSavedLabel] = useState('Esquema sincronizado')
-  const [showSqlPanel, setShowSqlPanel] = useState(true)
+  const [showSqlPanel, setShowSqlPanel] = useState(false)
   const [showInspector, setShowInspector] = useState(true)
   const [diffModal, setDiffModal] = useState<{ open: boolean; initialVersionId?: string } | null>(null)
   const activeConnection = useConnectionStore((state) => state.activeConnection)

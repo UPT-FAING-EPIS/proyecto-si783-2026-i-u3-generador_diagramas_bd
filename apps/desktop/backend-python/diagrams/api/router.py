@@ -133,9 +133,11 @@ def schema_to_flow(tables, existing_flow=None):
     edges = []
     selected_names = {table.name for table in tables}
 
+    graph_positions = calculate_graph_positions(tables)
+
     for index, table in enumerate(tables):
         node_id = table.name.lower()
-        position = existing_positions.get(node_id) or {
+        position = existing_positions.get(node_id) or graph_positions.get(node_id) or {
             "x": (index % 3) * 360,
             "y": (index // 3) * 260,
         }
@@ -187,6 +189,62 @@ def schema_to_flow(tables, existing_flow=None):
     if existing_flow.get("viewport"):
         flow["viewport"] = existing_flow["viewport"]
     return flow
+
+
+def calculate_graph_positions(tables):
+    table_ids = {table.name.lower() for table in tables}
+    children_by_parent = {table_id: [] for table_id in table_ids}
+    parents_by_child = {table_id: set() for table_id in table_ids}
+
+    for table in tables:
+        child_id = table.name.lower()
+        for column in table.columns:
+            if not column.foreign_key:
+                continue
+            parent_id = column.foreign_key.get("table", "").lower()
+            if parent_id not in table_ids:
+                continue
+            children_by_parent[parent_id].append(child_id)
+            parents_by_child[child_id].add(parent_id)
+
+    roots = sorted([table_id for table_id in table_ids if not parents_by_child[table_id]])
+    if not roots and table_ids:
+        roots = [sorted(table_ids)[0]]
+
+    levels = {root: 0 for root in roots}
+    queue = list(roots)
+    while queue:
+        parent_id = queue.pop(0)
+        parent_level = levels.get(parent_id, 0)
+        for child_id in sorted(children_by_parent.get(parent_id, [])):
+            next_level = parent_level + 1
+            if child_id not in levels or next_level > levels[child_id]:
+                levels[child_id] = next_level
+                queue.append(child_id)
+
+    for index, table_id in enumerate(sorted(table_ids)):
+        levels.setdefault(table_id, index // 3)
+
+    lanes = {}
+    for table_id, level in levels.items():
+        lanes.setdefault(level, []).append(table_id)
+    for lane in lanes.values():
+        lane.sort()
+
+    positions = {}
+    column_gap = 360
+    row_gap = 210
+    start_x = 80
+    start_y = 120
+    for level, lane in lanes.items():
+        lane_offset = max(0, (3 - len(lane)) * 45)
+        for row, table_id in enumerate(lane):
+            positions[table_id] = {
+                "x": start_x + level * column_gap,
+                "y": start_y + row * row_gap + lane_offset,
+            }
+
+    return positions
 
 
 def introspect_selected_schema(connection: ConexionRequest, selected_tables: List[str], strict=True):

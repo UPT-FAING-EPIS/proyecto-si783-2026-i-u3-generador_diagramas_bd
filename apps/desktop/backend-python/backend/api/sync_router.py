@@ -23,6 +23,10 @@ router = APIRouter(prefix="/sync", tags=["Sync"])
 DEVICE_SESSIONS: dict[str, dict] = {}
 
 
+def web_base_url() -> str:
+    return settings.FLUXSQL_WEB_URL.rstrip("/")
+
+
 class DeviceCompleteRequest(BaseModel):
     device_code: str
     user_email: str | None = None
@@ -70,7 +74,7 @@ def start_device_link(request: Request):
         "device_code": device_code,
         "user_code": user_code,
         "status": "pending",
-        "verification_url": "http://localhost:3000/desktop-link?" + urlencode({
+        "verification_url": f"{web_base_url()}/desktop-link?" + urlencode({
             "device_code": device_code,
             "sidecar_url": local_callback_url,
         }),
@@ -221,7 +225,7 @@ def _web_json_request(db: Session, path: str, method: str = "GET", payload: dict
     token = _refresh_access_token(account, db)
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(
-        f"http://localhost:3000{path}",
+        f"{web_base_url()}{path}",
         data=data,
         headers={
             "Authorization": f"Bearer {token}",

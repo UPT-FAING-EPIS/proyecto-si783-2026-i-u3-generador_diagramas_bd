@@ -1,0 +1,11 @@
+.vscode/**
+.github/**
+node_modules/**
+src/**
+test/**
+**/*.map
+tsconfig.json
+pnpm-lock.yaml
+*.vsix
+*.png
+!media/icon.png

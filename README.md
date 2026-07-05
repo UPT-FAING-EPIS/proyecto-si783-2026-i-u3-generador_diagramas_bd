@@ -36,3 +36,47 @@ Local runtime keeps credentials, backups, sandboxes, dumps and private query res
 Start here:
 
 - [Development phases](./docs/phases/README.md)
+
+## Codex Skill
+
+This repo includes a repo-scoped Codex skill for operating FluxSQL:
+
+```txt
+.agents/skills/fluxsql-workbench
+```
+
+Use it in Codex with:
+
+```txt
+$fluxsql-workbench
+```
+
+The skill documents the main workflows for web, desktop, local sidecar, MCP, Docker test databases, sync troubleshooting, and the VS Code extension.
+
+### Install From npm
+
+Users who do not clone this repo can install the same skill into their current project:
+
+```powershell
+npx fluxsql-codex-skill install
+```
+
+To overwrite an existing local copy:
+
+```powershell
+npx fluxsql-codex-skill install --force
+```
+
+The npm package source lives in:
+
+```txt
+packages/fluxsql-codex-skill
+```
+
+Publish it manually with an npm account:
+
+```powershell
+cd packages/fluxsql-codex-skill
+npm login
+npm publish --access public
+```

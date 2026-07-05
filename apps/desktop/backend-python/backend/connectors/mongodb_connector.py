@@ -12,7 +12,8 @@ from backend.models.schemas import DatabaseSchema, TableSchema, ColumnSchema
 class MongoDBConnector(BaseConnector):
 
     def connect(self) -> bool:
-        uri = f"mongodb://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        auth_db = "admin" if self.user else self.database
+        uri = f"mongodb://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}?authSource={auth_db}"
         self._client = MongoClient(uri, serverSelectionTimeoutMS=10000)
         # Verificar conexión
         self._client.admin.command("ping")

@@ -10,6 +10,7 @@ out/
 .turbo/
 .vercel/
 coverage/
+*.vsix
 tmp_exports/
 services/local-sidecar/tmp_exports/
 

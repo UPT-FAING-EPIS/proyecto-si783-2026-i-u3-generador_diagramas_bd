@@ -72,7 +72,7 @@ function EditorLayoutInner({
   const syncSqlFromCanvas = useEditorStore((state) => state.syncSqlFromCanvas)
   const [saving, setSaving] = useState(false)
   const [savedLabel, setSavedLabel] = useState('Listo para editar')
-  const [showSqlPanel, setShowSqlPanel] = useState(true)
+  const [showSqlPanel, setShowSqlPanel] = useState(false)
   const [showInspector, setShowInspector] = useState(true)
   const [diffModal, setDiffModal] = useState<{ open: boolean; originalCode: string; modifiedCode: string; versionLabel: string } | null>(null)
 

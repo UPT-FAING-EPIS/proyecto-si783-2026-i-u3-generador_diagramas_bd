@@ -1,0 +1,85 @@
+services:
+  postgres-demo:
+    image: postgres:16-alpine
+    container_name: fluxsql-postgres-demo
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fluxsql_demo
+      POSTGRES_USER: fluxsql
+      POSTGRES_PASSWORD: fluxsql123
+    ports:
+      - "15432:5432"
+    volumes:
+      - ./test-databases/postgres/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fluxsql -d fluxsql_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mysql-demo:
+    image: mysql:8.4
+    container_name: fluxsql-mysql-demo
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: fluxsql_demo
+      MYSQL_USER: fluxsql
+      MYSQL_PASSWORD: fluxsql123
+      MYSQL_ROOT_PASSWORD: root123
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./test-databases/mysql/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ufluxsql", "-pfluxsql123"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mongodb-demo:
+    image: mongo:7
+    container_name: fluxsql-mongodb-demo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: fluxsql
+      MONGO_INITDB_ROOT_PASSWORD: fluxsql123
+      MONGO_INITDB_DATABASE: fluxsql_demo
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./test-databases/mongodb/init.js:/docker-entrypoint-initdb.d/001-init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--username", "fluxsql", "--password", "fluxsql123", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  redis-demo:
+    image: redis:7-alpine
+    container_name: fluxsql-redis-demo
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "fluxsql123"]
+    ports:
+      - "16379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "fluxsql123", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  neo4j-demo:
+    image: neo4j:5-community
+    container_name: fluxsql-neo4j-demo
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/fluxsql123
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 512m
+    ports:
+      - "17474:7474"
+      - "17687:7687"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
