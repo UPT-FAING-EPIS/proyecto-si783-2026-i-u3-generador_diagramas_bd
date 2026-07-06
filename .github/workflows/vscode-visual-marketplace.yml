@@ -1,0 +1,45 @@
+name: Publish VS Code Extension to Visual Studio Marketplace
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "vscode-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish VSIX to Visual Studio Marketplace
+    runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test extension
+        run: pnpm --filter ./apps/vscode-extension test
+
+      - name: Package extension
+        run: pnpm run package:vscode-extension
+
+      - name: Publish to Visual Studio Marketplace
+        if: ${{ env.VSCE_PAT != '' }}
+        working-directory: apps/vscode-extension
+        run: pnpm exec vsce publish --packagePath fluxsql-*.vsix -p "$VSCE_PAT"

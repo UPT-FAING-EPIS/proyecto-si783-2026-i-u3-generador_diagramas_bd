@@ -1,4 +1,4 @@
-name: Publish VS Code Extension
+name: Publish VS Code Extension to Open VSX
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
     name: Package and publish VSIX
     runs-on: ubuntu-latest
     env:
-      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
 
     steps:
       - name: Checkout
@@ -39,10 +39,13 @@ jobs:
       - name: Package extension
         run: pnpm run package:vscode-extension
 
-      - name: Publish to Visual Studio Marketplace
-        if: ${{ env.VSCE_PAT != '' }}
-        working-directory: apps/vscode-extension
-        run: pnpm exec vsce publish -p "$VSCE_PAT"
+      - name: Ensure Open VSX namespace
+        if: ${{ env.OPEN_VSX_TOKEN != '' }}
+        run: pnpm dlx ovsx create-namespace JeffersonVargas -p "$OPEN_VSX_TOKEN" || true
+
+      - name: Publish to Open VSX Registry
+        if: ${{ env.OPEN_VSX_TOKEN != '' }}
+        run: pnpm dlx ovsx publish apps/vscode-extension/*.vsix -p "$OPEN_VSX_TOKEN"
 
       - name: Calculate VSIX checksum
         run: sha256sum apps/vscode-extension/*.vsix > vscode-extension-checksums.txt
@@ -59,6 +62,7 @@ jobs:
             Includes:
             - VSIX package
             - SHA256 checksum
+            - Open VSX publishing workflow
           files: |
             apps/vscode-extension/*.vsix
             vscode-extension-checksums.txt

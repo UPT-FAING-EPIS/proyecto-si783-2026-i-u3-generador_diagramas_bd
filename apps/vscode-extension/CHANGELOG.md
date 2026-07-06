@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.3
+
+- Refresh the Marketplace icon with a square 1:1 FluxSQL database and graph mark.
+
+## 0.0.2
+
+- Add guided SQL/NoSQL engine selection before diagram generation.
+- Add MongoDB, Mongoose, Prisma, JSON and Neo4j diagram support.
+- Add graph-style rendering for NoSQL document and graph engines.
+- Add unified export picker for Mermaid, SVG, PNG, JSON or all artifacts.
+- Refresh Marketplace icon and README thumbnail.
+
 ## 0.0.1
 
 - Add FluxSQL visual diagram canvas webview.

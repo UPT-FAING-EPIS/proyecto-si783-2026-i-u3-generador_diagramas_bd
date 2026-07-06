@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { generateDiagramFromSql } from './diagramParser';
+import { generateDiagramFromCode } from './diagramParser';
 import { FluxSqlDiagram } from './diagramTypes';
 import { toMermaid } from './mermaid';
 import { toSvg } from './svgExport';
@@ -11,17 +11,37 @@ let currentMermaid = '';
 let currentSvg = '';
 let currentSourceUri: vscode.Uri | undefined;
 
-type ExportFormat = 'json' | 'mermaid' | 'svg';
+type ExportFormat = 'json' | 'mermaid' | 'svg' | 'png';
+type EngineFamily = 'sql' | 'nosql';
+type EngineOption = {
+  label: string;
+  description: string;
+  detail: string;
+  value: FluxSqlDiagram['dialect'];
+  family: EngineFamily;
+};
+
+const engineOptions: EngineOption[] = [
+  { label: 'PostgreSQL', description: 'SQL relacional', detail: 'CREATE TABLE, claves primarias y foraneas.', value: 'postgresql', family: 'sql' },
+  { label: 'MySQL / MariaDB', description: 'SQL relacional', detail: 'DDL MySQL con relaciones entre tablas.', value: 'mysql', family: 'sql' },
+  { label: 'SQL Server', description: 'SQL relacional', detail: 'DDL T-SQL y tablas relacionales.', value: 'sqlserver', family: 'sql' },
+  { label: 'SQLite', description: 'SQL relacional', detail: 'DDL ligero para apps locales.', value: 'sqlite', family: 'sql' },
+  { label: 'MongoDB', description: 'NoSQL documento/grafo', detail: 'db.collection.insertOne/insertMany y documentos JSON-like.', value: 'mongodb', family: 'nosql' },
+  { label: 'Mongoose', description: 'NoSQL documento/grafo', detail: 'Schema/model con refs entre colecciones.', value: 'mongoose', family: 'nosql' },
+  { label: 'Prisma', description: 'Modelo de datos', detail: 'model, @id y @relation.', value: 'prisma', family: 'nosql' },
+  { label: 'Neo4j / Cypher', description: 'NoSQL grafo', detail: 'Nodos, labels y relaciones Cypher.', value: 'neo4j', family: 'nosql' },
+  { label: 'JSON', description: 'NoSQL documento/grafo', detail: 'Objetos con colecciones y relaciones opcionales.', value: 'json', family: 'nosql' },
+];
 
 export function activate(context: vscode.ExtensionContext): void {
   const openDiagramEditor = vscode.commands.registerCommand('fluxsql.openDiagramEditor', () => {
     showPanel(context);
     if (currentDiagram) {
-      DiagramPanel.currentPanel?.sendDiagram(currentDiagram, currentMermaid);
+      DiagramPanel.currentPanel?.sendDiagram(currentDiagram, currentMermaid, currentSvg);
     }
   });
 
-  const generateFromSqlFile = vscode.commands.registerCommand('fluxsql.generateFromSqlFile', async () => {
+  const generateFromFile = vscode.commands.registerCommand('fluxsql.generateFromFile', async () => {
     await generateFromEditor(context, 'file');
   });
 
@@ -41,17 +61,27 @@ export function activate(context: vscode.ExtensionContext): void {
     await exportCurrent('svg');
   });
 
+  const exportDiagram = vscode.commands.registerCommand('fluxsql.exportDiagram', async () => {
+    await exportWithPicker();
+  });
+
+  const exportPng = vscode.commands.registerCommand('fluxsql.exportPng', async () => {
+    DiagramPanel.currentPanel?.requestPngExport();
+  });
+
   const exportAll = vscode.commands.registerCommand('fluxsql.exportAll', async () => {
     await exportAllArtifacts();
   });
 
   context.subscriptions.push(
     openDiagramEditor,
-    generateFromSqlFile,
+    generateFromFile,
     generateFromSelection,
     exportMermaid,
     exportJson,
     exportSvg,
+    exportDiagram,
+    exportPng,
     exportAll
   );
 }
@@ -70,7 +100,7 @@ function showPanel(context: vscode.ExtensionContext): void {
     }
 
     if (message.type === 'generateFromFile') {
-      await vscode.commands.executeCommand('fluxsql.generateFromSqlFile');
+      await vscode.commands.executeCommand('fluxsql.generateFromFile');
     } else if (message.type === 'generateFromSelection') {
       await vscode.commands.executeCommand('fluxsql.generateFromSelection');
     } else if (message.type === 'exportMermaid') {
@@ -79,26 +109,42 @@ function showPanel(context: vscode.ExtensionContext): void {
       await vscode.commands.executeCommand('fluxsql.exportJson');
     } else if (message.type === 'exportSvg') {
       await vscode.commands.executeCommand('fluxsql.exportSvg');
+    } else if (message.type === 'exportPng') {
+      await vscode.commands.executeCommand('fluxsql.exportPng');
+    } else if (message.type === 'savePng') {
+      const data = (message as any).data;
+      const base64 = data.replace(/^data:image\/png;base64,/, '');
+      const buffer = Buffer.from(base64, 'base64');
+      saveBufferArtifact('png', buffer).catch(console.error);
+    } else if (message.type === 'exportDiagram') {
+      await vscode.commands.executeCommand('fluxsql.exportDiagram');
     } else if (message.type === 'exportAll') {
       await vscode.commands.executeCommand('fluxsql.exportAll');
+    } else if (message.type === 'changeDialect') {
+      const dialect = (message as any).dialect;
+      await generateFromEditor(context, 'file', dialect);
     }
   });
 }
 
-async function generateFromEditor(context: vscode.ExtensionContext, mode: 'file' | 'selection'): Promise<void> {
+async function generateFromEditor(context: vscode.ExtensionContext, mode: 'file' | 'selection', forceDialect?: string): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
-    vscode.window.showWarningMessage('Open a SQL file first.');
+    vscode.window.showWarningMessage('Open a database or code file first.');
     return;
   }
 
-  const sql = mode === 'selection' ? editor.document.getText(editor.selection) : editor.document.getText();
-  if (!sql.trim()) {
-    vscode.window.showWarningMessage(mode === 'selection' ? 'Select SQL code first.' : 'The active SQL file is empty.');
+  const code = mode === 'selection' ? editor.document.getText(editor.selection) : editor.document.getText();
+  if (!code.trim()) {
+    vscode.window.showWarningMessage(mode === 'selection' ? 'Select code first.' : 'The active file is empty.');
     return;
   }
 
-  currentDiagram = generateDiagramFromSql(sql);
+  const selectedEngine = await pickEngine(forceDialect);
+  if (!selectedEngine) return;
+
+  const languageId = selectedEngine.value;
+  currentDiagram = generateDiagramFromCode(code, languageId);
   currentMermaid = toMermaid(currentDiagram);
   currentSvg = toSvg(currentDiagram);
   currentSourceUri = editor.document.uri.scheme === 'file' ? editor.document.uri : undefined;
@@ -107,12 +153,39 @@ async function generateFromEditor(context: vscode.ExtensionContext, mode: 'file'
     showPanel(context);
   }
 
-  DiagramPanel.currentPanel?.sendDiagram(currentDiagram, currentMermaid);
-  await saveArtifacts();
+  DiagramPanel.currentPanel?.sendDiagram(currentDiagram, currentMermaid, currentSvg);
 
   const warningSuffix = currentDiagram.warnings.length > 0 ? ` ${currentDiagram.warnings.join(' ')}` : '';
-  vscode.window.showInformationMessage(
-    `FluxSQL generated ${currentDiagram.tables.length} tables and ${currentDiagram.relationships.length} relationships.${warningSuffix}`
+  const action = await vscode.window.showInformationMessage(
+    `FluxSQL generated ${currentDiagram.tables.length} tables and ${currentDiagram.relationships.length} relationships.${warningSuffix}`,
+    'Exportar...'
+  );
+  if (action === 'Exportar...') {
+    await exportWithPicker();
+  }
+}
+
+async function pickEngine(forceDialect?: string): Promise<EngineOption | undefined> {
+  if (forceDialect) {
+    return engineOptions.find((option) => option.value === forceDialect);
+  }
+
+  const family = await vscode.window.showQuickPick([
+    { label: 'SQL', description: 'Tablas relacionales con PK/FK', value: 'sql' as const },
+    { label: 'NoSQL', description: 'Documentos, colecciones o grafos', value: 'nosql' as const },
+  ], {
+    placeHolder: 'Que tipo de diagrama quieres generar?',
+  });
+
+  if (!family) return undefined;
+
+  return vscode.window.showQuickPick(
+    engineOptions.filter((option) => option.family === family.value),
+    {
+      placeHolder: family.value === 'sql'
+        ? 'Selecciona el motor SQL'
+        : 'Selecciona el motor NoSQL',
+    }
   );
 }
 
@@ -150,17 +223,32 @@ async function exportAllArtifacts(): Promise<void> {
   }
 }
 
-async function saveArtifacts(): Promise<void> {
+async function exportWithPicker(): Promise<void> {
   if (!currentDiagram) {
+    vscode.window.showWarningMessage('Generate a FluxSQL diagram before exporting.');
     return;
   }
 
-  if (!canAutoSaveArtifacts()) {
-    return;
-  }
+  const selected = await vscode.window.showQuickPick([
+    { label: 'Mermaid (.mmd)', description: currentDiagram.renderMode === 'graph' ? 'flowchart LR' : 'erDiagram', value: 'mermaid' as const },
+    { label: 'SVG (.svg)', description: 'Vector para informes y presentaciones', value: 'svg' as const },
+    { label: 'PNG (.png)', description: 'Imagen generada desde el preview', value: 'png' as const },
+    { label: 'FluxSQL JSON (.fluxsql.json)', description: 'Paquete interoperable de FluxSQL', value: 'json' as const },
+    { label: 'Todos los artefactos', description: 'Mermaid, SVG y JSON', value: 'all' as const },
+  ], {
+    placeHolder: `Exportar diagrama ${currentDiagram.dialect}`,
+  });
 
-  await Promise.all([writeArtifact('json'), writeArtifact('mermaid'), writeArtifact('svg')]);
+  if (!selected) return;
+  if (selected.value === 'all') {
+    await exportAllArtifacts();
+  } else if (selected.value === 'png') {
+    DiagramPanel.currentPanel?.requestPngExport();
+  } else {
+    await exportCurrent(selected.value);
+  }
 }
+
 
 async function writeArtifact(format: ExportFormat): Promise<vscode.Uri> {
   if (!currentDiagram) {
@@ -177,8 +265,18 @@ async function writeArtifact(format: ExportFormat): Promise<vscode.Uri> {
   return targetUri;
 }
 
-function canAutoSaveArtifacts(): boolean {
-  return Boolean(getConfig<string>('outputDirectory', '').trim() || currentSourceUri || vscode.workspace.workspaceFolders?.[0]);
+async function saveBufferArtifact(format: ExportFormat, buffer: Buffer): Promise<void> {
+  try {
+    const baseUri = await getOutputBaseUri(format, true);
+    const filename = `${baseUri.name}.${getExtension(format)}`;
+    const targetUri = vscode.Uri.joinPath(baseUri.directory, filename);
+    await vscode.workspace.fs.createDirectory(baseUri.directory);
+    await vscode.workspace.fs.writeFile(targetUri, buffer);
+    vscode.window.showInformationMessage(`FluxSQL exported ${filename}.`);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Export cancelled.') return;
+    throw error;
+  }
 }
 
 async function getOutputBaseUri(format: ExportFormat, promptIfNeeded: boolean): Promise<{ directory: vscode.Uri; name: string }> {
@@ -194,14 +292,14 @@ async function getOutputBaseUri(format: ExportFormat, promptIfNeeded: boolean): 
 
   if (currentSourceUri) {
     return {
-      directory: vscode.Uri.file(path.dirname(currentSourceUri.fsPath)),
+      directory: vscode.Uri.file(path.join(path.dirname(currentSourceUri.fsPath), 'fluxsql-exports')),
       name: path.basename(currentSourceUri.fsPath, path.extname(currentSourceUri.fsPath)),
     };
   }
 
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (workspaceFolder) {
-    return { directory: workspaceFolder.uri, name: 'database' };
+    return { directory: vscode.Uri.joinPath(workspaceFolder.uri, 'fluxsql-exports'), name: 'database' };
   }
 
   if (!promptIfNeeded) {
@@ -237,12 +335,18 @@ function getExtension(format: ExportFormat): string {
   if (format === 'svg') {
     return 'svg';
   }
+  if (format === 'png') {
+    return 'png';
+  }
   return 'mmd';
 }
 
 function getArtifactContent(format: ExportFormat): string {
   if (!currentDiagram) {
     throw new Error('No diagram is available to export.');
+  }
+  if (format === 'png') {
+    throw new Error('PNG export is handled asynchronously by webview');
   }
 
   if (format === 'json') {
@@ -263,6 +367,9 @@ function getSaveFilters(format: ExportFormat): Record<string, string[]> {
   }
   if (format === 'svg') {
     return { SVG: ['svg'] };
+  }
+  if (format === 'png') {
+    return { PNG: ['png'] };
   }
   return { Mermaid: ['mmd'] };
 }

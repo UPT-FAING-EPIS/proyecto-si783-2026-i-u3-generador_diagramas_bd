@@ -30,8 +30,9 @@ export function toSvg(diagram: FluxSqlDiagram): string {
       const start = anchor(from, to);
       const end = anchor(to, from);
       const midX = (start.x + end.x) / 2;
-      const offset = (index % 5) * 8;
-      const d = `M ${start.x} ${start.y} C ${midX + offset} ${start.y}, ${midX - offset} ${end.y}, ${end.x} ${end.y}`;
+      const offset = (index % 5) * 12;
+      const mX = midX + offset;
+      const d = `M ${start.x} ${start.y} L ${mX} ${start.y} L ${mX} ${end.y} L ${end.x} ${end.y}`;
       return `<path d="${d}" class="edge" marker-end="url(#arrow)"><title>${escapeXml(
         `${relationship.fromTable}.${relationship.fromColumn} -> ${relationship.toTable}.${relationship.toColumn}`
       )}</title></path>`;
@@ -60,6 +61,8 @@ export function toSvg(diagram: FluxSqlDiagram): string {
       .separator { stroke: rgba(148, 163, 184, 0.2); stroke-width: 1; }
       .key { fill: #facc15; font: 10px Segoe UI, Arial, sans-serif; }
       .fk { fill: #93c5fd; font: 10px Segoe UI, Arial, sans-serif; }
+      .graph-rect { fill: #111827; stroke: #1f6feb; stroke-width: 1; }
+      .graph-text { fill: #ffffff; font: 600 13px Segoe UI, Arial, sans-serif; text-anchor: middle; }
     </style>
   </defs>
   <rect class="bg" width="100%" height="100%" />
@@ -68,7 +71,7 @@ export function toSvg(diagram: FluxSqlDiagram): string {
 ${indent(edges, 4)}
   </g>
   <g class="nodes">
-${indent(boxes.map(renderNode).join('\n'), 4)}
+${indent(boxes.map(box => renderNode(box, diagram)).join('\n'), 4)}
   </g>
 </svg>
 `;
@@ -79,8 +82,8 @@ function layoutTables(diagram: FluxSqlDiagram): NodeBox[] {
   const outgoing = new Map(diagram.tables.map((table) => [table.name, 0]));
 
   for (const relationship of diagram.relationships) {
-    incoming.set(relationship.fromTable, (incoming.get(relationship.fromTable) ?? 0) + 1);
-    outgoing.set(relationship.toTable, (outgoing.get(relationship.toTable) ?? 0) + 1);
+    outgoing.set(relationship.fromTable, (outgoing.get(relationship.fromTable) ?? 0) + 1);
+    incoming.set(relationship.toTable, (incoming.get(relationship.toTable) ?? 0) + 1);
   }
 
   const sorted = [...diagram.tables].sort((a, b) => {
@@ -90,6 +93,8 @@ function layoutTables(diagram: FluxSqlDiagram): NodeBox[] {
   });
 
   const columns = Math.max(2, Math.ceil(Math.sqrt(Math.max(sorted.length, 1))));
+  const isGraph = diagram.renderMode === 'graph';
+
   return sorted.map((table, index) => {
     const column = index % columns;
     const row = Math.floor(index / columns);
@@ -97,13 +102,22 @@ function layoutTables(diagram: FluxSqlDiagram): NodeBox[] {
       table,
       x: padding + column * 320 + (row % 2 === 0 ? 0 : 80),
       y: padding + row * 220,
-      width: nodeWidth,
-      height: headerHeight + 10 + table.columns.length * rowHeight,
+      width: isGraph ? 180 : nodeWidth,
+      height: isGraph ? 44 : (headerHeight + 10 + table.columns.length * rowHeight),
     };
   });
 }
 
-function renderNode(box: NodeBox): string {
+function renderNode(box: NodeBox, diagram: FluxSqlDiagram): string {
+  const isGraph = diagram.renderMode === 'graph';
+
+  if (isGraph) {
+    return `<g class="node graph-node">
+  <rect class="node-body graph-rect" x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" rx="22" />
+  <text class="graph-text" x="${box.x + box.width / 2}" y="${box.y + box.height / 2 + 4}">${escapeXml(box.table.name)}</text>
+</g>`;
+  }
+
   const rows = box.table.columns
     .map((column, index) => {
       const y = box.y + headerHeight + 10 + index * rowHeight;

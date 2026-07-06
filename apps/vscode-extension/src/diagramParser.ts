@@ -1,4 +1,6 @@
 import { FluxSqlColumn, FluxSqlDiagram, FluxSqlRelationship, FluxSqlTable } from './diagramTypes';
+import { generateDiagramFromNoSql } from './nosqlParser';
+import { parseNeo4jCypher } from './graphParser';
 
 interface RawTable {
   name: string;
@@ -7,7 +9,19 @@ interface RawTable {
 
 const constraintStartRegex = /^(?:CONSTRAINT|PRIMARY\s+KEY|FOREIGN\s+KEY|UNIQUE|CHECK|EXCLUDE)\b/i;
 
-export function generateDiagramFromSql(sql: string): FluxSqlDiagram {
+export function generateDiagramFromCode(code: string, languageId: string): FluxSqlDiagram {
+  const normalizedLanguage = languageId.toLowerCase();
+  if (normalizedLanguage === 'neo4j' || normalizedLanguage === 'cypher') {
+    return parseNeo4jCypher(code);
+  }
+  const isSql = ['sql', 'postgres', 'postgresql', 'mysql', 'sqlserver', 'mssql', 'sqlite'].includes(normalizedLanguage);
+  if (isSql) {
+    return generateDiagramFromSql(code, normalizedLanguage);
+  }
+  return generateDiagramFromNoSql(code, normalizedLanguage);
+}
+
+export function generateDiagramFromSql(sql: string, languageId: string = 'postgresql'): FluxSqlDiagram {
   const warnings: string[] = [];
   const tables: FluxSqlTable[] = [];
   const relationships: FluxSqlRelationship[] = [];
@@ -15,7 +29,7 @@ export function generateDiagramFromSql(sql: string): FluxSqlDiagram {
   const cleanSql = stripComments(sql);
   if (!cleanSql.trim()) {
     warnings.push('No SQL content was provided.');
-    return createDiagram(tables, relationships, warnings);
+    return createDiagram(tables, relationships, warnings, languageId);
   }
 
   const rawTables = extractCreateTableBlocks(cleanSql);
@@ -59,16 +73,19 @@ export function generateDiagramFromSql(sql: string): FluxSqlDiagram {
     warnings.push('Tables were found, but no columns could be parsed.');
   }
 
-  return createDiagram(tables, dedupeRelationships(relationships), warnings);
+  return createDiagram(tables, dedupeRelationships(relationships), warnings, languageId);
 }
 
 function createDiagram(
   tables: FluxSqlTable[],
   relationships: FluxSqlRelationship[],
-  warnings: string[]
+  warnings: string[],
+  dialect: string = 'postgresql'
 ): FluxSqlDiagram {
   return {
-    dialect: 'postgresql',
+    dialect: dialect as FluxSqlDiagram['dialect'],
+    family: 'sql',
+    renderMode: 'tables',
     source: 'local-parser',
     generatedAt: new Date().toISOString(),
     tables,
