@@ -25,6 +25,7 @@ import { restoreVersionAction } from '@/lib/backend/actions/versions/restore'
 import { getVersionDetailAction } from '@/lib/backend/actions/versions/detail'
 import { getSchemaStats, type EditorDialect } from '@/lib/editor-schema'
 import { toFlowJson } from '@/lib/flow-types'
+import { parseSQL, parseJSON } from '@/lib/parsers'
 
 interface EditorLayoutProps {
   projectName: string
@@ -166,6 +167,38 @@ function EditorLayoutInner({
     toast.success('Todo listo. No se encontraron errores.')
   }
 
+  function handleManualExecute() {
+    useEditorStore.getState().setUserEditedSql(true)
+    const result = mode === 'json'
+        ? parseJSON(sqlValue)
+        : parseSQL(sqlValue, mode)
+        
+    if (result.errors && result.errors.length > 0) {
+      toast.error(result.errors[0].message)
+      return
+    }
+    if (result.nodes.length === 0) {
+      toast.error('No se detectaron tablas/colecciones. Revisa la sintaxis.')
+      return
+    }
+    
+    // Merge positions manually (similar to useSyncEditor) to guarantee an immediate update on click
+    const currentNodes = useEditorStore.getState().nodes
+    const positionMap = new Map<string, { x: number; y: number }>()
+    currentNodes.forEach((node) => positionMap.set(node.id, node.position))
+
+    const newNodes: Node[] = result.nodes.map((parserNode) => ({
+      ...parserNode,
+      position: positionMap.get(parserNode.id) ?? parserNode.position,
+    }))
+
+    const { toReactFlowEdge } = require('@/store/useEditorStore')
+    const newEdges = result.edges.map((e: Edge) => toReactFlowEdge(e))
+
+    setNodesAndEdges(newNodes, newEdges)
+    toast.success('Diagrama actualizado correctamente.')
+  }
+
   function focusRelations() {
     useEditorStore.getState().setHoveredNodeId(null)
     fitView({ duration: 350, padding: 0.24 })
@@ -284,7 +317,7 @@ function EditorLayoutInner({
                         </button>
                       </>
                     )}
-                    <button onClick={() => toast.info('El editor ya sincroniza el esquema en vivo.')} className="rounded-lg bg-[#1A6CF6] px-3 py-1.5 text-xs text-white dark:bg-[#123A79] dark:text-[#BFDBFE]">
+                    <button onClick={handleManualExecute} className="rounded-lg bg-[#1A6CF6] px-3 py-1.5 text-xs text-white dark:bg-[#123A79] dark:text-[#BFDBFE]">
                       <Play className="mr-1 inline h-3 w-3" />
                       Ejecutar
                     </button>

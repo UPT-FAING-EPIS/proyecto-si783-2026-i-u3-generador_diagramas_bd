@@ -1,5 +1,5 @@
 import { ParseResult, Column } from '../types'
-import { calculateLayout } from '../utils/layout'
+import { calculateLayout, layoutByRelationships } from '../utils/layout'
 
 export function parseMongoDB(code: string): ParseResult {
   const result: ParseResult = {
@@ -269,13 +269,9 @@ export function parseMongoDB(code: string): ParseResult {
       flattenNodes(node.data.columns as Column[], node.id)
     })
 
-    // Recalculate layout for ALL nodes including subdocuments
-    const allPositions = calculateLayout(result.nodes.length)
-    result.nodes.forEach((n, i) => {
-      if (n.position.x === 0 && n.position.y === 0) {
-        n.position = allPositions[i] || { x: 0, y: 0 }
-      }
-    })
+    // Recalculate layout for ALL nodes including subdocuments using hierarchical relationships
+    const laidOutNodes = layoutByRelationships(result.nodes, result.edges)
+    result.nodes = laidOutNodes
 
     return result
   } catch (error) {
