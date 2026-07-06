@@ -2,7 +2,7 @@
   "name": "fluxsql",
   "displayName": "FluxSQL - Database Diagram Generator",
   "description": "Generate SQL and NoSQL database diagrams from DDL, MongoDB/Mongoose, Prisma, JSON and Neo4j files, then export Mermaid, SVG, PNG and JSON.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "JeffersonVargas",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
