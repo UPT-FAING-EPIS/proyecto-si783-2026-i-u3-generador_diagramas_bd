@@ -468,6 +468,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | AuthController       | Valida credenciales y genera JWT                      |
 | Entity   | Usuario              | Registro persistente en BD Cloud                      |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[LoginForm]
+    Boundary --> Control((AuthController))
+    Control --> Entity1[(Usuario)]
+```
+
+
 **CU-02: Registrar nueva cuenta de usuario**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -475,6 +485,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | RegisterForm         | Formulario de registro de datos personales            |
 | Control  | AuthController       | Cifra contraseña y crea registro                      |
 | Entity   | Usuario              | Nuevo registro en la tabla de usuarios                |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[RegisterForm]
+    Boundary --> Control((AuthController))
+    Control --> Entity1[(Usuario)]
+```
+
 
 **CU-03: Cerrar sesión de usuario**
 
@@ -484,6 +504,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | SessionManager       | Destruye token JWT del almacenamiento local           |
 | Entity   | TokenStore           | Almacenamiento local del JWT (LocalStorage)           |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[NavBar]
+    Boundary --> Control((SessionManager))
+    Control --> Entity1[(TokenStore)]
+```
+
+
 **CU-04: Visualizar galería de proyectos guardados**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -491,6 +521,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | DashboardView        | Cuadrícula de tarjetas de proyectos                   |
 | Control  | ProjectController    | Solicita lista de proyectos al API Cloud              |
 | Entity   | Proyecto             | Registro de proyecto en BD Cloud                      |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[DashboardView]
+    Boundary --> Control((ProjectController))
+    Control --> Entity1[(Proyecto)]
+```
+
 
 **CU-05: Crear nuevo proyecto de modelado**
 
@@ -501,6 +541,17 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Entity   | Proyecto             | Nuevo registro con estado inicial                     |
 | Entity   | SchemaModel          | Modelo JSON vacío asociado al proyecto                |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[NewProjectButton]
+    Boundary --> Control((ProjectController))
+    Control --> Entity1[(Proyecto)]
+    Control --> Entity2[(SchemaModel)]
+```
+
+
 **CU-06: Guardar / Sincronizar estado del diagrama (Push)**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -508,6 +559,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | SaveButton           | Botón "Guardar" en el editor                          |
 | Control  | CloudSyncService     | Envía SchemaModel al API mediante PUT/POST            |
 | Entity   | Diagrama             | Registro versionado del SchemaModel en la nube        |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[SaveButton]
+    Boundary --> Control((CloudSyncService))
+    Control --> Entity1[(Diagrama)]
+```
+
 
 **CU-07: Cargar / Restaurar diagrama desde la nube (Pull)**
 
@@ -517,6 +578,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | CloudSyncService     | Descarga SchemaModel desde el API Cloud               |
 | Entity   | Diagrama             | Registro persistido en BD Cloud                       |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[ProjectCard]
+    Boundary --> Control((CloudSyncService))
+    Control --> Entity1[(Diagrama)]
+```
+
+
 **CU-08: Eliminar proyecto de la nube**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -524,6 +595,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | DeleteModal          | Diálogo de confirmación de eliminación                |
 | Control  | ProjectController    | Envía solicitud DELETE al API                         |
 | Entity   | Proyecto             | Registro eliminado de la BD                           |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[DeleteModal]
+    Boundary --> Control((ProjectController))
+    Control --> Entity1[(Proyecto)]
+```
+
 
 **CU-09: Ingresar script SQL DDL manualmente**
 
@@ -533,6 +614,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | EditorController     | Gestiona estado del texto DDL en memoria              |
 | Entity   | DDLBuffer            | Cadena de texto DDL almacenada temporalmente          |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[MonacoEditor]
+    Boundary --> Control((EditorController))
+    Control --> Entity1[(DDLBuffer)]
+```
+
+
 **CU-10: Parsear script DDL a diagrama**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -540,6 +631,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | DiagramViewer        | Componente visual que muestra el ERD Mermaid          |
 | Control  | SQLDDLParser         | Compila texto SQL a estructura SchemaModel            |
 | Entity   | SchemaModel          | Modelo intermedio JSON generado por el parser         |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[DiagramViewer]
+    Boundary --> Control((SQLDDLParser))
+    Control --> Entity1[(SchemaModel)]
+```
+
 
 **CU-11: Ingresar estructura mediante JSON Schema**
 
@@ -549,6 +650,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | EditorController     | Gestiona estado del texto JSON en memoria             |
 | Entity   | JSONBuffer           | Cadena de texto JSON almacenada temporalmente         |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[MonacoEditorJSON]
+    Boundary --> Control((EditorController))
+    Control --> Entity1[(JSONBuffer)]
+```
+
+
 **CU-12: Parsear JSON Schema a diagrama**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -556,6 +667,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | DiagramViewer        | Componente visual que muestra el ERD Mermaid          |
 | Control  | JSONSchemaParser     | Transforma JSON jerárquico a SchemaModel              |
 | Entity   | SchemaModel          | Modelo intermedio JSON generado por el parser         |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[DiagramViewer]
+    Boundary --> Control((JSONSchemaParser))
+    Control --> Entity1[(SchemaModel)]
+```
+
 
 **CU-13: Ampliar o reducir lienzo (Zoom)**
 
@@ -565,6 +686,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | D3ZoomModule         | Intercepta evento de scroll y escala viewBox          |
 | Entity   | ViewBoxState         | Estado actual de escala y posición del lienzo         |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[CanvasView]
+    Boundary --> Control((D3ZoomModule))
+    Control --> Entity1[(ViewBoxState)]
+```
+
+
 **CU-14: Desplazarse por el diagrama (Paneo)**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -572,6 +703,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | CanvasView           | Área visual del diagrama SVG                          |
 | Control  | D3PanModule          | Intercepta evento de arrastre y traslada coordenadas  |
 | Entity   | ViewBoxState         | Estado actual de posición X,Y del lienzo              |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[CanvasView]
+    Boundary --> Control((D3PanModule))
+    Control --> Entity1[(ViewBoxState)]
+```
+
 
 **CU-15: Exportar diagrama a imagen PNG**
 
@@ -581,6 +722,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | ExportService        | Convierte SVG a Canvas y genera Blob descargable      |
 | Entity   | CanvasBuffer         | Canvas HTML5 temporal con la imagen rasterizada       |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[ExportMenu]
+    Boundary --> Control((ExportService))
+    Control --> Entity1[(CanvasBuffer)]
+```
+
+
 **CU-16: Exportar diagrama a vector SVG**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -588,6 +739,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | ExportMenu           | Menú desplegable con opciones de exportación          |
 | Control  | ExportService        | Extrae nodo DOM SVG y lo serializa                    |
 | Entity   | SVGBlob              | Blob codificado del archivo SVG                       |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[ExportMenu]
+    Boundary --> Control((ExportService))
+    Control --> Entity1[(SVGBlob)]
+```
+
 
 **CU-17: Exportar diagrama a código Mermaid**
 
@@ -597,6 +758,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | ExportService        | Recupera string Mermaid subyacente                    |
 | Entity   | MermaidBlob          | Blob de texto plano del código Mermaid                |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[ExportMenu]
+    Boundary --> Control((ExportService))
+    Control --> Entity1[(MermaidBlob)]
+```
+
+
 **CU-18: Registrar credenciales de Base de Datos local**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -604,6 +775,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | ConnectionForm       | Formulario de ingreso de Host, User, Pass             |
 | Control  | ConnectionManager    | Cifra y almacena credenciales en el SO Keyring        |
 | Entity   | ConnectionProfile    | Perfil de conexión persistido localmente              |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[ConnectionForm]
+    Boundary --> Control((ConnectionManager))
+    Control --> Entity1[(ConnectionProfile)]
+```
+
 
 **CU-19: Ejecutar introspección de Base de Datos local**
 
@@ -613,6 +794,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Control  | ExtractorFactory     | Selecciona el extractor adecuado según motor de BD    |
 | Entity   | RawMetadata          | Datos crudos de tablas, columnas y FKs                |
 
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[ExtractButton]
+    Boundary --> Control((ExtractorFactory))
+    Control --> Entity1[(RawMetadata)]
+```
+
+
 **CU-20: Transformar metadatos crudos a SchemaModel**
 
 | Tipo     | Objeto              | Responsabilidad                                      |
@@ -620,6 +811,16 @@ A continuación se identifican, para cada caso de uso, los objetos participantes
 | Boundary | DiagramViewer        | Componente que recibe y renderiza el SchemaModel      |
 | Control  | SchemaTransformer    | Mapea tipos heterogéneos a formato universal          |
 | Entity   | SchemaModel          | Modelo JSON estandarizado resultante                  |
+
+**Gráfico de objetos:**
+
+```mermaid
+flowchart LR
+    Actor((Usuario)) --> Boundary[DiagramViewer]
+    Boundary --> Control((SchemaTransformer))
+    Control --> Entity1[(SchemaModel)]
+```
+
 
 ### 6.3.2 Diagrama de actividades con objetos
 
