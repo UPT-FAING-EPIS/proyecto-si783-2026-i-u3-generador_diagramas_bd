@@ -23,7 +23,7 @@ export function PresenceToolbar({ projectId, currentUser }: PresenceToolbarProps
   )
 
   return (
-    <div className="flex items-center gap-1 rounded-xl border border-[#1E2A45] bg-[#0A0F1E] px-2 py-1">
+    <div className="flex items-center gap-1 rounded-xl border border-border bg-card px-2 py-1">
       {uniqueUsers.slice(0, 5).map((user: { user_id: string; name: string; joined_at: string }, index: number) => (
         <div
           key={user.user_id}
@@ -40,7 +40,7 @@ export function PresenceToolbar({ projectId, currentUser }: PresenceToolbarProps
           {getInitials(user.name)}
         </div>
       ))}
-      {uniqueUsers.length > 5 && <span className="ml-1 text-xs text-[#94A3B8]">+{uniqueUsers.length - 5}</span>}
+      {uniqueUsers.length > 5 && <span className="ml-1 text-xs text-muted-foreground">+{uniqueUsers.length - 5}</span>}
     </div>
   )
 }

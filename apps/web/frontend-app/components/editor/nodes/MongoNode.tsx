@@ -39,8 +39,8 @@ export function MongoNode({ data }: NodeProps) {
   const headerBg = color ?? (isSubDocument ? '#374151' : '#1f2937')
 
   return (
-    <div className="min-w-[180px] overflow-hidden rounded-lg bg-[#111827] shadow-xl text-sm font-sans border border-[#374151]">
-      <div className="px-3 py-2 flex items-center justify-between" style={{ background: headerBg, borderBottom: '1px solid #374151' }}>
+    <div className="min-w-[180px] overflow-hidden rounded-lg bg-card text-card-foreground shadow-xl text-sm font-sans border border-border">
+      <div className="px-3 py-2 flex items-center justify-between" style={{ background: headerBg, borderBottom: '1px solid var(--border)' }}>
         <span className="text-white font-semibold text-[13px] tracking-wide truncate pr-2">
           {tableName}
         </span>

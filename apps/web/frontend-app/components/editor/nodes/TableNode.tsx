@@ -22,17 +22,17 @@ export function TableNode({ data }: NodeProps) {
   const accent = color ?? '#1A6CF6'
 
   return (
-    <div className="min-w-[230px] overflow-hidden rounded-xl border border-[#1E2A45] bg-[#0B1322] shadow-2xl shadow-black/40 backdrop-blur">
-      <div className="px-3 py-2" style={{ background: `linear-gradient(135deg, ${accent}, #0F5BEA)` }}>
-        <span className="flex items-center gap-2 truncate text-sm font-semibold tracking-wide text-white">
+    <div className="min-w-[230px] overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-2xl shadow-black/15 backdrop-blur">
+      <div className="border-b border-border px-3 py-2 bg-muted/60" style={{ borderTop: `3px solid ${accent}` }}>
+        <span className="flex items-center gap-2 truncate text-sm font-semibold tracking-wide text-foreground">
           <Table2 size={14} />
           {tableName}
         </span>
       </div>
 
-      <div className="divide-y divide-[#1E2A45] bg-[#0B1322]">
+      <div className="divide-y divide-border bg-card">
         {columns.length === 0 ? (
-          <div className="px-3 py-2 text-slate-400 text-xs italic">Sin columnas</div>
+          <div className="px-3 py-2 text-muted-foreground text-xs italic">Sin columnas</div>
         ) : (
           columns.map((col, idx) => (
             <div key={idx} className="relative flex items-center gap-2 px-3 py-1.5 group">
@@ -49,15 +49,15 @@ export function TableNode({ data }: NodeProps) {
               {col.isPrimaryKey ? (
                 <KeyRound size={12} className="text-yellow-500 shrink-0" />
               ) : col.isForeignKey ? (
-                <Link size={12} className="text-slate-400 shrink-0" />
+                <Link size={12} className="text-muted-foreground shrink-0" />
               ) : (
                 <span className="w-3 shrink-0" />
               )}
 
               {/* Column name */}
-              <span className="text-[#E2E8F0] text-xs flex-1 truncate">{col.name}</span>
+              <span className="text-foreground text-xs flex-1 truncate">{col.name}</span>
 
-              <span className="text-[#94A3B8] text-xs shrink-0 font-mono">{col.type}</span>
+              <span className="text-muted-foreground text-xs shrink-0 font-mono">{col.type}</span>
 
               {/* Right handle (source) — hidden until hover */}
               <Handle

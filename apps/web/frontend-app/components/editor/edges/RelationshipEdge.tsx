@@ -39,7 +39,7 @@ export function RelationshipEdge({
       {label && (
         <EdgeLabelRenderer>
           <div
-            className="absolute text-[10px] font-semibold text-[#00D4FF] bg-[#0A0F1E] px-1 rounded pointer-events-none border border-[#1E2A45]"
+            className="absolute text-[10px] font-semibold text-[#1A6CF6] bg-card px-1 rounded pointer-events-none border border-border"
             style={{ transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)` }}
           >
             {label}

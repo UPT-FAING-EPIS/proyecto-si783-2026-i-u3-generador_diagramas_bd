@@ -143,13 +143,13 @@ export function ExportMenu({ projectName }: ExportMenuProps) {
     <div className="relative shrink-0" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 rounded-lg border border-[#2A3B5D] bg-[#1E2A45] px-3 py-2 text-xs text-white transition-colors hover:bg-[#2A3B5D]"
+        className="flex items-center gap-1 rounded-lg border border-border bg-[#1A6CF6] px-3 py-2 text-xs text-white transition-colors hover:bg-blue-700"
       >
         Exportar
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-[120] mt-2 w-56 overflow-hidden rounded-xl border border-[#1E2A45] bg-[#111827] shadow-2xl shadow-black/40">
+        <div className="absolute right-0 top-full z-[120] mt-2 w-56 overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl shadow-black/20">
           <MenuButton onClick={() => handleExportImage('png')} disabled={Boolean(exporting)}>{exporting === 'png' ? 'Exportando PNG...' : 'Exportar PNG'}</MenuButton>
           <MenuButton onClick={() => handleExportImage('svg')} disabled={Boolean(exporting)}>{exporting === 'svg' ? 'Exportando SVG...' : 'Exportar SVG'}</MenuButton>
           <MenuButton onClick={() => handleExportSql('postgresql')}>SQL PostgreSQL</MenuButton>
@@ -166,7 +166,7 @@ export function ExportMenu({ projectName }: ExportMenuProps) {
 
 function MenuButton({ children, onClick, disabled = false }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
   return (
-    <button disabled={disabled} onClick={onClick} className="w-full border-b border-[#1E2A45] px-3 py-2 text-left text-xs text-[#E2E8F0] transition-colors last:border-b-0 hover:bg-[#1E2A45] disabled:cursor-wait disabled:opacity-60">
+    <button disabled={disabled} onClick={onClick} className="w-full border-b border-border px-3 py-2 text-left text-xs text-popover-foreground transition-colors last:border-b-0 hover:bg-muted disabled:cursor-wait disabled:opacity-60">
       {children}
     </button>
   )
