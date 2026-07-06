@@ -193,13 +193,13 @@ export default function DesktopSkillsPage() {
                         <li>Resolver compatibilidad por motor local.</li>
                         <li>Ejecutarse solo si esta instalada y activa.</li>
                         <li>Producir artefactos seguros y auditables.</li>
-                        <li>Respetar permisos, approvals y environment guard.</li>
+                        <li>Respetar permisos y guardas locales por base conectada.</li>
                       </ul>
                     </div>
                     <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
                       <h3 className="text-sm font-semibold">Guardas</h3>
                       <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-[#CBD5E1]">
-                        <p>Aprobacion: {selectedSkill.requires_approval ? 'Si' : 'No'}</p>
+                        <p>Control: permisos locales por base conectada</p>
                         <p>Backup: {selectedSkill.requires_backup ? 'Si' : 'No'}</p>
                         <p>Sandbox: {selectedSkill.requires_sandbox ? 'Si' : 'No'}</p>
                       </div>
@@ -248,7 +248,7 @@ export default function DesktopSkillsPage() {
                 {(skill.requires_approval || skill.requires_backup || skill.requires_sandbox) && (
                   <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-[#94A3B8]">
                     <ShieldCheck className="h-4 w-4 text-[#1A6CF6]" />
-                    Requiere guardas: {[skill.requires_approval && 'aprobacion', skill.requires_backup && 'backup', skill.requires_sandbox && 'sandbox'].filter(Boolean).join(', ')}
+                    Requiere guardas: {[skill.requires_backup && 'backup', skill.requires_sandbox && 'sandbox'].filter(Boolean).join(', ')}
                   </div>
                 )}
 

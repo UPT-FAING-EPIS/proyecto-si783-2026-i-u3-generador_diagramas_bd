@@ -166,6 +166,8 @@ function mapVersionDetail(version: VersionWire): VersionDetail {
       mysql: '',
       sqlserver: '',
       json: '',
+      mongodb: '',
+      neo4j: '',
     },
   };
 }

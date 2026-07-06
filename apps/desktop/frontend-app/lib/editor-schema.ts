@@ -1,6 +1,6 @@
 import { MarkerType, type Edge, type Node } from '@xyflow/react'
 
-export type EditorDialect = 'postgresql' | 'mysql' | 'sqlserver' | 'json'
+export type EditorDialect = 'postgresql' | 'mysql' | 'sqlserver' | 'json' | 'mongodb' | 'neo4j'
 
 export type EditorColumn = {
   name: string
@@ -22,7 +22,7 @@ export type EditorTableData = {
   color?: string
 }
 
-export type EditorNode = Node<EditorTableData, 'tableNode'>
+export type EditorNode = Node<EditorTableData, 'tableNode' | 'nosqlNode' | 'mongoNode' | 'neo4jNode'>
 export type RelationshipCardinality = 'many-to-one' | 'one-to-many' | 'one-to-one'
 
 export const DEFAULT_TABLE_COLOR = '#1A6CF6'
@@ -39,7 +39,7 @@ export type NormalizedRelationship = {
 
 export function isEditorNode(node: Node): node is EditorNode {
   return (
-    node.type === 'tableNode' &&
+    (node.type === 'tableNode' || node.type === 'nosqlNode' || node.type === 'mongoNode' || node.type === 'neo4jNode') &&
     typeof node.data?.tableName === 'string' &&
     Array.isArray(node.data?.columns)
   )
@@ -187,6 +187,52 @@ export function serializeSchema(nodes: Node[], dialect: EditorDialect, edges: Ed
     return JSON.stringify(json, null, 2)
   }
 
+  if (dialect === 'mongodb') {
+    return tables.map((table) => {
+      const collectionName = table.data.tableName
+      const fields = table.data.columns.map((column) => {
+        let typeStr = column.type || 'String'
+        const upperType = typeStr.toUpperCase()
+        if (upperType === 'VARCHAR' || upperType === 'TEXT') typeStr = 'String'
+        if (upperType === 'INT' || upperType === 'INTEGER' || upperType === 'SERIAL') typeStr = 'Number'
+        if (upperType === 'BOOLEAN' || upperType === 'BIT') typeStr = 'Boolean'
+        if (upperType === 'DATETIME' || upperType === 'TIMESTAMP' || upperType === 'TIMESTAMPTZ') typeStr = 'Date'
+        if (upperType === 'UUID' || upperType === 'OBJECTID') typeStr = 'Schema.Types.ObjectId'
+
+        const relationship = relationships.find((item) =>
+          item.sourceTable === table.data.tableName && item.sourceColumn === column.name
+        )
+        const reference = relationship?.targetTable ?? column.references?.table
+        let fieldDef = `type: ${typeStr}`
+        if (reference) {
+          fieldDef = `type: Schema.Types.ObjectId, ref: '${reference}'`
+        }
+
+        const isRequired = column.nullable === false && !column.isPrimaryKey ? ', required: true' : ''
+        if (column.isPrimaryKey && column.name === '_id') return null
+        return `  ${column.name}: { ${fieldDef}${isRequired} }`
+      }).filter(Boolean)
+
+      return `const ${collectionName}Schema = new mongoose.Schema({\n${fields.join(',\n')}\n});\n\nconst ${collectionName} = mongoose.model('${collectionName}', ${collectionName}Schema);`
+    }).join('\n\n')
+  }
+
+  if (dialect === 'neo4j') {
+    const nodeStatements = tables.map((table) => {
+      const props = table.data.columns
+        .filter((column) => !column.references)
+        .map((column) => `${column.name}: "${column.type || 'String'}"`)
+      return `CREATE (:${table.data.tableName} { ${props.join(', ')} });`
+    })
+
+    const relationStatements = relationships.map((relationship) => {
+      const relType = (relationship.label || 'RELATES_TO').replace(/[^A-Za-z0-9_]/g, '_').toUpperCase()
+      return `MATCH (a:${relationship.sourceTable}), (b:${relationship.targetTable})\nCREATE (a)-[:${relType}]->(b);`
+    })
+
+    return [...nodeStatements, ...relationStatements].join('\n\n')
+  }
+
   return tables.map((table) => {
     const tableName = quoteIdentifier(table.data.tableName, dialect)
     const primaryKeys = table.data.columns.filter((column) => column.isPrimaryKey).map((column) => quoteIdentifier(column.name, dialect))
@@ -227,6 +273,8 @@ export function serializeAllDialects(nodes: Node[], edges: Edge[] = []) {
     mysql: serializeSchema(nodes, 'mysql', edges),
     sqlserver: serializeSchema(nodes, 'sqlserver', edges),
     json: serializeSchema(nodes, 'json', edges),
+    mongodb: serializeSchema(nodes, 'mongodb', edges),
+    neo4j: serializeSchema(nodes, 'neo4j', edges),
   }
 }
 

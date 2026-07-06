@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { syncAPI, type DeviceLinkStart } from '@/lib/api/client'
 
 export default function AccountPage() {
-  const fallbackUrl = 'https://fluxsql-bd-frontend-app.vercel.app/desktop-link'
+  const fallbackUrl = 'https://fluxsql.sytes.net/desktop-link'
   const [deviceLink, setDeviceLink] = useState<DeviceLinkStart | null>(null)
   const [linkedEmail, setLinkedEmail] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -178,9 +178,8 @@ export default function AccountPage() {
               <h2 className="font-semibold">Que se sincroniza a Web</h2>
               <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-[#CBD5E1]">
                 <li>Diagramas y versiones.</li>
-                <li>Decisiones de esquema y approvals.</li>
                 <li>Memoria por proyecto, base de datos y equipo.</li>
-                <li>Permisos de skills y guardas de entorno.</li>
+                <li>Permisos de skills y guardas locales por base conectada.</li>
                 <li>Presencia y colaboracion en tiempo real.</li>
               </ul>
             </div>
@@ -207,7 +206,7 @@ export default function AccountPage() {
               <Users className="mb-2 h-5 w-5 text-[#1A6CF6]" />
               <h2 className="font-semibold">Modo sincronizado</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-[#CBD5E1]">
-                Publicas diagramas, memoria y decisiones seguras a Web para verlos desde otra PC o compartirlos con un companero sin instalar Desktop.
+                Publicas diagramas y memoria segura a Web para verlos desde otra PC o compartirlos con un companero sin instalar Desktop.
               </p>
             </div>
           </div>

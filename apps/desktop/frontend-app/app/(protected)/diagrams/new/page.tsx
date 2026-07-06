@@ -21,7 +21,7 @@ const SQL_ENGINES: Array<{ value: EditorDialect; label: string }> = [
   { value: 'sqlserver', label: 'SQL Server' },
 ]
 
-const NOSQL_ENGINES = [
+const NOSQL_ENGINES: Array<{ value: Extract<EditorDialect, 'mongodb' | 'neo4j'>; label: string }> = [
   { value: 'mongodb', label: 'MongoDB' },
   { value: 'neo4j', label: 'Neo4j' },
 ]
@@ -45,7 +45,7 @@ export default function NewDiagramPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [diagramName, setDiagramName] = useState('Diagrama Principal')
   const [blankSqlEngine, setBlankSqlEngine] = useState<EditorDialect>('postgresql')
-  const [blankNoSqlEngine, setBlankNoSqlEngine] = useState('mongodb')
+  const [blankNoSqlEngine, setBlankNoSqlEngine] = useState<Extract<EditorDialect, 'mongodb' | 'neo4j'>>('mongodb')
 
   const compatibleConnections = useMemo(() => {
     const allowed = family === 'sql' ? SQL_ENGINE_VALUES : NOSQL_ENGINE_VALUES
@@ -162,7 +162,10 @@ export default function NewDiagramPage() {
     setIsGenerating(true)
     try {
       const engine = family === 'sql' ? blankSqlEngine : blankNoSqlEngine
-      const activeDialect = family === 'sql' ? blankSqlEngine : 'json'
+      const activeDialect = family === 'sql' ? blankSqlEngine : blankNoSqlEngine
+      const noSqlSource = blankNoSqlEngine === 'neo4j'
+        ? 'CREATE (:User { id: "uuid", name: "Ada" });\nCREATE (:Project { id: "uuid", name: "FluxSQL" });\nMATCH (u:User), (p:Project)\nCREATE (u)-[:OWNS]->(p);'
+        : 'const UserSchema = new mongoose.Schema({\n  name: { type: String, required: true },\n  email: { type: String },\n  projects: [{ type: Schema.Types.ObjectId, ref: "Project" }]\n});'
       await diagramsAPI.create({
         project_id: Number(projectId),
         name: diagramName,
@@ -175,7 +178,7 @@ export default function NewDiagramPage() {
             engine,
           },
         }),
-        sql_content: family === 'sql' ? '' : JSON.stringify({ engine, collections: [] }, null, 2),
+        sql_content: family === 'sql' ? '' : noSqlSource,
         active_dialect: activeDialect,
       })
       toast.success('Diagrama libre creado')
@@ -242,7 +245,7 @@ export default function NewDiagramPage() {
                 <p className="text-sm font-semibold">3. Motor del diagrama</p>
                 <select
                   value={family === 'sql' ? blankSqlEngine : blankNoSqlEngine}
-                  onChange={(event) => family === 'sql' ? setBlankSqlEngine(event.target.value as EditorDialect) : setBlankNoSqlEngine(event.target.value)}
+                  onChange={(event) => family === 'sql' ? setBlankSqlEngine(event.target.value as EditorDialect) : setBlankNoSqlEngine(event.target.value as Extract<EditorDialect, 'mongodb' | 'neo4j'>)}
                   className="mt-3 h-11 w-full max-w-sm rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
                 >
                   {(family === 'sql' ? SQL_ENGINES : NOSQL_ENGINES).map((engine) => (

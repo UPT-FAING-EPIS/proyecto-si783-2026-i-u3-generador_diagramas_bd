@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic'
 import { useTheme } from 'next-themes'
 import { useEditorStore } from '@/store/useEditorStore'
+import { useSyncEditor } from '@/hooks/useSyncEditor'
+import type { Edge, Node } from '@xyflow/react'
 import type { EditorDialect } from '@/lib/editor-schema'
 
 const MonacoEditor = dynamic(
@@ -10,8 +12,8 @@ const MonacoEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full animate-pulse items-center justify-center bg-white dark:bg-[#101827]">
-        <span className="text-sm text-slate-500 dark:text-[#6B7280]">Cargando editor...</span>
+      <div className="flex h-full w-full animate-pulse items-center justify-center bg-white dark:bg-[#0B1322]">
+        <span className="text-sm text-slate-500 dark:text-[#64748B]">Cargando editor...</span>
       </div>
     ),
   }
@@ -19,17 +21,33 @@ const MonacoEditor = dynamic(
 
 interface EditorPanelProps {
   mode: EditorDialect
+  emitSqlChange?: (nodes: Node[], edges: Edge[]) => void
 }
 
-export function EditorPanel({ mode }: EditorPanelProps) {
+export function EditorPanel({ mode, emitSqlChange }: EditorPanelProps) {
   const { sqlValue, setSqlValue } = useEditorStore()
   const { resolvedTheme } = useTheme()
+  useSyncEditor(mode, emitSqlChange)
+
+  let fileExtension = 'sql'
+  let editorLanguage = 'sql'
+
+  if (mode === 'json') {
+    fileExtension = 'json'
+    editorLanguage = 'json'
+  } else if (mode === 'mongodb') {
+    fileExtension = 'js' // Mongoose models
+    editorLanguage = 'javascript'
+  } else if (mode === 'neo4j') {
+    fileExtension = 'cypher'
+    editorLanguage = 'cypher'
+  }
 
   return (
-    <div className="flex h-full w-full flex-col bg-white dark:bg-[#101827]">
-      <div className="flex shrink-0 items-center border-b border-slate-200 bg-slate-50 px-4 py-2 dark:border-[#1E2A45] dark:bg-[#111827]">
-        <span className="font-mono text-xs text-slate-600 dark:text-[#9CDCFE]">schema.{mode === 'json' ? 'json' : 'sql'}</span>
-        <span className="ml-auto rounded-md border border-slate-200 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500 dark:border-[#1E2A45] dark:text-[#64748B]">
+    <div className="flex h-full w-full flex-col bg-white border-r border-slate-200 dark:bg-[#0B1322] dark:border-[#1E2A45]">
+      <div className="flex shrink-0 items-center border-b border-slate-200 bg-slate-50 px-4 py-2 dark:border-[#1E2A45] dark:bg-[#07101F]">
+        <span className="font-mono text-xs text-slate-600 font-semibold dark:text-[#94A3B8]">schema.{fileExtension}</span>
+        <span className="ml-auto rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#64748B]">
           {mode}
         </span>
       </div>
@@ -37,12 +55,11 @@ export function EditorPanel({ mode }: EditorPanelProps) {
       <div className="flex-1 overflow-hidden">
         <MonacoEditor
           height="100%"
-          language={mode === 'json' ? 'json' : 'sql'}
-          theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
+          language={editorLanguage}
+          theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
           value={sqlValue}
           onChange={(value) => setSqlValue(value ?? '')}
           options={{
-            readOnly: false,
             minimap: { enabled: false },
             fontSize: 13,
             fontFamily: "'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace",

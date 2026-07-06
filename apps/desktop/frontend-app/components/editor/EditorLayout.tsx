@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState, forwardRef, type ElementType } from 'react'
 import { ReactFlowProvider, useReactFlow, type Edge, type Node } from '@xyflow/react'
-import { ArrowLeft, CheckCircle2, Code2, Database, DatabaseZap, FileJson, History, PanelRight, RefreshCw } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Code2, Database, DatabaseZap, FileJson, Filter, History, PanelRight, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Canvas } from './Canvas'
 import { EditorPanel } from './EditorPanel'
+import { Neo4jSidebar } from './Neo4jSidebar'
 import { SchemaInspector } from './SchemaInspector'
 import { ExportMenu } from './ExportMenu'
 import { VersionHistorySheet } from './VersionHistorySheet'
@@ -38,6 +39,8 @@ const DIALECTS: Array<{ value: EditorDialect; label: string; icon: ElementType }
   { value: 'mysql', label: 'MySQL', icon: Database },
   { value: 'sqlserver', label: 'SQL Server', icon: Database },
   { value: 'json', label: 'JSON', icon: FileJson },
+  { value: 'mongodb', label: 'MongoDB', icon: Database },
+  { value: 'neo4j', label: 'Neo4j', icon: Database },
 ]
 
 function EditorLayoutInner({
@@ -65,6 +68,7 @@ function EditorLayoutInner({
   const [savedLabel, setSavedLabel] = useState('Esquema sincronizado')
   const [showSqlPanel, setShowSqlPanel] = useState(false)
   const [showInspector, setShowInspector] = useState(true)
+  const [showNeo4jFilters, setShowNeo4jFilters] = useState(false)
   const [diffModal, setDiffModal] = useState<{ open: boolean; initialVersionId?: string } | null>(null)
   const activeConnection = useConnectionStore((state) => state.activeConnection)
 
@@ -110,6 +114,7 @@ function EditorLayoutInner({
   }, [])
 
   const stats = getSchemaStats(nodes, edges)
+  const isNeo4j = mode === 'neo4j'
 
   useEffect(() => {
     setDialect((dialect as EditorDialect) || 'postgresql')
@@ -375,6 +380,22 @@ function EditorLayoutInner({
             </div>
 
             <div className="min-h-0 flex-1 overflow-hidden">
+              {isNeo4j && showNeo4jFilters && (
+                <div className="absolute bottom-0 right-0 top-0 z-20 shadow-lg">
+                  <Neo4jSidebar />
+                </div>
+              )}
+              {isNeo4j && (
+                <button
+                  type="button"
+                  onClick={() => setShowNeo4jFilters((value) => !value)}
+                  className="absolute left-5 top-5 z-20 inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground"
+                  title="Mostrar filtros Neo4j"
+                >
+                  <Filter size={14} />
+                  Filtros
+                </button>
+              )}
               <Canvas projectId={projectId} emitNodeMove={undefined} onSave={handleSave} />
             </div>
           </div>

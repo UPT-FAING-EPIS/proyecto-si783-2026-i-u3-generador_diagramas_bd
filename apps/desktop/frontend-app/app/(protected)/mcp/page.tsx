@@ -19,7 +19,7 @@ const TOOL_DETAILS: Record<string, { title: string; description: string; input: 
     title: 'Perfil de base de datos',
     description: 'Lee el perfil de una conexion: motor, entorno, capacidades disponibles y datos necesarios para resolver skills compatibles.',
     input: 'connection_id de una conexion guardada.',
-    safety: 'No devuelve secrets. Sirve para decidir que herramientas se pueden usar antes de tocar una base.',
+    safety: 'No devuelve credenciales. Sirve para decidir que herramientas se pueden usar antes de tocar una base.',
   },
   fluxsql_list_skills: {
     title: 'Listar skills instaladas',
@@ -31,13 +31,13 @@ const TOOL_DETAILS: Record<string, { title: string; description: string; input: 
     title: 'Ejecutar skill FluxSQL',
     description: 'Ejecuta una skill instalada contra un contexto controlado, por ejemplo revisar schema, generar SQL o preparar documentacion.',
     input: 'skill_id, connection_id y parametros de ejecucion de la skill.',
-    safety: 'Pasa por permisos, approvals y environment guard antes de operaciones riesgosas.',
+    safety: 'Pasa por permisos locales y guardas de entorno antes de operaciones riesgosas.',
   },
   fluxsql_execute_sql: {
     title: 'SQL protegido',
     description: 'Permite a un agente ejecutar sentencias SQL limitadas para flujos controlados.',
     input: 'connection_id y una unica sentencia SQL permitida.',
-    safety: 'Bloquea operaciones destructivas y requiere aprobacion humana para cambios de riesgo.',
+    safety: 'Bloquea operaciones destructivas y respeta permisos locales por base conectada.',
   },
   fluxsql_get_skill_status: {
     title: 'Estado de ejecucion de skill',
@@ -50,12 +50,6 @@ const TOOL_DETAILS: Record<string, { title: string; description: string; input: 
     description: 'Busca artefactos generados por una skill, como reportes, SQL o documentacion.',
     input: 'artifact_id del artefacto.',
     safety: 'No revela credenciales ni conexiones; devuelve artefactos permitidos por FluxSQL.',
-  },
-  fluxsql_request_approval: {
-    title: 'Solicitar aprobacion',
-    description: 'Crea una solicitud de decision humana antes de ejecutar una accion riesgosa.',
-    input: 'reason o detalle de la accion que necesita aprobacion.',
-    safety: 'Mantiene el cambio bloqueado hasta que una persona lo apruebe.',
   },
 }
 

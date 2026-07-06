@@ -28,7 +28,11 @@ type SnapshotEdge = {
 export type VersionSnapshots = Record<EditorDialect, string>
 
 function isTableNode(node: SnapshotNode) {
-  return node.type === 'tableNode' && typeof node.data?.tableName === 'string' && Array.isArray(node.data?.columns)
+  return (
+    (node.type === 'tableNode' || node.type === 'nosqlNode' || node.type === 'mongoNode' || node.type === 'neo4jNode') &&
+    typeof node.data?.tableName === 'string' &&
+    Array.isArray(node.data?.columns)
+  )
 }
 
 function quoteIdentifier(name: string, dialect: EditorDialect) {
@@ -92,6 +96,25 @@ export function serializeSnapshotSchema(nodes: unknown[] | undefined, dialect: E
     return JSON.stringify(json, null, 2)
   }
 
+  if (dialect === 'mongodb') {
+    return tables.map((table) => {
+      const fields = (table.data?.columns ?? [])
+        .filter((column) => !(column.isPrimaryKey && column.name === '_id'))
+        .map((column) => `  ${column.name ?? 'campo'}: { type: ${column.references?.table ? 'Schema.Types.ObjectId' : normalizeMongoType(column.type)},${column.references?.table ? ` ref: '${column.references.table}',` : ''} required: ${column.nullable === false ? 'true' : 'false'} }`)
+      const name = table.data?.tableName ?? 'Collection'
+      return `const ${name}Schema = new mongoose.Schema({\n${fields.join(',\n')}\n});`
+    }).join('\n\n')
+  }
+
+  if (dialect === 'neo4j') {
+    return tables.map((table) => {
+      const props = (table.data?.columns ?? [])
+        .filter((column) => !column.references)
+        .map((column) => `${column.name ?? 'campo'}: "${column.type || 'String'}"`)
+      return `CREATE (:${table.data?.tableName ?? 'Node'} { ${props.join(', ')} });`
+    }).join('\n\n')
+  }
+
   return tables.map((table) => {
     const tableName = quoteIdentifier(table.data?.tableName ?? 'tabla', dialect)
     const columns = table.data?.columns ?? []
@@ -124,19 +147,31 @@ export function serializeSnapshotSchema(nodes: unknown[] | undefined, dialect: E
   }).join('\n\n')
 }
 
+function normalizeMongoType(type: string | undefined) {
+  const upper = (type || 'String').toUpperCase()
+  if (upper === 'TEXT' || upper === 'VARCHAR') return 'String'
+  if (upper === 'INT' || upper === 'INTEGER' || upper === 'SERIAL') return 'Number'
+  if (upper === 'BOOLEAN' || upper === 'BIT') return 'Boolean'
+  if (upper === 'DATE' || upper === 'DATETIME' || upper === 'TIMESTAMP' || upper === 'TIMESTAMPTZ') return 'Date'
+  if (upper === 'UUID' || upper === 'OBJECTID') return 'Schema.Types.ObjectId'
+  return type || 'String'
+}
+
 export function serializeVersionSnapshots(nodes: unknown[] | undefined, edges: unknown[] = []): VersionSnapshots {
   return {
     postgresql: serializeSnapshotSchema(nodes, 'postgresql'),
     mysql: serializeSnapshotSchema(nodes, 'mysql'),
     sqlserver: serializeSnapshotSchema(nodes, 'sqlserver'),
     json: serializeSnapshotSchema(nodes, 'json', edges),
+    mongodb: serializeSnapshotSchema(nodes, 'mongodb', edges),
+    neo4j: serializeSnapshotSchema(nodes, 'neo4j', edges),
   }
 }
 
 export function hasVersionSnapshots(value: unknown): value is VersionSnapshots {
   if (!value || typeof value !== 'object') return false
   const candidate = value as Partial<VersionSnapshots>
-  return ['postgresql', 'mysql', 'sqlserver', 'json'].every(
+  return ['postgresql', 'mysql', 'sqlserver', 'json', 'mongodb', 'neo4j'].every(
     (key) => typeof candidate[key as EditorDialect] === 'string'
   )
 }
