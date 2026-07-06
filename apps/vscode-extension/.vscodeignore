@@ -9,3 +9,5 @@ pnpm-lock.yaml
 *.vsix
 *.png
 !media/icon.png
+!media/thumbnail.png
+!media/thumbnail.svg

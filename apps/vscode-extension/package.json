@@ -1,7 +1,7 @@
 {
   "name": "fluxsql",
   "displayName": "FluxSQL - Database Diagram Generator",
-  "description": "Generate visual ER diagrams from PostgreSQL SQL files, then export Mermaid, SVG and JSON.",
+  "description": "Generate SQL and NoSQL database diagrams from DDL, MongoDB/Mongoose, Prisma, JSON and Neo4j files, then export Mermaid, SVG, PNG and JSON.",
   "version": "0.0.1",
   "publisher": "JeffersonVargas",
   "license": "SEE LICENSE IN LICENSE",
@@ -29,6 +29,9 @@
     "erd",
     "postgresql",
     "schema",
+    "nosql",
+    "mongodb",
+    "neo4j",
     "mermaid",
     "svg",
     "fluxsql",
@@ -57,11 +60,13 @@
   "main": "./dist/extension.js",
   "activationEvents": [
     "onCommand:fluxsql.openDiagramEditor",
-    "onCommand:fluxsql.generateFromSqlFile",
+    "onCommand:fluxsql.generateFromFile",
     "onCommand:fluxsql.generateFromSelection",
     "onCommand:fluxsql.exportMermaid",
     "onCommand:fluxsql.exportJson",
     "onCommand:fluxsql.exportSvg",
+    "onCommand:fluxsql.exportPng",
+    "onCommand:fluxsql.exportDiagram",
     "onCommand:fluxsql.exportAll"
   ],
   "contributes": {
@@ -72,8 +77,8 @@
         "category": "FluxSQL"
       },
       {
-        "command": "fluxsql.generateFromSqlFile",
-        "title": "Generate Diagram from SQL File",
+        "command": "fluxsql.generateFromFile",
+        "title": "Generate Diagram from File",
         "category": "FluxSQL"
       },
       {
@@ -97,6 +102,16 @@
         "category": "FluxSQL"
       },
       {
+        "command": "fluxsql.exportPng",
+        "title": "Export Diagram as PNG",
+        "category": "FluxSQL"
+      },
+      {
+        "command": "fluxsql.exportDiagram",
+        "title": "Export Diagram...",
+        "category": "FluxSQL"
+      },
+      {
         "command": "fluxsql.exportAll",
         "title": "Export All Diagram Artifacts",
         "category": "FluxSQL"
@@ -109,8 +124,8 @@
           "when": "editorHasSelection"
         },
         {
-          "command": "fluxsql.generateFromSqlFile",
-          "when": "resourceExtname == .sql"
+          "command": "fluxsql.generateFromFile",
+          "when": "resourceExtname == .sql || resourceExtname == .prisma || resourceExtname == .js || resourceExtname == .ts || resourceExtname == .json || resourceExtname == .cypher || resourceExtname == .cql"
         }
       ]
     },

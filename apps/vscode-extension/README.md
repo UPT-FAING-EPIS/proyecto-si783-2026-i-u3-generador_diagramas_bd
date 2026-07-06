@@ -1,64 +1,86 @@
 # FluxSQL - Database Diagram Generator
 
-FluxSQL turns PostgreSQL SQL files into visual ER diagrams inside VS Code. Open a `.sql` file, generate the diagram, inspect tables and relationships, then export Mermaid, SVG or FluxSQL JSON artifacts.
+FluxSQL turns SQL and NoSQL schema code into visual database diagrams inside VS Code. It supports relational table diagrams for SQL engines and graph-style diagrams for document/graph engines such as MongoDB and Neo4j.
+
+![FluxSQL thumbnail](media/thumbnail.png)
 
 ## Features
 
-- Visual ER diagram canvas with table nodes and relationship lines.
-- Generate diagrams from the active SQL file or the current selection.
-- Local PostgreSQL-focused parser for common DDL patterns.
-- Export Mermaid (`.mmd`) for docs, GitHub Markdown and Notion.
-- Export SVG for presentations, reports and sharing.
-- Export `.fluxsql.json` for FluxSQL-compatible workflows.
+- Guided generation flow: choose `SQL` or `NoSQL`, then choose the database engine.
+- SQL diagrams for PostgreSQL, MySQL/MariaDB, SQL Server and SQLite DDL.
+- NoSQL diagrams for MongoDB native scripts, Mongoose schemas, Prisma models, JSON documents and Neo4j/Cypher.
+- Relational rendering with tables, columns, primary keys and foreign keys.
+- Graph rendering for MongoDB/Mongoose/JSON/Neo4j relationships.
+- Export picker for Mermaid, SVG, PNG, FluxSQL JSON or all artifacts.
 - Local-first behavior: no cloud upload, no credential collection.
 
 ## Quick Start
 
-1. Open a PostgreSQL `.sql` file.
-2. Run `FluxSQL: Generate Diagram from SQL File` from the Command Palette.
-3. Use the diagram toolbar to adjust the view or export artifacts.
+1. Open a schema file, for example `.sql`, `.json`, `.js`, `.ts`, `.prisma` or `.cypher`.
+2. Run `FluxSQL: Generate Diagram from File` from the Command Palette.
+3. Select the diagram family:
+   - `SQL` for relational databases.
+   - `NoSQL` for documents, collections or graphs.
+4. Select the engine so FluxSQL knows how to parse and render the diagram.
+5. Use `FluxSQL: Export Diagram...` or the preview toolbar to export artifacts.
 
-You can also select a SQL snippet and run `FluxSQL: Generate Diagram from Selection`.
+You can also select a snippet and run `FluxSQL: Generate Diagram from Selection`.
 
 ## Commands
 
 - `FluxSQL: Open Diagram Editor`
-- `FluxSQL: Generate Diagram from SQL File`
+- `FluxSQL: Generate Diagram from File`
 - `FluxSQL: Generate Diagram from Selection`
+- `FluxSQL: Export Diagram...`
 - `FluxSQL: Export Diagram as Mermaid`
 - `FluxSQL: Export Diagram as SVG`
+- `FluxSQL: Export Diagram as PNG`
 - `FluxSQL: Export Diagram as JSON`
 - `FluxSQL: Export All Diagram Artifacts`
 
-## Supported SQL in 0.0.1
+## Supported Engines
 
-- `CREATE TABLE`
-- inline `PRIMARY KEY`
-- table-level `PRIMARY KEY (...)`
-- inline `REFERENCES table(column)`
-- `ALTER TABLE ... ADD ... FOREIGN KEY ... REFERENCES ...`
-- SQL comments using `--` and `/* ... */`
+SQL:
+
+- PostgreSQL
+- MySQL / MariaDB
+- SQL Server
+- SQLite
+
+NoSQL:
+
+- MongoDB native scripts
+- Mongoose schemas
+- Prisma models
+- JSON document structures
+- Neo4j / Cypher
 
 ## Exported Files
 
-When possible, FluxSQL writes artifacts beside the active SQL file:
+When possible, FluxSQL writes artifacts beside the active source file in `fluxsql-exports`:
 
 - `<name>.mmd`
 - `<name>.svg`
+- `<name>.png`
 - `<name>.fluxsql.json`
 
-If no file-backed SQL document is available, export commands ask for a save location.
+If no file-backed document is available, export commands ask for a save location.
 
-## Security
+## GitHub Versioning
 
-FluxSQL parses SQL locally in the VS Code extension host. The MVP does not send SQL, database credentials, dumps, backups or private query results to cloud services.
+The repository includes a `Publish VS Code Extension` GitHub Actions workflow. To package and publish a new extension version:
+
+1. Update `apps/vscode-extension/package.json` version.
+2. Push a tag like `vscode-v0.0.2`.
+3. GitHub Actions packages the `.vsix`, calculates checksums and creates release assets.
+4. If repository secret `VSCE_PAT` is configured, the workflow also publishes to Visual Studio Marketplace.
 
 ## Settings
 
 - `fluxsql.autoOpenPreview`: automatically open the diagram preview after generation.
-- `fluxsql.outputDirectory`: directory for generated `.mmd`, `.svg` and `.fluxsql.json` files. Empty means beside the active SQL file.
+- `fluxsql.outputDirectory`: directory for generated artifacts. Empty means beside the active source file.
 - `fluxsql.sidecarUrl`: local FluxSQL sidecar URL reserved for future advanced generation.
 
-## Current Limitations
+## Security
 
-This preview release focuses on PostgreSQL DDL. Advanced database introspection, live PostgreSQL connections and FluxSQL sidecar integration are planned for later versions.
+FluxSQL parses schema text locally in the VS Code extension host. It does not send SQL, NoSQL documents, database credentials, dumps, backups or private query results to cloud services.

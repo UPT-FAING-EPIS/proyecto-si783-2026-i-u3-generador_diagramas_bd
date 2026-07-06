@@ -22,7 +22,9 @@ export interface FluxSqlRelationship {
 }
 
 export interface FluxSqlDiagram {
-  dialect: 'postgresql';
+  dialect: 'postgresql' | 'mysql' | 'mongodb' | 'mongoose' | 'prisma' | 'json' | 'sqlserver' | 'sqlite' | 'neo4j';
+  family: 'sql' | 'nosql';
+  renderMode: 'tables' | 'graph';
   source: 'local-parser';
   generatedAt: string;
   tables: FluxSqlTable[];

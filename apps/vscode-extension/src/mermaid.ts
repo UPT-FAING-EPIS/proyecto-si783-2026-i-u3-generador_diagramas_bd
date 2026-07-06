@@ -1,6 +1,10 @@
 import { FluxSqlDiagram } from './diagramTypes';
 
 export function toMermaid(diagram: FluxSqlDiagram): string {
+  if (diagram.renderMode === 'graph') {
+    return toGraphMermaid(diagram);
+  }
+
   const lines = ['erDiagram'];
 
   for (const table of diagram.tables) {
@@ -31,10 +35,36 @@ export function toMermaid(diagram: FluxSqlDiagram): string {
   return `${lines.join('\n')}\n`;
 }
 
+function toGraphMermaid(diagram: FluxSqlDiagram): string {
+  const lines = ['flowchart LR'];
+  for (const table of diagram.tables) {
+    lines.push(`  ${sanitize(table.name)}((" ${escapeLabel(table.name)} "))`);
+  }
+
+  const seen = new Set<string>();
+  for (const relationship of diagram.relationships) {
+    const source = sanitize(relationship.fromTable);
+    const target = sanitize(relationship.toTable);
+    const label = escapeLabel(relationship.fromColumn || 'relates_to');
+    const key = `${source}|${label}|${target}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    lines.push(`  ${source} -- "${label}" --> ${target}`);
+  }
+
+  return `${lines.join('\n')}\n`;
+}
+
 function sanitize(value: string): string {
   return value.replace(/[^\w]/g, '_').replace(/^(\d)/, '_$1');
 }
 
 function sanitizeType(value: string): string {
-  return sanitize(value.replace(/\(.+\)/g, ''));
+  const noParens = value.replace(/\(.+\)/g, '');
+  const withArray = noParens.replace(/\[\]/g, 'Array');
+  return sanitize(withArray);
+}
+
+function escapeLabel(value: string): string {
+  return value.replace(/"/g, '\\"');
 }
