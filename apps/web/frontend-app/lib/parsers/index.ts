@@ -4,7 +4,7 @@ import { parseMySQL } from './dialects/mysql'
 import { parseSQLServer } from './dialects/sqlserver'
 import { parseMongoDB } from './dialects/mongodb'
 import { parseNeo4j } from './dialects/neo4j'
-import { calculateLayout } from './utils/layout'
+import { calculateLayout, layoutByRelationships } from './utils/layout'
 
 export * from './types'
 
@@ -140,7 +140,7 @@ function processJsonObject(obj: Record<string, unknown>): ParseResult {
     })
   })
 
-  return { nodes, edges, errors: [] }
+  return { nodes: layoutByRelationships(nodes, edges), edges, errors: [] }
 }
 
 function processJsonSchema(obj: Record<string, unknown>): ParseResult {
@@ -175,7 +175,7 @@ function processJsonSchema(obj: Record<string, unknown>): ParseResult {
     data: { tableName: title, columns }
   })
 
-  return { nodes, edges, errors: [] }
+  return { nodes: layoutByRelationships(nodes, edges), edges, errors: [] }
 }
 
 export interface MermaidResult {

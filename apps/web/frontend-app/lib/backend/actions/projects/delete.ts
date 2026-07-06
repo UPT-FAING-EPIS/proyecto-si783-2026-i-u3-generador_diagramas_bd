@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '../../db'
-import { projects } from '../../db/schema'
+import { projects, users } from '../../db/schema'
 import { eq } from 'drizzle-orm'
 import { createClient } from '../../supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -15,6 +15,11 @@ export async function deleteProjectAction(projectId: string) {
   }
 
   try {
+    const [dbUser] = await db.select().from(users).where(eq(users.authId, user.id)).limit(1)
+    if (!dbUser) {
+      return { success: false, error: 'Usuario no encontrado en la base de datos' }
+    }
+
     // Verificar que el usuario sea owner del proyecto
     const [project] = await db
       .select({ ownerId: projects.ownerId })
@@ -22,7 +27,7 @@ export async function deleteProjectAction(projectId: string) {
       .where(eq(projects.id, projectId))
       .limit(1)
 
-    if (!project || project.ownerId !== user.id) {
+    if (!project || project.ownerId !== dbUser.id) {
       return { success: false, error: 'No tienes permisos para eliminar este proyecto' }
     }
 
@@ -49,6 +54,11 @@ export async function restoreProjectAction(projectId: string) {
   }
 
   try {
+    const [dbUser] = await db.select().from(users).where(eq(users.authId, user.id)).limit(1)
+    if (!dbUser) {
+      return { success: false, error: 'Usuario no encontrado en la base de datos' }
+    }
+
     // Verificar que el usuario sea owner del proyecto
     const [project] = await db
       .select({ ownerId: projects.ownerId })
@@ -56,7 +66,7 @@ export async function restoreProjectAction(projectId: string) {
       .where(eq(projects.id, projectId))
       .limit(1)
 
-    if (!project || project.ownerId !== user.id) {
+    if (!project || project.ownerId !== dbUser.id) {
       return { success: false, error: 'No tienes permisos para restaurar este proyecto' }
     }
 

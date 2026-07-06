@@ -9,6 +9,7 @@ interface ProjectData {
     description: string | null
     updatedAt: Date
     ownerId: string
+    engineFamily?: string
     tags?: string[] | null
     deleted_at?: string | Date | null
   }

@@ -1,7 +1,6 @@
 'use client'
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
 import { InviteCollaboratorModal } from './InviteCollaboratorModal'
 import { Clock, MoreVertical, Trash2, RotateCcw, UserPlus, Pencil, Link as LinkIcon } from 'lucide-react'
 import { getRelativeDate } from '@/lib/relativeDate'
@@ -150,9 +149,24 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
     setIsMenuOpen(false)
   }
 
+  function handleOpenProject() {
+    if (isRenaming || isMenuOpen || isInviteOpen || isProcessing) return
+    router.push(`/editor/${project.id}`)
+  }
+
   return (
-    <Link href={`/editor/${project.id}`} className="block h-full">
-      <Card className="h-full flex flex-col p-0 gap-0 overflow-hidden bg-card text-card-foreground group relative rounded-xl border border-border hover:border-[#1A6CF6]/60 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-950/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+      <Card
+        role="button"
+        tabIndex={0}
+        onClick={handleOpenProject}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            handleOpenProject()
+          }
+        }}
+        className="h-full flex flex-col p-0 gap-0 overflow-hidden bg-card text-card-foreground group relative rounded-xl border border-border hover:border-[#1A6CF6]/60 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-950/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+      >
         {/* PORTADA CON GRADIENTE Y BADGES ABSOLUTOS */}
         <div className={`relative h-28 bg-gradient-to-br ${getProjectGradient(project.id)} flex items-end p-3 border-b border-border/70`}>
           
@@ -198,7 +212,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
               {/* Dropdown Menu */}
               {isMenuOpen && (
                 <div className="absolute right-0 top-8 z-50 min-w-40 rounded-lg bg-popover text-popover-foreground border border-border shadow-xl py-1">
-                  {project.deleted_at === null ? (
+                  {!project.deleted_at ? (
                     <>
                       {/* Opción: Invitar Colaborador */}
                       <button
@@ -325,7 +339,10 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
 
           {/* Input inline para renombrar */}
           {isRenaming && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-30 rounded-xl">
+            <div
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-30 rounded-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-background p-4 rounded-lg border border-border shadow-xl w-80">
                 <input
                   ref={inputRef}
@@ -348,7 +365,8 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                 />
                 <div className="flex gap-2 mt-3">
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setIsRenaming(false)
                       setNewName(project.name)
                     }}
@@ -357,7 +375,10 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                     Cancelar
                   </button>
                   <button
-                    onClick={handleRename}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRename()
+                    }}
                     className="flex-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
                     disabled={isProcessing}
                   >
@@ -431,6 +452,5 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
           />
         )}
       </Card>
-    </Link>
   )
 }

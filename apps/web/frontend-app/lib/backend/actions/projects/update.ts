@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from '../../db'
-import { projects } from '../../db/schema'
+import { projects, users } from '../../db/schema'
 import { eq, and, ne } from 'drizzle-orm'
 import { createClient } from '../../supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -26,6 +26,11 @@ export async function renameProject(
   }
 
   try {
+    const [dbUser] = await db.select().from(users).where(eq(users.authId, user.id)).limit(1)
+    if (!dbUser) {
+      return { success: false, error: 'Usuario no encontrado en la base de datos' }
+    }
+
     // Verificar que el usuario sea owner del proyecto
     const [project] = await db
       .select({ ownerId: projects.ownerId })
@@ -33,7 +38,7 @@ export async function renameProject(
       .where(eq(projects.id, projectId))
       .limit(1)
 
-    if (!project || project.ownerId !== user.id) {
+    if (!project || project.ownerId !== dbUser.id) {
       return { success: false, error: 'No tienes permisos para renombrar este proyecto' }
     }
 
@@ -42,7 +47,7 @@ export async function renameProject(
       .select({ id: projects.id })
       .from(projects)
       .where(and(
-        eq(projects.ownerId, user.id),
+        eq(projects.ownerId, dbUser.id),
         eq(projects.name, name.trim()),
         ne(projects.id, projectId)
       ))
