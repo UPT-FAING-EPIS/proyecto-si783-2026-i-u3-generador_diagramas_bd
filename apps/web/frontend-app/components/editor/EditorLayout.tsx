@@ -10,7 +10,6 @@ import { Neo4jSidebar } from './Neo4jSidebar'
 import { Neo4jCommandBar } from './Neo4jCommandBar'
 import { EditorInspector } from './EditorInspector'
 import { ExportMenu } from './ExportMenu'
-import { CommitModal } from './CommitModal'
 import { VersionHistorySheet } from './VersionHistorySheet'
 import { PublicShareToggle } from './PublicShareToggle'
 import { PresenceToolbar } from './PresenceToolbar'
@@ -79,6 +78,8 @@ function EditorLayoutInner({
   const { cursors, handleMouseMove } = useCollaboratorCursors(projectId, currentUser.id, currentUser.name)
   const { emitNodeMove, emitSqlChange, consumeRemoteSchemaUpdate } = useRealtimeSync(projectId, currentUser.id)
   const stats = getSchemaStats(nodes, edges)
+  const activeDialect = DIALECTS.find((item) => item.value === mode)
+  const ActiveDialectIcon = activeDialect?.icon
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -213,17 +214,9 @@ function EditorLayoutInner({
           <h1 className="max-w-52 truncate text-sm font-semibold">{projectName}</h1>
 
           <div className="mx-auto flex items-center gap-3">
-            <div className="flex rounded-xl border border-border bg-muted p-1">
-              {DIALECTS.filter(d => d.family === engineFamily).map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  onClick={() => setDialect(value)}
-                  className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-medium transition ${mode === value ? 'bg-[#1A6CF6] text-white' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  <Icon size={13} />
-                  {label}
-                </button>
-              ))}
+            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-muted px-4 py-2 text-xs font-semibold text-foreground">
+              {ActiveDialectIcon && <ActiveDialectIcon size={13} />}
+              {activeDialect?.label ?? mode}
             </div>
           </div>
 
@@ -233,7 +226,6 @@ function EditorLayoutInner({
           </div>
           <PresenceToolbar projectId={projectId} currentUser={currentUser} />
           <PublicShareToggle diagramId={projectId} initialIsPublic={initialIsPublic} initialShareAccess={initialShareAccess} />
-          <CommitModal projectId={projectId} />
           <button
             type="button"
             onClick={() => toast.info('El generador de datos estara disponible desde FluxSQL Desktop para insertar datos en una conexion local.')}

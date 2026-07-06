@@ -165,10 +165,10 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
             handleOpenProject()
           }
         }}
-        className="h-full flex flex-col p-0 gap-0 overflow-hidden bg-card text-card-foreground group relative rounded-xl border border-border hover:border-[#1A6CF6]/60 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-950/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+        className="h-full flex flex-col p-0 gap-0 overflow-visible bg-card text-card-foreground group relative rounded-xl border border-border hover:border-[#1A6CF6]/60 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-950/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
       >
         {/* PORTADA CON GRADIENTE Y BADGES ABSOLUTOS */}
-        <div className={`relative h-28 bg-gradient-to-br ${getProjectGradient(project.id)} flex items-end p-3 border-b border-border/70`}>
+        <div className={`relative h-28 overflow-visible rounded-t-xl bg-gradient-to-br ${getProjectGradient(project.id)} flex items-end p-3 border-b border-border/70`}>
           
           {/* Badge Plan (esquina superior izquierda) */}
           <div className="absolute top-3 left-3 z-10">
@@ -211,7 +211,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
 
               {/* Dropdown Menu */}
               {isMenuOpen && (
-                <div className="absolute right-0 top-8 z-50 min-w-40 rounded-lg bg-popover text-popover-foreground border border-border shadow-xl py-1">
+                <div className="absolute right-0 top-8 z-[80] min-w-48 rounded-lg bg-popover text-popover-foreground border border-border shadow-xl py-1">
                   {!project.deleted_at ? (
                     <>
                       {/* Opción: Invitar Colaborador */}

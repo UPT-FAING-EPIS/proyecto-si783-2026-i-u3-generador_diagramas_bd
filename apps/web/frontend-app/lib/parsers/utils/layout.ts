@@ -79,8 +79,8 @@ export function layoutByRelationships<N extends LayoutNode, E extends LayoutEdge
 
   edges.forEach((edge) => {
     if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) return
-    childrenByParent.get(edge.target)?.push(edge.source)
-    parentByChild.get(edge.source)?.add(edge.target)
+    childrenByParent.get(edge.source)?.push(edge.target)
+    parentByChild.get(edge.target)?.add(edge.source)
   })
 
   const columnGap = 340

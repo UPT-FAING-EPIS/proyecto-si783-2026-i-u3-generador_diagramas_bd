@@ -12,8 +12,7 @@ import { RelationshipEdge } from './edges/RelationshipEdge'
 import { Neo4jEdge } from './edges/Neo4jEdge'
 import { applyForceLayout } from '@/lib/parsers/utils/forceLayout'
 import { layoutByRelationships } from '@/lib/parsers/utils/layout'
-import { Eye, GitBranch, Grid3X3, Maximize2, MoreHorizontal, Rows3, Save } from 'lucide-react'
-import { CommitModal } from './CommitModal'
+import { GitBranch, Grid3X3, Maximize2, Rows3, Save } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 // CRITICAL: nodeTypes and edgeTypes MUST be defined outside the component
@@ -85,7 +84,7 @@ interface CanvasProps {
   onSave?: () => void
 }
 
-export function Canvas({ emitNodeMove, projectId, onSave }: CanvasProps) {
+export function Canvas({ emitNodeMove, onSave }: CanvasProps) {
   const { fitView } = useReactFlow()
   const { resolvedTheme } = useTheme()
   const [showGrid, setShowGrid] = useState(true)
@@ -256,7 +255,6 @@ export function Canvas({ emitNodeMove, projectId, onSave }: CanvasProps) {
             <ToolButton icon={Grid3X3} label="Cuadrícula" onClick={() => setShowGrid((value) => !value)} active={showGrid} />
           </>
         )}
-        {projectId && <CommitModal projectId={projectId} asToolbarButton />}
         {onSave && <ToolButton icon={Save} label="Guardar" onClick={onSave} />}
       </div>
     </div>

@@ -75,7 +75,10 @@ export const useEditorStore = create<EditorStore>((set) => ({
   onNodesChange: (changes) =>
     set((state) => ({ nodes: applyNodeChanges(changes, state.nodes) })),
   onEdgesChange: (changes) =>
-    set((state) => ({ edges: applyEdgeChanges(changes, state.edges) })),
+    set((state) => {
+      const edges = applyEdgeChanges(changes, state.edges)
+      return { edges, sqlValue: serializeSchema(state.nodes, state.dialect), syncPaused: true, userEditedSql: false }
+    }),
   setNodesAndEdges: (nodes, edges) => set({ nodes, edges, userEditedSql: false }),
   setSelectedNodeId: (selectedNodeId) => set({ selectedNodeId }),
   setHoveredNodeId: (hoveredNodeId) => set({ hoveredNodeId }),
@@ -120,18 +123,37 @@ export const useEditorStore = create<EditorStore>((set) => ({
       
       node.type = newNodeType
 
+      const nodes = [...state.nodes, node]
       return {
-        nodes: [...state.nodes, node],
+        nodes,
         selectedNodeId: node.id,
-        sqlValue: serializeSchema([...state.nodes, node], state.dialect),
+        sqlValue: serializeSchema(nodes, state.dialect),
+        syncPaused: true,
+        userEditedSql: false,
       }
     }),
   updateTable: (nodeId, data) =>
     set((state) => {
-      const nodes = state.nodes.map((node) =>
-        node.id === nodeId ? { ...node, data: { ...node.data, ...data } } : node
-      )
-      return { nodes, sqlValue: serializeSchema(nodes, state.dialect) }
+      const previousNode = state.nodes.find((node) => node.id === nodeId)
+      const previousTableName = typeof previousNode?.data.tableName === 'string' ? previousNode.data.tableName : undefined
+      const nextTableName = typeof data.tableName === 'string' ? data.tableName : undefined
+      const nodes = state.nodes.map((node) => {
+        if (node.id === nodeId) return { ...node, data: { ...node.data, ...data } }
+        if (!previousTableName || !nextTableName || !Array.isArray(node.data.columns)) return node
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            columns: node.data.columns.map((item) =>
+              item.references?.table === previousTableName
+                ? { ...item, references: { ...item.references, table: nextTableName } }
+                : item
+            ),
+          },
+        }
+      })
+      return { nodes, sqlValue: serializeSchema(nodes, state.dialect), syncPaused: true, userEditedSql: false }
     }),
   deleteTable: (nodeId) =>
     set((state) => {
@@ -142,6 +164,8 @@ export const useEditorStore = create<EditorStore>((set) => ({
         edges,
         selectedNodeId: state.selectedNodeId === nodeId ? null : state.selectedNodeId,
         sqlValue: serializeSchema(nodes, state.dialect),
+        syncPaused: true,
+        userEditedSql: false,
       }
     }),
   addColumn: (nodeId) =>
@@ -164,17 +188,29 @@ export const useEditorStore = create<EditorStore>((set) => ({
           },
         }
       })
-      return { nodes, sqlValue: serializeSchema(nodes, state.dialect) }
+      return { nodes, sqlValue: serializeSchema(nodes, state.dialect), syncPaused: true, userEditedSql: false }
     }),
   updateColumn: (nodeId, columnIndex, column) =>
     set((state) => {
+      const previousNode = state.nodes.find((node) => node.id === nodeId)
+      const previousColumnName = Array.isArray(previousNode?.data.columns)
+        ? previousNode.data.columns[columnIndex]?.name
+        : undefined
       const nodes = state.nodes.map((node) => {
         if (node.id !== nodeId) return node
         const columns = Array.isArray(node.data.columns) ? [...node.data.columns] : []
         columns[columnIndex] = { ...columns[columnIndex], ...column }
         return { ...node, data: { ...node.data, columns } }
       })
-      return { nodes, sqlValue: serializeSchema(nodes, state.dialect) }
+      const nextColumnName = column.name
+      const edges = previousColumnName && nextColumnName && previousColumnName !== nextColumnName
+        ? state.edges.map((edge) => ({
+            ...edge,
+            sourceHandle: edge.source === nodeId && edge.sourceHandle === `${previousColumnName}-source` ? `${nextColumnName}-source` : edge.sourceHandle,
+            targetHandle: edge.target === nodeId && edge.targetHandle === `${previousColumnName}-target` ? `${nextColumnName}-target` : edge.targetHandle,
+          }))
+        : state.edges
+      return { nodes, edges, sqlValue: serializeSchema(nodes, state.dialect), syncPaused: true, userEditedSql: false }
     }),
   deleteColumn: (nodeId, columnIndex) =>
     set((state) => {
@@ -188,7 +224,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
       const edges = targetColumn
         ? state.edges.filter((edge) => edge.sourceHandle !== `${targetColumn}-source` && edge.targetHandle !== `${targetColumn}-target`)
         : state.edges
-      return { nodes, edges, sqlValue: serializeSchema(nodes, state.dialect) }
+      return { nodes, edges, sqlValue: serializeSchema(nodes, state.dialect), syncPaused: true, userEditedSql: false }
     }),
   addRelationship: (sourceId, sourceColumn, targetId, targetColumn) =>
     set((state) => {
@@ -215,7 +251,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
       })
       const edge = makeRelationshipEdge(source, { ...sourceCol, isForeignKey: true }, target, targetCol)
       const edges = [...state.edges.filter((item) => item.id !== edge.id), edge]
-      return { nodes, edges, sqlValue: serializeSchema(nodes, state.dialect) }
+      return { nodes, edges, sqlValue: serializeSchema(nodes, state.dialect), syncPaused: true, userEditedSql: false }
     }),
   syncSqlFromCanvas: () => set((state) => ({ sqlValue: serializeSchema(state.nodes, state.dialect), userEditedSql: false })),
   sqlValue: SQL_PLACEHOLDER,
