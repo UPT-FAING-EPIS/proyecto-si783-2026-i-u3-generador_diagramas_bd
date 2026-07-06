@@ -1,0 +1,21 @@
+{
+  "name": "fluxsql-skill",
+  "version": "0.1.3",
+  "description": "AI Agent Skill for FluxSQL Workbench",
+  "main": "SKILL.md",
+  "files": [
+    "README.md",
+    "SKILL.md",
+    "agents",
+    "references",
+    "scripts"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "skill",
+    "fluxsql"
+  ],
+  "author": "",
+  "license": "MIT"
+}
