@@ -17,6 +17,7 @@ import {
   type EditorDialect,
   type EditorNode,
 } from '@/lib/editor-schema'
+import { layoutByRelationships } from '@/lib/parsers/utils/layout'
 
 const SQL_PLACEHOLDER = `-- FluxSQL Editor
 -- Escribe tu DDL aquí
@@ -101,11 +102,19 @@ export const useEditorStore = create<EditorStore>((set) => ({
       }
     })
     
+    let finalNodes = newNodes
+    if (state.dialect === 'neo4j' && dialect !== 'neo4j') {
+      finalNodes = layoutByRelationships(newNodes as any, newEdges) as typeof newNodes
+    } else if (dialect === 'neo4j' && state.dialect !== 'neo4j') {
+      // Force all nodes to origin so Neo4j's applyForceLayout scatters them organically instead of inheriting grid lock
+      finalNodes = newNodes.map(n => ({ ...n, position: { x: 0, y: 0 } }))
+    }
+
     return { 
       dialect, 
-      nodes: newNodes,
+      nodes: finalNodes,
       edges: newEdges,
-      sqlValue: serializeSchema(newNodes, dialect) || state.sqlValue, 
+      sqlValue: serializeSchema(finalNodes, dialect) || state.sqlValue, 
       syncPaused: true, 
       userEditedSql: false,
       neo4jFilterLabel: null,  // reset filter when switching dialect
@@ -263,6 +272,8 @@ export const useEditorStore = create<EditorStore>((set) => ({
  * Call this when converting ParseResult.edges → React Flow edges.
  */
 export function toReactFlowEdge(edge: Edge): Edge {
+  const dialect = useEditorStore.getState().dialect
+
   if (edge.type === 'neo4jEdge') {
     return {
       ...edge,
@@ -277,7 +288,8 @@ export function toReactFlowEdge(edge: Edge): Edge {
 
   return {
     ...edge,
-    type: 'relationship',
+    type: edge.type || 'relationship',
+    data: dialect === 'mongodb' ? { ...edge.data, pathType: 'step' } : edge.data,
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 16,

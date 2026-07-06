@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { useEditorStore } from '@/store/useEditorStore'
-import { CheckCircle2 } from 'lucide-react'
 
 // Updated Palette: Blue/Slate tones instead of rainbow
 const NEO4J_PALETTE = [
@@ -33,7 +32,7 @@ export function Neo4jSidebar() {
   const neo4jFilterRelationship = useEditorStore((state) => state.neo4jFilterRelationship)
   const setNeo4jFilterRelationship = useEditorStore((state) => state.setNeo4jFilterRelationship)
 
-  // ── Legend data ──────────────────────────────────────────
+  // Legend data
   const labels = Array.from(
     new Set(nodes.map(n => (n.data as { tableName?: string })?.tableName).filter(Boolean))
   ) as string[]
@@ -46,7 +45,7 @@ export function Neo4jSidebar() {
     )
   ) as string[]
 
-  // ── Auto-clear orphaned filters ──────────────────────────
+  // Auto-clear orphaned filters
   useEffect(() => {
     if (neo4jFilterLabel && !labels.includes(neo4jFilterLabel)) {
       setNeo4jFilterLabel(null)
@@ -68,204 +67,137 @@ export function Neo4jSidebar() {
     )
   ).sort() as string[]
 
-  const warnings = nodes.filter(n => {
-    const cols = (n.data as { columns?: Array<{ name: string }> })?.columns ?? []
-    return cols.length === 0
-  }).length
-
   const isAllActive = neo4jFilterLabel === null && neo4jFilterRelationship === null
 
   return (
     <div
-      className="flex h-full flex-col overflow-hidden"
-      style={{ background: '#1E293B', borderRight: '1px solid #334155', minWidth: 0 }}
+      className="flex h-full min-h-0 w-64 shrink-0 flex-col overflow-y-auto border-l border-border bg-card px-4 py-4 gap-6"
     >
-      {/* ── Header ──────────────────────────────────────────── */}
-      <div
-        className="shrink-0 px-5 py-4"
-        style={{ borderBottom: '1px solid #334155' }}
-      >
-        <p className="text-sm font-bold" style={{ color: '#ccc' }}>
-          Database information
-        </p>
+      <div className="mb-2">
+        <h2 className="text-sm font-semibold text-foreground">Filtros Neo4j</h2>
+        <p className="text-xs text-muted-foreground mt-1">Explora tu base de datos gráfica</p>
       </div>
 
-      {/* ── Content ─────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-
-        {/* ── Nodes section ──────────────────────────────────── */}
-        {labels.length > 0 ? (
-          <div>
-            <p className="mb-2 text-[11px] font-semibold" style={{ color: '#666' }}>
-              Nodes ({nodes.length})
-            </p>
-
-            <div className="flex flex-wrap gap-1.5">
-              {/* ★ Asterisk pill — show ALL nodes */}
-              <button
-                onClick={() => {
-                  setNeo4jFilterLabel(null)
-                  setNeo4jFilterRelationship(null)
-                }}
-                title="Mostrar todos los nodos sin conexiones"
-                className="flex items-center justify-center rounded-full transition-all duration-150"
-                style={{
-                  width: 28,
-                  height: 28,
-                  background: isAllActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
-                  border: isAllActive ? '1.5px solid rgba(255,255,255,0.50)' : '1.5px solid rgba(255,255,255,0.15)',
-                  color: isAllActive ? '#fff' : '#888',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                *
-              </button>
-
-              {/* Label pills — click to filter */}
-              {labels.map(label => {
-                const nodeColor =
-                  (nodes.find(n => (n.data as { tableName?: string })?.tableName === label)?.data as { color?: string })?.color
-                  ?? getLabelColor(label)
-                const isActive = neo4jFilterLabel === label
-
-                return (
-                  <button
-                    key={label}
-                    onClick={() => setNeo4jFilterLabel(isActive ? null : label)}
-                    title={isActive ? `Ocultar filtro: ${label}` : `Filtrar: solo ${label}`}
-                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-150"
-                    style={{
-                      background: isActive ? nodeColor + '44' : nodeColor + '18',
-                      color: nodeColor,
-                      border: isActive
-                        ? `2px solid ${nodeColor}`
-                        : `1px solid ${nodeColor}55`,
-                      cursor: 'pointer',
-                      transform: isActive ? 'scale(1.05)' : 'scale(1)',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: nodeColor,
-                        display: 'inline-block',
-                        flexShrink: 0,
-                      }}
-                    />
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Active filter indicator */}
-            {neo4jFilterLabel && (
-              <p className="mt-2 text-[10px]" style={{ color: '#666' }}>
-                Mostrando solo:{' '}
-                <span style={{ color: getLabelColor(neo4jFilterLabel), fontWeight: 600 }}>
-                  {neo4jFilterLabel}
-                </span>
-                {' '}·{' '}
-                <button
-                  onClick={() => setNeo4jFilterLabel(null)}
-                  className="underline"
-                  style={{ color: '#555', cursor: 'pointer' }}
-                >
-                  ver todos
-                </button>
-              </p>
-            )}
-          </div>
-        ) : (
-          <p className="text-xs" style={{ color: '#444' }}>
-            Sin nodos. Escribe Cypher y ejecuta para ver el grafo.
+      {/* Nodes section */}
+      {labels.length > 0 && (
+        <div className="flex flex-col gap-3 shrink-0">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Nodos ({nodes.length})
           </p>
-        )}
 
-        {/* ── Relationships ────────────────────────────────── */}
-        {relTypes.length > 0 && (
-          <div>
-            <p className="mb-2 text-[11px] font-semibold" style={{ color: '#666' }}>
-              Relationships ({edges.length})
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {relTypes.map(rel => {
-                const isActive = neo4jFilterRelationship === rel
-                return (
-                  <button
-                    key={rel}
-                    onClick={() => setNeo4jFilterRelationship(isActive ? null : rel)}
-                    title={isActive ? `Ocultar filtro de relación: ${rel}` : `Filtrar por relación: ${rel}`}
-                    className="rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-all duration-150"
-                    style={{ 
-                      background: isActive ? 'rgba(255,255,255,0.15)' : '#1E293B', 
-                      color: isActive ? '#fff' : '#888', 
-                      border: isActive ? '1px solid rgba(255,255,255,0.4)' : '1px solid #333',
-                      cursor: 'pointer',
-                      transform: isActive ? 'scale(1.05)' : 'scale(1)',
-                    }}
-                  >
-                    {rel}
-                  </button>
-                )
-              })}
-            </div>
-            {neo4jFilterRelationship && (
-              <p className="mt-2 text-[10px]" style={{ color: '#666' }}>
-                Relación activa:{' '}
-                <span style={{ color: '#aaa', fontWeight: 600 }}>
-                  {neo4jFilterRelationship}
-                </span>
-              </p>
-            )}
-          </div>
-        )}
+          <div className="flex flex-wrap gap-2">
+            {/* Asterisk pill — show ALL nodes */}
+            <button
+              onClick={() => {
+                setNeo4jFilterLabel(null)
+                setNeo4jFilterRelationship(null)
+              }}
+              title="Mostrar todos los nodos sin conexiones"
+              className="flex items-center justify-center rounded-full transition-all duration-150"
+              style={{
+                width: 28,
+                height: 28,
+                background: isAllActive ? 'var(--primary-10)' : 'transparent',
+                border: isAllActive ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+                color: isAllActive ? 'var(--primary)' : 'var(--muted-foreground)',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              *
+            </button>
 
-        {/* ── Property Keys ────────────────────────────────── */}
-        {propertyKeys.length > 0 && (
-          <div>
-            <p className="mb-2 text-[11px] font-semibold" style={{ color: '#666' }}>
-              Property keys
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {propertyKeys.map(key => (
-                <span
-                  key={key}
-                  className="rounded px-2 py-0.5 text-[10px]"
-                  style={{ background: '#1E293B', color: '#777', border: '1px solid #334155' }}
+            {/* Label pills — click to filter */}
+            {labels.map(label => {
+              const nodeColor =
+                (nodes.find(n => (n.data as { tableName?: string })?.tableName === label)?.data as { color?: string })?.color
+                ?? getLabelColor(label)
+              const isActive = neo4jFilterLabel === label
+
+              return (
+                <button
+                  key={label}
+                  onClick={() => setNeo4jFilterLabel(isActive ? null : label)}
+                  title={isActive ? `Ocultar filtro: ${label}` : `Filtrar: solo ${label}`}
+                  className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-150"
+                  style={{
+                    background: isActive ? nodeColor + '44' : nodeColor + '18',
+                    color: nodeColor,
+                    border: isActive
+                      ? `2px solid ${nodeColor}`
+                      : `1px solid ${nodeColor}55`,
+                    cursor: 'pointer',
+                    transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                  }}
                 >
-                  {key}
-                </span>
-              ))}
-            </div>
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: nodeColor,
+                      display: 'inline-block',
+                      flexShrink: 0,
+                    }}
+                  />
+                  {label}
+                </button>
+              )
+            })}
           </div>
-        )}
-      </div>
-
-      {/* ── Footer ──────────────────────────────────────────── */}
-      <div
-        className="shrink-0 px-5 py-3"
-        style={{ borderTop: '1px solid #334155', background: '#0F172A' }}
-      >
-        <div
-          className="rounded-lg p-2.5 text-xs"
-          style={
-            warnings > 0
-              ? { background: 'rgba(227,98,9,0.08)', border: '1px solid rgba(227,98,9,0.2)', color: '#E36209' }
-              : { background: 'rgba(44,159,91,0.08)', border: '1px solid rgba(44,159,91,0.2)', color: '#2C9F5B' }
-          }
-        >
-          <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5" />
-          {warnings > 0 ? `${warnings} nodo(s) sin propiedades` : 'Sin errores detectados.'}
         </div>
-        <p className="mt-2 text-[10px]" style={{ color: '#475569' }}>
-          {nodes.length} nodos · {edges.length} relaciones
-        </p>
-      </div>
+      )}
+
+      {/* Relationships section */}
+      {relTypes.length > 0 && (
+        <div className="flex flex-col gap-3 shrink-0 border-t border-border pt-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Relaciones ({edges.length})
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {relTypes.map(rel => {
+              const isActive = neo4jFilterRelationship === rel
+              return (
+                <button
+                  key={rel}
+                  onClick={() => setNeo4jFilterRelationship(isActive ? null : rel)}
+                  title={isActive ? `Ocultar filtro de relación: ${rel}` : `Filtrar por relación: ${rel}`}
+                  className="rounded px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-all duration-150"
+                  style={{ 
+                    background: isActive ? 'var(--primary)' : 'var(--muted)', 
+                    color: isActive ? 'white' : 'var(--muted-foreground)', 
+                    border: isActive ? '1px solid var(--primary)' : '1px solid var(--border)',
+                    cursor: 'pointer',
+                    transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                  }}
+                >
+                  {rel}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Property Keys section */}
+      {propertyKeys.length > 0 && (
+        <div className="flex flex-col gap-3 shrink-0 border-t border-border pt-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Property keys
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {propertyKeys.map(key => (
+              <span
+                key={key}
+                className="rounded px-2 py-0.5 text-[10px] bg-muted text-muted-foreground border border-border"
+              >
+                {key}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

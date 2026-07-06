@@ -163,6 +163,7 @@ export function parseMongoDB(code: string): ParseResult {
                 targetHandle: `_id-target`,
                 type: 'relationship',
                 animated: false,
+                data: { pathType: 'step' },
                 style: { stroke: '#10B981', strokeWidth: 1.5 }
               })
             }
@@ -250,8 +251,9 @@ export function parseMongoDB(code: string): ParseResult {
             sourceHandle: `${col.name}-source`,
             target: subNodeId,
             targetHandle: `header-target`,
-            type: 'smoothstep',
+            type: 'step',
             animated: false,
+            data: { pathType: 'step' },
             label: col.isArray ? 'Arr' : 'Obj',
             style: { stroke: '#64748B', strokeWidth: 1.5 }
           })
@@ -269,7 +271,9 @@ export function parseMongoDB(code: string): ParseResult {
       flattenNodes(node.data.columns as Column[], node.id)
     })
 
-    result.nodes = layoutByRelationships(result.nodes, result.edges)
+    // Recalculate layout for ALL nodes including subdocuments using hierarchical relationships
+    const laidOutNodes = layoutByRelationships(result.nodes, result.edges)
+    result.nodes = laidOutNodes
 
     return result
   } catch (error) {

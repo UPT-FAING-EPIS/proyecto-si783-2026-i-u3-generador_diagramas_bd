@@ -2,12 +2,11 @@
 
 import { useEffect, useState, type ElementType } from 'react'
 import { ReactFlowProvider, useReactFlow, type Edge, type Node } from '@xyflow/react'
-import { ArrowLeft, Braces, CheckCircle2, Code2, Database, DatabaseZap, FileJson, GitBranch, LayoutGrid, PanelRight, Play, Plus, Save, History } from 'lucide-react'
+import { ArrowLeft, Braces, CheckCircle2, Code2, Database, DatabaseZap, FileJson, GitBranch, LayoutGrid, PanelRight, Play, Plus, Save, History, Filter } from 'lucide-react'
 import { toast } from 'sonner'
 import { Canvas } from './Canvas'
 import { EditorPanel } from './EditorPanel'
 import { Neo4jSidebar } from './Neo4jSidebar'
-import { Neo4jCommandBar } from './Neo4jCommandBar'
 import { EditorInspector } from './EditorInspector'
 import { ExportMenu } from './ExportMenu'
 import { VersionHistorySheet } from './VersionHistorySheet'
@@ -24,6 +23,7 @@ import { restoreVersionAction } from '@/lib/backend/actions/versions/restore'
 import { getVersionDetailAction } from '@/lib/backend/actions/versions/detail'
 import { getSchemaStats, type EditorDialect } from '@/lib/editor-schema'
 import { toFlowJson } from '@/lib/flow-types'
+import { parseSQL, parseJSON } from '@/lib/parsers'
 
 interface EditorLayoutProps {
   projectName: string
@@ -74,6 +74,27 @@ function EditorLayoutInner({
   const [showSqlPanel, setShowSqlPanel] = useState(false)
   const [showInspector, setShowInspector] = useState(true)
   const [diffModal, setDiffModal] = useState<{ open: boolean; originalCode: string; modifiedCode: string; versionLabel: string } | null>(null)
+  
+  const [sqlPanelWidth, setSqlPanelWidth] = useState(400)
+  const [isDragging, setIsDragging] = useState(false)
+  const [showNeo4jFilters, setShowNeo4jFilters] = useState(false)
+
+  useEffect(() => {
+    if (!isDragging) return
+    const handleDragMove = (e: MouseEvent) => {
+      const newWidth = e.clientX - 56 // 56px es el ancho del aside (w-14)
+      if (newWidth >= 200 && newWidth <= 800) {
+        setSqlPanelWidth(newWidth)
+      }
+    }
+    const handleDragUp = () => setIsDragging(false)
+    document.addEventListener('mousemove', handleDragMove)
+    document.addEventListener('mouseup', handleDragUp)
+    return () => {
+      document.removeEventListener('mousemove', handleDragMove)
+      document.removeEventListener('mouseup', handleDragUp)
+    }
+  }, [isDragging])
 
   const { cursors, handleMouseMove } = useCollaboratorCursors(projectId, currentUser.id, currentUser.name)
   const { emitNodeMove, emitSqlChange, consumeRemoteSchemaUpdate } = useRealtimeSync(projectId, currentUser.id)
@@ -167,24 +188,54 @@ function EditorLayoutInner({
     toast.success('Todo listo. No se encontraron errores.')
   }
 
+  function handleManualExecute() {
+    useEditorStore.getState().setUserEditedSql(true)
+    const result = mode === 'json'
+        ? parseJSON(sqlValue)
+        : parseSQL(sqlValue, mode)
+        
+    if (result.errors && result.errors.length > 0) {
+      toast.error(result.errors[0].message)
+      return
+    }
+    if (result.nodes.length === 0) {
+      toast.error('No se detectaron tablas/colecciones. Revisa la sintaxis.')
+      return
+    }
+    
+    // Merge positions manually (similar to useSyncEditor) to guarantee an immediate update on click
+    const currentNodes = useEditorStore.getState().nodes
+    const positionMap = new Map<string, { x: number; y: number }>()
+    currentNodes.forEach((node) => positionMap.set(node.id, node.position))
+
+    const newNodes: Node[] = result.nodes.map((parserNode) => ({
+      ...parserNode,
+      position: positionMap.get(parserNode.id) ?? parserNode.position,
+    }))
+
+    const { toReactFlowEdge } = require('@/store/useEditorStore')
+    const newEdges = result.edges.map((e: Edge) => toReactFlowEdge(e))
+
+    setNodesAndEdges(newNodes, newEdges)
+    toast.success('Diagrama actualizado correctamente.')
+  }
+
   function focusRelations() {
     useEditorStore.getState().setHoveredNodeId(null)
     fitView({ duration: 350, padding: 0.24 })
     toast.info('Mostrando todas las relaciones del diagrama.')
   }
 
-  // Neo4j uses a fixed layout: [300px sidebar | flex-1 canvas area | 300px inspector]
-  // Other editors use the original responsive grid
+  // Now Neo4j uses the same responsive grid as SQL, 
+  // with EditorPanel on the left, canvas in the center, and inspector on the right.
   const isNeo4j = mode === 'neo4j'
-  const editorGridClass = isNeo4j
-    ? (showInspector ? 'grid-cols-[280px_1fr_300px]' : 'grid-cols-[280px_1fr]')
-    : showSqlPanel && showInspector
-      ? 'grid-cols-[34%_1fr_320px]'
+  const gridTemplateColumns = showSqlPanel && showInspector
+      ? `${sqlPanelWidth}px 1fr 320px`
       : showSqlPanel
-        ? 'grid-cols-[34%_1fr]'
+        ? `${sqlPanelWidth}px 1fr`
         : showInspector
-          ? 'grid-cols-[1fr_320px]'
-          : 'grid-cols-[1fr]'
+          ? `1fr 320px`
+          : `1fr`
 
   return (
     <div className="flex h-full w-full flex-1 overflow-hidden bg-background text-foreground" onMouseMove={handleMouseMove}>
@@ -238,77 +289,84 @@ function EditorLayoutInner({
           <ThemeToggle />
         </header>
 
-        <section className={`grid min-h-0 flex-1 ${editorGridClass}`}>
+        <section className="grid min-h-0 flex-1" style={{ gridTemplateColumns }}>
 
-          {/* ── NEO4J LAYOUT: Database Info | Command Bar + Canvas | Inspector ── */}
-          {isNeo4j ? (
-            <>
-              {/* Left: Database Information panel */}
-              <Neo4jSidebar />
-
-              {/* Center: Cypher command bar on TOP + Graph canvas BELOW */}
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
-                {/* Command bar with Monaco Cypher editor */}
-                <Neo4jCommandBar emitSqlChange={emitSqlChange} />
-
-                {/* Graph canvas — occupies the remaining vertical space */}
-                <div className="relative min-h-0 flex-1">
-                  <Canvas emitNodeMove={emitNodeMove} projectId={projectId} onSave={handleSave} />
+          {/* ── ALL DIALECTS: Unified 3-column layout ── */}
+          <>
+            {showSqlPanel && (
+              <div className="relative flex h-full min-w-0 flex-col border-r border-border bg-card">
+                {/* Resizer Handle */}
+                <div
+                  className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-50 transition-colors ${isDragging ? 'bg-[#1A6CF6]' : 'hover:bg-[#1A6CF6]'}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    setIsDragging(true)
+                  }}
+                />
+                <div className="flex h-11 shrink-0 items-center gap-2 border-b border-border px-3">
+                  {mode !== 'mongodb' && mode !== 'neo4j' && (
+                    <>
+                      <button onClick={syncSqlFromCanvas} className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:text-[#1A6CF6]">
+                        Formatear
+                      </button>
+                      <button onClick={handleValidate} className="rounded-lg border border-emerald-500/20 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                        Validar
+                      </button>
+                    </>
+                  )}
+                  <button onClick={handleManualExecute} className="rounded-lg bg-[#1A6CF6] px-3 py-1.5 text-xs text-white">
+                    <Play className="mr-1 inline h-3 w-3" />
+                    Ejecutar
+                  </button>
+                  <button onClick={addTable} className="ml-auto rounded-lg border border-border p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title={engineFamily === 'nosql' ? 'Agregar Colección' : 'Agregar tabla visual'}>
+                    <Plus size={15} />
+                  </button>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <EditorPanel mode={mode} emitSqlChange={emitSqlChange} />
+                </div>
+                <div className="shrink-0 border-t border-border bg-muted/40 p-3">
+                  <div className={`rounded-xl border p-3 text-sm ${stats.warnings ? 'border-amber-500/30 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200' : 'border-emerald-500/30 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'}`}>
+                    <CheckCircle2 className="mr-2 inline h-4 w-4" />
+                    {stats.warnings ? `${stats.warnings} advertencia(s) por revisar.` : 'Todo listo. No se encontraron errores.'}
+                    <span className="ml-2 text-xs text-muted-foreground">{stats.tables} tablas/nodos · {stats.relations} relaciones</span>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* Right: Neo4j Inspector (Property Keys) */}
-              {showInspector && <EditorInspector />}
-            </>
-          ) : (
-            /* ── ALL OTHER DIALECTS: original 3-column layout ── */
-            <>
-              {showSqlPanel && (
-                <div className="flex h-full min-w-0 flex-col border-r border-border bg-card">
-                  <div className="flex h-11 shrink-0 items-center gap-2 border-b border-border px-3">
-                    {mode !== 'mongodb' && (
-                      <>
-                        <button onClick={syncSqlFromCanvas} className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:text-[#1A6CF6]">
-                          Formatear
-                        </button>
-                        <button onClick={handleValidate} className="rounded-lg border border-emerald-500/20 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                          Validar
-                        </button>
-                      </>
-                    )}
-                    <button onClick={() => toast.info('El editor ya sincroniza el esquema en vivo.')} className="rounded-lg bg-[#1A6CF6] px-3 py-1.5 text-xs text-white">
-                      <Play className="mr-1 inline h-3 w-3" />
-                      Ejecutar
-                    </button>
-                    <button onClick={addTable} className="ml-auto rounded-lg border border-border p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title={engineFamily === 'nosql' ? 'Agregar Colección' : 'Agregar tabla visual'}>
-                      <Plus size={15} />
-                    </button>
-                  </div>
-                  <div className="flex-1 min-h-0">
-                    <EditorPanel mode={mode} emitSqlChange={emitSqlChange} />
-                  </div>
-                  <div className="shrink-0 border-t border-border bg-muted/40 p-3">
-                    <div className={`rounded-xl border p-3 text-sm ${stats.warnings ? 'border-amber-500/30 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200' : 'border-emerald-500/30 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'}`}>
-                      <CheckCircle2 className="mr-2 inline h-4 w-4" />
-                      {stats.warnings ? `${stats.warnings} advertencia(s) por revisar.` : 'Todo listo. No se encontraron errores.'}
-                      <span className="ml-2 text-xs text-muted-foreground">{stats.tables} tablas · {stats.relations} relaciones</span>
-                    </div>
-                  </div>
+            <div className="relative flex h-full min-w-0 flex-1 flex-row">
+              {isNeo4j && showNeo4jFilters && (
+                <div className="absolute right-0 top-0 bottom-0 z-20 shadow-lg">
+                  <Neo4jSidebar />
                 </div>
               )}
-
-              <div className="relative flex h-full min-w-0 flex-1 flex-col">
+              {isNeo4j && (
+                <div className="absolute left-4 top-4 z-20">
+                  <button
+                    onClick={() => setShowNeo4jFilters(!showNeo4jFilters)}
+                    className="flex h-8 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground"
+                    title="Alternar filtros Neo4j"
+                  >
+                    <Filter size={14} />
+                    Filtros
+                  </button>
+                </div>
+              )}
+              {!isNeo4j && (
                 <div className="absolute left-5 top-5 z-10 grid grid-cols-3 gap-2">
                   <Metric label="Tablas" value={stats.tables} />
                   <Metric label="Relaciones" value={stats.relations} />
                   <Metric label="Advertencias" value={stats.warnings} />
                 </div>
+              )}
+              <div className="relative h-full min-h-0 flex-1">
                 <Canvas emitNodeMove={emitNodeMove} projectId={projectId} onSave={handleSave} />
               </div>
+            </div>
 
-              {showInspector && <EditorInspector />}
-            </>
-          )}
+            {showInspector && <EditorInspector />}
+          </>
         </section>
       </main>
 

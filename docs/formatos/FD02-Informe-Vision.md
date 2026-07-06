@@ -31,8 +31,9 @@ Integrantes:
 | CONTROL DE VERSIONES | | | | | |
 | :-: | :- | :- | :- | :- | :- |
 | Versión | Hecha por | Revisada por | Aprobada por | Fecha | Motivo |
-| 1.0 | KHZM / JAVE | | P. Cuadros Q. | Marzo 2026 | Versión Original basada en FD01 |
-| 2.0 | KHZM / JAVE | KHZM / JAVE | P. Cuadros Q. | Julio 2026 | Reescritura integral de la visión hacia FluxSQL Monorepo |
+| 1.0 | KHZM / JAVE | KHZM / JAVE | KHZM / JAVE | Marzo 2026 | Versión Original basada en FD01 |
+| 2.0 | KHZM / JAVE | KHZM / JAVE | KHZM / JAVE | Junio 2026 | Versión 2.0 |
+| 2.1 |KHZM / JAVE | KHZM / JAVE | KHZM / JAVE | Julio 2026 | Actualización 3.0 |
 
 <br><br><br><br><br><br><br><br><br>
 
@@ -40,7 +41,7 @@ Integrantes:
 
 **Documento de Visión**
 
-**Versión *2.0***
+**Versión *2.1***
 
 <div style="page-break-after: always; visibility: hidden">\pagebreak</div>
 
@@ -89,7 +90,7 @@ El propósito del presente Documento de Visión es definir claramente las necesi
 
 ### 1.2 Alcance
 **FluxSQL** es una solución integral dividida en dominios. El alcance incluye:
-- Una **Web App** (Next.js) que centraliza la visualización colaborativa, organización de proyectos y parser interactivo (Client-side) para transformar sentencias DDL en diagramas.
+- Una **Web App** (Next.js) que centraliza la visualización colaborativa, organización de proyectos y parser interactivo (Client-side) para transformar sentencias DDL (SQL), Esquemas MongoDB y sentencias Cypher (Neo4j) en diagramas interactivos visuales avanzados mediante React Flow.
 - Una **App de Escritorio** (Tauri + Python FastAPI Sidecar) encargada exclusivamente del trabajo nativo y "riesgoso": conexión local a motores (PostgreSQL, MySQL, SQLite), extracción de esquemas y cifrado de claves.
 - Un **Cloud API** (NestJS) diseñado *stateless* para recibir diagramas serializados como JSON (`SchemaModel`) garantizando que jamás tocará las contraseñas.
 
@@ -163,12 +164,12 @@ FluxSQL separa los "artefactos" (seguros de compartir) de la "infraestructura" (
 ## 4. **Vista General del Producto**
 
 ### 4.1 Perspectiva del producto
-**FluxSQL** asume un ecosistema basado en un *Monorepo*. Su empaquetado final está descentralizado: el "core inteligente" son librerías puras en TypeScript (`@fluxsql/parsers`). La ejecución de la red reside en módulos encapsulados como el `backend-python` de escritorio y el `backend-api` de la nube. Todo convergiendo en diagramas de Mermaid universales.
+**FluxSQL** asume un ecosistema basado en un *Monorepo*. Su empaquetado final está descentralizado: el "core inteligente" son librerías puras en TypeScript (`@fluxsql/parsers`). La ejecución de la red reside en módulos encapsulados como el `backend-python` de escritorio y el `backend-api` de la nube. Todo converge en un lienzo interactivo y manipulable renderizado de forma nativa con **React Flow** (@xyflow/react), brindando una experiencia visual inmersiva.
 
 ### 4.2 Resumen de capacidades
 | Capacidad | Descripción |
 | :--- | :--- |
-| **Conexiones Multi-Motor** | `Extractors` de Python para bases de datos SQL relacionales estándar. |
+| **Conexiones Multi-Motor** | `Extractors` de Python y soporte nativo multi-dialecto para bases de datos SQL relacionales estándar (PostgreSQL, MySQL, SQL Server) y sistemas NoSQL / Grafos (MongoDB, Neo4j). |
 | **Parseo Client-Side** | Los scripts DDL ingresados en la web nunca viajan al backend; se parsean en el propio navegador. |
 | **Sincronización API-REST** | Endpoints de subida (Push) y bajada (Pull) de artefactos resguardados bajo autenticación JWT. |
 | **Exportación universal** | Soporte SVG y PNG interactivo de alta calidad. |
@@ -189,7 +190,7 @@ El código en el monorepo y todos los subpaquetes serán liberados en GitHub baj
 
 1. **Introspección Blindada:** Extrae *Information Schema* (PG/MySQL) ejecutando queries desde FastAPI y guardando las passwords en el llavero nativo del sistema (Keyring).
 2. **Puente MCP (Model Context Protocol):** Permite en escritorio interactuar con futuros agentes de IA brindando un contexto abstracto sobre la arquitectura.
-3. **Pizarra colaborativa en vivo:** Las visualizaciones web están listas para comentarios y versiones, todo impulsado por `Next.js App Router`.
+3. **Pizarra colaborativa en vivo:** Las visualizaciones web están listas para comentarios y versiones, impulsadas por `Next.js App Router` y un lienzo interactivo enriquecido (React Flow) con soporte para redimensionamiento de paneles, filtros dinámicos flotantes (como en Neo4j) y la generación de enlaces inteligentes adaptativos (ortogonales vs curvas Bezier) dependiendo del contexto SQL o NoSQL.
 
 ## 6. **Restricciones**
 
@@ -219,7 +220,7 @@ El cambio de visión de **DBCanvas** hacia la madura plataforma distribuida **Fl
 
 ## **Recomendaciones**
 
-Alinear constantemente el objeto JSON intermediario `SchemaModel`. Si el Python Extractor genera propiedades que el Frontend UI desconoce, el diagrama Mermaid fracasará estrepitosamente.
+Alinear constantemente el objeto JSON intermediario `SchemaModel`. Si el Python Extractor genera propiedades que el Frontend UI desconoce, el sincronizador bidireccional entre el esquema tipado `ParseResult` y el estado del canvas en `React Flow` (gestionado con Zustand) presentará fallas estructurales. Mantener la paridad de tipos entre back y front es fundamental.
 
 ## **Bibliografía**
 

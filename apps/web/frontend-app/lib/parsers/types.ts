@@ -41,13 +41,14 @@ export interface FlowEdge {
   target: string
   sourceHandle?: string
   targetHandle?: string
-  type: 'smoothstep' | 'relationship' | 'neo4jEdge'
+  type: 'smoothstep' | 'step' | 'relationship' | 'neo4jEdge'
   animated: boolean
   style?: { stroke: string; strokeWidth?: number }
   label?: string
   markerEnd?: EdgeMarker
   data?: {
     relType?: string
+    pathType?: string
   }
 }
 
