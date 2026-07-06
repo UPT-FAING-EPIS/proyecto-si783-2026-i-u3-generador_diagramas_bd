@@ -6,8 +6,7 @@ import { ArrowLeft, Braces, CheckCircle2, Code2, Database, DatabaseZap, FileJson
 import { toast } from 'sonner'
 import { Canvas } from './Canvas'
 import { EditorPanel } from './EditorPanel'
-import { Neo4jSidebar } from './Neo4jSidebar'
-import { Neo4jCommandBar } from './Neo4jCommandBar'
+import { Neo4jTopBar } from './Neo4jTopBar'
 import { EditorInspector } from './EditorInspector'
 import { ExportMenu } from './ExportMenu'
 import { CommitModal } from './CommitModal'
@@ -205,12 +204,10 @@ function EditorLayoutInner({
     toast.info('Mostrando todas las relaciones del diagrama.')
   }
 
-  // Neo4j uses a fixed layout: [300px sidebar | flex-1 canvas area | 300px inspector]
-  // Other editors use the original responsive grid
+  // Now Neo4j uses the same responsive grid as SQL, 
+  // with EditorPanel on the left, canvas in the center, and inspector on the right.
   const isNeo4j = mode === 'neo4j'
-  const editorGridClass = isNeo4j
-    ? (showInspector ? 'grid-cols-[280px_1fr_300px]' : 'grid-cols-[280px_1fr]')
-    : showSqlPanel && showInspector
+  const editorGridClass = showSqlPanel && showInspector
       ? 'grid-cols-[34%_1fr_320px]'
       : showSqlPanel
         ? 'grid-cols-[34%_1fr]'
@@ -281,75 +278,62 @@ function EditorLayoutInner({
 
         <section className={`grid min-h-0 flex-1 ${editorGridClass}`}>
 
-          {/* ── NEO4J LAYOUT: Database Info | Command Bar + Canvas | Inspector ── */}
-          {isNeo4j ? (
-            <>
-              {/* Left: Database Information panel */}
-              <Neo4jSidebar />
-
-              {/* Center: Cypher command bar on TOP + Graph canvas BELOW */}
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white dark:bg-[#0F172A]">
-                {/* Command bar with Monaco Cypher editor */}
-                <Neo4jCommandBar emitSqlChange={emitSqlChange} />
-
-                {/* Graph canvas — occupies the remaining vertical space */}
-                <div className="relative min-h-0 flex-1">
-                  <Canvas emitNodeMove={emitNodeMove} projectId={projectId} onSave={handleSave} />
+          {/* ── ALL DIALECTS: Unified 3-column layout ── */}
+          <>
+            {showSqlPanel && (
+              <div className="flex h-full min-w-0 flex-col border-r border-slate-200 bg-white dark:border-[#1E2A45] dark:bg-[#0B1322]">
+                <div className="flex h-11 shrink-0 items-center gap-2 border-b border-slate-200 px-3 dark:border-[#1E2A45]">
+                  {mode !== 'mongodb' && mode !== 'neo4j' && (
+                    <>
+                      <button onClick={syncSqlFromCanvas} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#94A3B8] dark:hover:text-white">
+                        Formatear
+                      </button>
+                      <button onClick={handleValidate} className="rounded-lg border border-emerald-500/20 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                        Validar
+                      </button>
+                    </>
+                  )}
+                  <button onClick={handleManualExecute} className="rounded-lg bg-[#1A6CF6] px-3 py-1.5 text-xs text-white dark:bg-[#123A79] dark:text-[#BFDBFE]">
+                    <Play className="mr-1 inline h-3 w-3" />
+                    Ejecutar
+                  </button>
+                  <button onClick={addTable} className="ml-auto rounded-lg border border-[#1E2A45] p-1.5 text-[#94A3B8] hover:text-white" title={engineFamily === 'nosql' ? 'Agregar Colección' : 'Agregar tabla visual'}>
+                    <Plus size={15} />
+                  </button>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <EditorPanel mode={mode} emitSqlChange={emitSqlChange} />
+                </div>
+                <div className="shrink-0 border-t border-slate-200 bg-slate-50 p-3 dark:border-[#1E2A45] dark:bg-[#0D1424]">
+                  <div className={`rounded-xl border p-3 text-sm ${stats.warnings ? 'border-amber-500/30 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200' : 'border-emerald-500/30 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'}`}>
+                    <CheckCircle2 className="mr-2 inline h-4 w-4" />
+                    {stats.warnings ? `${stats.warnings} advertencia(s) por revisar.` : 'Todo listo. No se encontraron errores.'}
+                    <span className="ml-2 text-xs text-[#94A3B8]">{stats.tables} nodos/tablas · {stats.relations} relaciones</span>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* Right: Neo4j Inspector (Property Keys) */}
-              {showInspector && <EditorInspector />}
-            </>
-          ) : (
-            /* ── ALL OTHER DIALECTS: original 3-column layout ── */
-            <>
-              {showSqlPanel && (
-                <div className="flex h-full min-w-0 flex-col border-r border-slate-200 bg-white dark:border-[#1E2A45] dark:bg-[#0B1322]">
-                  <div className="flex h-11 shrink-0 items-center gap-2 border-b border-slate-200 px-3 dark:border-[#1E2A45]">
-                    {mode !== 'mongodb' && (
-                      <>
-                        <button onClick={syncSqlFromCanvas} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#94A3B8] dark:hover:text-white">
-                          Formatear
-                        </button>
-                        <button onClick={handleValidate} className="rounded-lg border border-emerald-500/20 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                          Validar
-                        </button>
-                      </>
-                    )}
-                    <button onClick={handleManualExecute} className="rounded-lg bg-[#1A6CF6] px-3 py-1.5 text-xs text-white dark:bg-[#123A79] dark:text-[#BFDBFE]">
-                      <Play className="mr-1 inline h-3 w-3" />
-                      Ejecutar
-                    </button>
-                    <button onClick={addTable} className="ml-auto rounded-lg border border-[#1E2A45] p-1.5 text-[#94A3B8] hover:text-white" title={engineFamily === 'nosql' ? 'Agregar Colección' : 'Agregar tabla visual'}>
-                      <Plus size={15} />
-                    </button>
-                  </div>
-                  <div className="flex-1 min-h-0">
-                    <EditorPanel mode={mode} emitSqlChange={emitSqlChange} />
-                  </div>
-                  <div className="shrink-0 border-t border-slate-200 bg-slate-50 p-3 dark:border-[#1E2A45] dark:bg-[#0D1424]">
-                    <div className={`rounded-xl border p-3 text-sm ${stats.warnings ? 'border-amber-500/30 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200' : 'border-emerald-500/30 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'}`}>
-                      <CheckCircle2 className="mr-2 inline h-4 w-4" />
-                      {stats.warnings ? `${stats.warnings} advertencia(s) por revisar.` : 'Todo listo. No se encontraron errores.'}
-                      <span className="ml-2 text-xs text-[#94A3B8]">{stats.tables} tablas · {stats.relations} relaciones</span>
-                    </div>
-                  </div>
+            <div className="relative flex h-full min-w-0 flex-1 flex-col">
+              {isNeo4j && (
+                <div className="absolute top-0 left-0 w-full z-20">
+                  <Neo4jTopBar />
                 </div>
               )}
-
-              <div className="relative flex h-full min-w-0 flex-1 flex-col">
+              {!isNeo4j && (
                 <div className="absolute left-5 top-5 z-10 grid grid-cols-3 gap-2">
                   <Metric label="Tablas" value={stats.tables} />
                   <Metric label="Relaciones" value={stats.relations} />
                   <Metric label="Advertencias" value={stats.warnings} />
                 </div>
+              )}
+              <div className={`relative min-h-0 flex-1 ${isNeo4j ? 'mt-[52px]' : ''}`}>
                 <Canvas emitNodeMove={emitNodeMove} projectId={projectId} onSave={handleSave} />
               </div>
+            </div>
 
-              {showInspector && <EditorInspector />}
-            </>
-          )}
+            {showInspector && <EditorInspector />}
+          </>
         </section>
       </main>
 

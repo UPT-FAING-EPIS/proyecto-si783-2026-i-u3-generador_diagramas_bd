@@ -29,12 +29,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className={`${inter.variable} min-h-full flex flex-col font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem={true}
-          storageKey="fluxsql-theme"
-        >
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={true}
+            storageKey="fluxsql-theme"
+          >
           <PresenceProvider>
             {children}
             <Toaster />
