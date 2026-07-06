@@ -37,6 +37,15 @@ def run_skill(request: SkillRunRequest, db: Session | None = None) -> SkillRunRe
                 policy=policy,
             )
 
+    database_memory = request.input.get("database_memory") if isinstance(request.input, dict) else None
+    memory_content = ""
+    if isinstance(database_memory, dict) and database_memory.get("content"):
+        memory_content = (
+            "\nDatabase memory used: "
+            f"{database_memory.get('content')}\n"
+            f"Memory scope: {database_memory.get('scope', 'database')} / {database_memory.get('subject', 'local')}\n"
+        )
+
     artifact = Artifact(
         id=str(uuid.uuid4()),
         type="report",
@@ -44,6 +53,7 @@ def run_skill(request: SkillRunRequest, db: Session | None = None) -> SkillRunRe
         content=(
             f"Skill `{skill.id}` accepted by Fluxy runner.\n\n"
             f"Instruction: {request.instruction or 'No instruction provided.'}\n"
+            f"{memory_content}"
             "This baseline runner records the workflow contract and produces a safe artifact."
         ),
     )

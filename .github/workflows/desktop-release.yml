@@ -49,8 +49,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply release version
-        shell: powershell
+        shell: pwsh
         run: |
+          function Write-Utf8NoBom($Path, $Content) {
+            [System.IO.File]::WriteAllText((Resolve-Path $Path), $Content, [System.Text.UTF8Encoding]::new($false))
+          }
+
           $tag = "${{ github.event.inputs.tag || github.ref_name }}"
           $version = $tag -replace '^desktop-v', ''
 
@@ -61,17 +65,17 @@ jobs:
           $packagePath = "apps/desktop/frontend-app/package.json"
           $packageJson = Get-Content $packagePath -Raw | ConvertFrom-Json
           $packageJson.version = $version
-          $packageJson | ConvertTo-Json -Depth 20 | Set-Content $packagePath -Encoding utf8
+          Write-Utf8NoBom $packagePath (($packageJson | ConvertTo-Json -Depth 20) + "`n")
 
           $tauriConfigPath = "apps/desktop/frontend-app/src-tauri/tauri.conf.json"
           $tauriConfig = Get-Content $tauriConfigPath -Raw | ConvertFrom-Json
           $tauriConfig.version = $version
-          $tauriConfig | ConvertTo-Json -Depth 20 | Set-Content $tauriConfigPath -Encoding utf8
+          Write-Utf8NoBom $tauriConfigPath (($tauriConfig | ConvertTo-Json -Depth 20) + "`n")
 
           $cargoPath = "apps/desktop/frontend-app/src-tauri/Cargo.toml"
           $cargoToml = Get-Content $cargoPath -Raw
           $cargoToml = $cargoToml -replace '(?m)^version = ".*"$', "version = `"$version`""
-          Set-Content $cargoPath $cargoToml -Encoding utf8
+          Write-Utf8NoBom $cargoPath $cargoToml
 
           "Desktop release version: $version"
 
@@ -96,13 +100,17 @@ jobs:
 
       - name: Calculate checksum
         id: checksum
-        shell: powershell
+        shell: pwsh
         run: |
+          function Write-Utf8NoBom($Path, $Content) {
+            [System.IO.File]::WriteAllText((Join-Path (Get-Location) $Path), $Content, [System.Text.UTF8Encoding]::new($false))
+          }
+
           $asset = "${{ steps.installer.outputs.path }}"
           $hash = (Get-FileHash $asset -Algorithm SHA256).Hash
           "sha256=$hash" >> $env:GITHUB_OUTPUT
-          "${{ steps.installer.outputs.name }} SHA256: $hash" | Out-File -FilePath desktop-checksums.txt -Encoding utf8
-          @"
+          Write-Utf8NoBom "desktop-checksums.txt" "${{ steps.installer.outputs.name }} SHA256: $hash`n"
+          $notes = @"
           FluxSQL Desktop ${{ github.event.inputs.tag || github.ref_name }}
 
           Windows installer:
@@ -110,7 +118,8 @@ jobs:
 
           SHA256:
           - $hash
-          "@ | Out-File -FilePath desktop-release-notes.txt -Encoding utf8
+          "@
+          Write-Utf8NoBom "desktop-release-notes.txt" $notes
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4

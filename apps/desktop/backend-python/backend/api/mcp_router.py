@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Request
@@ -8,7 +9,7 @@ from backend.api.connector_router import connection_profile_from_model
 from backend.connectors.connector_factory import get_connector
 from backend.core.encryption import decrypt_password
 from backend.mcp.tools import MCP_TOOLS, call_tool, mcp_error
-from backend.models.models import Conexion
+from backend.models.models import AgentMemory, Conexion
 from backend.models.schemas import ConexionRequest, DatabaseProfile, McpRpcRequest, McpRpcResponse
 from backend.core.database import get_db
 
@@ -172,6 +173,56 @@ def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
                 capabilities=["inspect_schema", "generate_diagram", "synthetic_seed_preview"],
             ).model_dump()
 
+        def database_memory_subject(conexion_id: int) -> str:
+            profile = get_profile(conexion_id)
+            return str(profile["connection_id"])
+
+        def memory_payload(item: AgentMemory | None, conexion_id: int):
+            subject = database_memory_subject(conexion_id)
+            if not item:
+                return {
+                    "scope": "database",
+                    "subject": subject,
+                    "content": "",
+                    "tags": [],
+                    "exists": False,
+                    "local_only": True,
+                }
+            return {
+                "id": item.id,
+                "scope": item.scope,
+                "subject": item.subject,
+                "content": item.content,
+                "tags": json.loads(item.tags_json or "[]"),
+                "created_at": item.created_at.isoformat() if item.created_at else None,
+                "updated_at": item.updated_at.isoformat() if item.updated_at else None,
+                "exists": True,
+                "local_only": True,
+            }
+
+        def get_database_memory(conexion_id: int):
+            subject = database_memory_subject(conexion_id)
+            item = db.query(AgentMemory).filter(
+                AgentMemory.scope == "database",
+                AgentMemory.subject == subject,
+            ).first()
+            return memory_payload(item, conexion_id)
+
+        def save_database_memory(conexion_id: int, content: str, tags: list[str] | None = None):
+            subject = database_memory_subject(conexion_id)
+            item = db.query(AgentMemory).filter(
+                AgentMemory.scope == "database",
+                AgentMemory.subject == subject,
+            ).first()
+            if not item:
+                item = AgentMemory(scope="database", subject=subject)
+                db.add(item)
+            item.content = content.strip()
+            item.tags_json = json.dumps(tags or ["database", "mcp-memory"])
+            db.commit()
+            db.refresh(item)
+            return memory_payload(item, conexion_id)
+
         def build_connection_request(conexion: Conexion) -> ConexionRequest:
             if not conexion.password_db:
                 raise ValueError("Connection has no stored credentials.")
@@ -251,7 +302,18 @@ def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
         try:
             return McpRpcResponse(
                 id=req.id,
-                result=call_tool(tool_name, arguments, db, list_connections, get_profile, inspect_schema, read_sql, execute_sql),
+                result=call_tool(
+                    tool_name,
+                    arguments,
+                    db,
+                    list_connections,
+                    get_profile,
+                    inspect_schema,
+                    read_sql,
+                    execute_sql,
+                    get_database_memory,
+                    save_database_memory,
+                ),
             )
         except Exception as error:
             return mcp_error(req.id, -32000, str(error))

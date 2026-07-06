@@ -51,6 +51,18 @@ const TOOL_DETAILS: Record<string, { title: string; description: string; input: 
     input: 'conexion_id numerico de una conexion guardada.',
     safety: 'Solo combina perfil local sin secretos con el estado local de Skill Store.',
   },
+  fluxy_get_database_memory: {
+    title: 'Leer memoria de BD',
+    description: 'Recupera el contexto local que el agente debe recordar para una base conectada especifica.',
+    input: 'conexion_id numerico de una conexion guardada.',
+    safety: 'La memoria se guarda en el SQLite local de Desktop y se devuelve solo para esa conexion.',
+  },
+  fluxy_save_database_memory: {
+    title: 'Guardar memoria de BD',
+    description: 'Guarda o actualiza contexto local para una base conectada: reglas de negocio, tablas clave, riesgos y convenciones.',
+    input: 'conexion_id, content y tags opcionales.',
+    safety: 'No sincroniza credenciales ni datos privados; queda limitada al Desktop local y a la base seleccionada.',
+  },
   fluxy_run_skill: {
     title: 'Ejecutar skill FluxSQL',
     description: 'Ejecuta una skill instalada contra un contexto controlado, por ejemplo revisar schema, generar SQL o preparar documentacion.',

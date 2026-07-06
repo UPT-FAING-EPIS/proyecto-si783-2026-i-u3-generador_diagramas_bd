@@ -48,6 +48,24 @@ MCP_TOOLS = [
         "inputSchema": {"type": "object", "properties": {"conexion_id": {"type": "integer"}}, "required": ["conexion_id"]},
     },
     {
+        "name": "fluxy_get_database_memory",
+        "description": "Read local agent memory scoped to a saved database connection.",
+        "inputSchema": {"type": "object", "properties": {"conexion_id": {"type": "integer"}}, "required": ["conexion_id"]},
+    },
+    {
+        "name": "fluxy_save_database_memory",
+        "description": "Save local agent memory scoped to a saved database connection.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "conexion_id": {"type": "integer"},
+                "content": {"type": "string"},
+                "tags": {"type": "array", "items": {"type": "string"}},
+            },
+            "required": ["conexion_id", "content"],
+        },
+    },
+    {
         "name": "fluxy_run_skill",
         "description": "Run a Fluxy skill through the local policy engine.",
         "inputSchema": {
@@ -68,7 +86,7 @@ def text_result(text: str):
     return {"content": [{"type": "text", "text": text}]}
 
 
-def call_tool(name: str, arguments: dict, db, list_connections, get_profile, inspect_schema, read_sql, execute_sql):
+def call_tool(name: str, arguments: dict, db, list_connections, get_profile, inspect_schema, read_sql, execute_sql, get_database_memory, save_database_memory):
     if name == "fluxy_list_connections":
         return {"content": [{"type": "json", "json": list_connections()}]}
     if name == "fluxy_get_database_profile":
@@ -84,11 +102,30 @@ def call_tool(name: str, arguments: dict, db, list_connections, get_profile, ins
     if name == "fluxy_resolve_skills":
         profile = DatabaseProfile(**get_profile(arguments["conexion_id"]))
         return {"content": [{"type": "json", "json": [skill.model_dump() for skill in resolve_skills(profile, db)]}]}
+    if name == "fluxy_get_database_memory":
+        return {"content": [{"type": "json", "json": get_database_memory(arguments["conexion_id"])}]}
+    if name == "fluxy_save_database_memory":
+        return {
+            "content": [
+                {
+                    "type": "json",
+                    "json": save_database_memory(
+                        arguments["conexion_id"],
+                        arguments["content"],
+                        arguments.get("tags", []),
+                    ),
+                }
+            ]
+        }
     if name == "fluxy_run_skill":
         payload = dict(arguments)
         conexion_id = payload.pop("conexion_id", None)
         if conexion_id is not None and "profile" not in payload:
             payload["profile"] = get_profile(conexion_id)
+            payload_input = dict(payload.get("input") or {})
+            payload_input["database_memory"] = get_database_memory(conexion_id)
+            payload_input["memory_scope"] = "local-desktop-database"
+            payload["input"] = payload_input
         response = run_skill(SkillRunRequest(**payload), db)
         return {"content": [{"type": "json", "json": response.model_dump()}]}
     raise ValueError(f"Unknown MCP tool: {name}")
