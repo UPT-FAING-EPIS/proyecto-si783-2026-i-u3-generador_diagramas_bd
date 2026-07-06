@@ -254,6 +254,177 @@ flowchart TD
 | RN-02 | El motor `React Flow` no posee lógica de negocio de modelado. Todas las relaciones, tipos de bordes (`step`, `smoothstep`) y semántica posicional dependen estrictamente de los Parsers y el `useEditorStore`. | Flujo arquitectónico del UI (`EditorLayout`) |
 | RN-03 | Las credenciales persistidas localmente en Tauri nunca pueden exportarse a texto plano; dependen siempre del mecanismo seguro nativo del sistema operativo (Windows Credential Manager / Keychain). | `CryptoService.py` en FastAPI Sidecar            |
 
+## 5.5 Backlog de Producto, Escenarios de Prueba (Gherkin) y Diagrama de Secuencia
+
+A continuación se listan las tareas formales (Issues) que dan soporte a las ramas principales del repositorio, redactadas bajo el estándar Ágil y estructuradas con Behavior-Driven Development (BDD).
+
+### 5.5.1 Módulo: Arquitectura Base y Nube (Rama: `main`)
+
+**Issue 1: Setup del Cloud API con NestJS y Autenticación**
+* **Historia de Usuario:** COMO Arquitecto de Software QUIERO implementar un Cloud API en NestJS con JWT PARA proteger las rutas de sincronización de diagramas.
+* **Criterios de Aceptación:** AuthGuard implementado. Ninguna contraseña de DB se guarda en el servidor.
+* **Escenario de Prueba:**
+  * **DADO** que un cliente no autenticado intenta hacer PUSH de un diagrama
+  * **CUANDO** realiza la petición HTTP POST a `/diagrams`
+  * **ENTONCES** el servidor debe rechazar la conexión con un HTTP 401 Unauthorized.
+
+**Issue 2: Configuración del Lienzo Interactivo Frontend**
+* **Historia de Usuario:** COMO Desarrollador Frontend QUIERO configurar Next.js con React Flow PARA tener un lienzo base de arrastre de nodos.
+* **Criterios de Aceptación:** Renderizado estable a 60fps con hasta 50 nodos.
+* **Escenario de Prueba:**
+  * **DADO** que el usuario abre el editor web
+  * **CUANDO** arrastra un nodo (Tabla) por el lienzo interactivo
+  * **ENTONCES** las aristas (relaciones) deben actualizar su ruta dinámicamente sin degradación de rendimiento.
+
+**Issue 3: Despliegue en Servidor VPS con Caddy y Docker**
+* **Historia de Usuario:** COMO Ingeniero DevOps QUIERO orquestar la infraestructura con Docker Compose PARA desplegar en el VPS con certificados HTTPS automáticos.
+* **Criterios de Aceptación:** Caddy Reverse Proxy activo emitiendo certificados SSL.
+* **Escenario de Prueba:**
+  * **DADO** que el código se fusiona en la rama `main`
+  * **CUANDO** GitHub Actions ejecuta el script de deploy en el VPS
+  * **ENTONCES** el servicio web debe estar accesible vía HTTPS en el dominio `.sytes.net`.
+
+**Issue 4: Integración Continua de Seguridad Estática**
+* **Historia de Usuario:** COMO Ingeniero de Seguridad QUIERO un pipeline de validación estática PARA evitar la inyección de vulnerabilidades en el código base.
+* **Criterios de Aceptación:** Integración de SonarQube, Semgrep y Snyk obligatoria.
+* **Escenario de Prueba:**
+  * **DADO** que un desarrollador sube código con secretos expuestos
+  * **CUANDO** Semgrep y SonarQube analizan el Pull Request
+  * **ENTONCES** la acción debe fallar y bloquear la fusión del código vulnerable.
+
+### 5.5.2 Módulo: Cliente Desktop Híbrido (Rama: `main`)
+
+**Issue 5: Empaquetado Binario Nativo con Tauri**
+* **Historia de Usuario:** COMO Arquitecto Desktop QUIERO usar Tauri con Rust PARA generar un ejecutable ligero y nativo del cliente.
+* **Criterios de Aceptación:** Binario menor a 50MB que no requiera Chromium o Node.js preinstalado.
+* **Escenario de Prueba:**
+  * **DADO** que el usuario descarga el release oficial
+  * **CUANDO** ejecuta el instalador nativo `.exe` o `.msi`
+  * **ENTONCES** la aplicación debe arrancar fluidamente de forma independiente.
+
+**Issue 6: Sidecar de Introspección Local en FastAPI**
+* **Historia de Usuario:** COMO Ingeniero Backend QUIERO un subproceso local en Python PARA conectar físicamente a las bases de datos corporativas sin exponer puertos a internet.
+* **Criterios de Aceptación:** FastAPI debe inicializar SQLAlchemy correctamente y validar conexión TCP/IP.
+* **Escenario de Prueba:**
+  * **DADO** que el Sidecar recibe credenciales de PostgreSQL
+  * **CUANDO** intenta el protocolo TCP Handshake
+  * **ENTONCES** debe devolver un objeto JSON con las tablas extraídas del Information Schema.
+
+### 5.5.3 Módulo: Ecosistema NoSQL (Rama: `fix/mejoras-nosql`)
+
+**Issue 7: Parser Bidireccional para MongoDB**
+* **Historia de Usuario:** COMO Analista de Datos QUIERO soporte documental PARA diagramar colecciones de MongoDB y sus documentos anidados.
+* **Criterios de Aceptación:** El parser debe inferir sub-tipos BSON.
+* **Escenario de Prueba:**
+  * **DADO** que el usuario importa un JSON Schema válido
+  * **CUANDO** el parser TypeScript procesa los datos
+  * **ENTONCES** debe generar múltiples entidades interconectadas simulando las subcolecciones.
+
+**Issue 8: Soporte para Bases de Grafos (Neo4j)**
+* **Historia de Usuario:** COMO Arquitecto de Datos QUIERO parsear scripts Cypher PARA visualizar nodos y relaciones de grafos nativos.
+* **Criterios de Aceptación:** Etiquetas de arco (Edge Labels) habilitadas.
+* **Escenario de Prueba:**
+  * **DADO** que se ingresa un script Cypher `MATCH (a)-[r:KNOWS]->(b)`
+  * **CUANDO** React Flow renderiza la estructura
+  * **ENTONCES** la flecha conectora debe mostrar explícitamente la etiqueta `KNOWS`.
+
+**Issue 9: Optimización de Enrutamiento Ortogonal**
+* **Historia de Usuario:** COMO Diseñador UI QUIERO reparar el renderizado de conexiones PARA evitar superposiciones confusas sobre las tablas.
+* **Criterios de Aceptación:** Algoritmo *smoothstep* habilitado con evasión de obstáculos.
+* **Escenario de Prueba:**
+  * **DADO** que hay tres nodos alineados linealmente
+  * **CUANDO** se traza una relación entre el primero y el tercero
+  * **ENTONCES** la flecha debe trazar una ruta perimetral de 90 grados evadiendo el nodo central.
+
+### 5.5.4 Módulo: Publicación y CI/CD (Rama: `feature/publish-fluxsql-workbench-skill`)
+
+**Issue 10: Automatización de Release Público en NPM**
+* **Historia de Usuario:** COMO Ingeniero Release QUIERO un workflow de GitHub Actions PARA subir la *Skill* a la red global de NPM.
+* **Criterios de Aceptación:** Publicación sin intervención humana.
+* **Escenario de Prueba:**
+  * **DADO** que se modifica la versión en `package.json` de `.agents/skills`
+  * **CUANDO** el Pull Request es fusionado en `main`
+  * **ENTONCES** NPM debe publicar el paquete omitiendo la validación 2FA (token Automation).
+
+**Issue 11: Distribución en GitHub Packages (GPR)**
+* **Historia de Usuario:** COMO Administrador del Repo QUIERO publicar el paquete en GPR PARA control y distribución interna.
+* **Criterios de Aceptación:** El Scope organizacional `@UPT-FAING-EPIS` debe añadirse automáticamente.
+* **Escenario de Prueba:**
+  * **DADO** que el Job de GPR arranca en Actions
+  * **CUANDO** se configura `registry-url` a `npm.pkg.github.com`
+  * **ENTONCES** el comando `npm publish` debe subir el paquete asociándolo directamente al repositorio orgánico.
+
+### 5.5.5 Módulo: Extensión VS Code (Rama: `feature/improve-vscode-extension`)
+
+**Issue 12: Integración de Lienzo en Webview de VS Code**
+* **Historia de Usuario:** COMO Programador QUIERO ver mis diagramas ER sin salir de VS Code PARA mantener la fluidez en el desarrollo.
+* **Criterios de Aceptación:** El Webview debe enviar mensajes RPC a la API principal del editor.
+* **Escenario de Prueba:**
+  * **DADO** que el usuario presiona "FluxSQL: Show Diagram" sobre un `.sql`
+  * **CUANDO** la extensión intercepta el comando
+  * **ENTONCES** debe inyectar el código frontend de React Flow dentro de un panel lateral.
+
+**Issue 13: Branding Oficial y Publicación Marketplace**
+* **Historia de Usuario:** COMO Product Manager QUIERO estandarizar la identidad visual de la extensión PARA mejorar la retención de usuarios.
+* **Criterios de Aceptación:** Icono `.png` y README renderizado.
+* **Escenario de Prueba:**
+  * **DADO** que GitHub Actions empaqueta el archivo `.vsix`
+  * **CUANDO** el comando `vsce publish` es ejecutado
+  * **ENTONCES** el logo oficial debe estar visible en la página pública del Microsoft Marketplace.
+
+### 5.5.6 Módulo: Agentes de Inteligencia Artificial (Rama: `codex/desktop-local-optimization`)
+
+**Issue 14: Garbage Collection Optimizado en el Sidecar**
+* **Historia de Usuario:** COMO Ingeniero de Performance QUIERO optimizar el uso de memoria RAM en el proceso de FastAPI PARA soportar esquemas masivos.
+* **Criterios de Aceptación:** Liberación de cursores de BD explícita.
+* **Escenario de Prueba:**
+  * **DADO** que el Sidecar inspecciona 500 tablas
+  * **CUANDO** termina de transformar el JSON
+  * **ENTONCES** el recolector de basura debe destruir las conexiones huérfanas, retornando a <150MB de uso de RAM.
+
+**Issue 15: Conexión mediante Model Context Protocol (MCP)**
+* **Historia de Usuario:** COMO Agente IA (Codex) QUIERO un puente estándar MCP PARA inspeccionar la estructura de la base de datos de manera autónoma.
+* **Criterios de Aceptación:** Servidor MCP Stdout/Stdin implementado.
+* **Escenario de Prueba:**
+  * **DADO** que el Agente IA solicita herramientas disponibles
+  * **CUANDO** invoca el tool `analyze_local_database`
+  * **ENTONCES** el puente MCP le entregará el SchemaModel de forma sanitizada (Zero-Trust).
+
+**Issue 16: Generador de Reportes de Rendimiento AI**
+* **Historia de Usuario:** COMO Administrador de BD QUIERO que la IA genere un `QueryAnalysisReport` PARA detectar preventivamente falta de índices o malas prácticas.
+* **Criterios de Aceptación:** Exportación en Markdown con hallazgos clave.
+* **Escenario de Prueba:**
+  * **DADO** que el agente termina de analizar el diagrama y las consultas frecuentes
+  * **CUANDO** el usuario aprueba la auditoría
+  * **ENTONCES** la UI debe renderizar un documento técnico sugiriendo optimizaciones precisas (ej. índices B-Tree).
+
+### 5.5.7 Diagrama de Secuencia Transaccional (Cloud Sync)
+
+El siguiente diagrama demuestra el flujo seguro Zero-Trust donde las credenciales (Issue 6) jamás viajan por la red hacia NestJS (Issue 1).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Usuario
+    participant VSC as UI (Tauri / VS Code)
+    participant SID as Sidecar (FastAPI Local)
+    participant BDD as Base de Datos (Local)
+    participant API as Cloud API (NestJS Nube)
+    
+    Usuario->>VSC: Conectar Base de Datos (Host, Pass)
+    VSC->>SID: POST /introspect (Credenciales locales)
+    activate SID
+    SID->>BDD: Handshake TCP (psycopg2 / pymysql)
+    BDD-->>SID: Tablas, Columnas y FKs (Inf. Schema)
+    SID-->>VSC: JSON SchemaModel Sanitizado (Sin Pass)
+    deactivate SID
+    Usuario->>VSC: Edita, redimensiona y mueve nodos
+    VSC->>API: POST /diagrams (SchemaModel JWT)
+    activate API
+    API-->>VSC: 201 Created (Backup Nube)
+    deactivate API
+```
+
 # 6. Fase de Desarrollo
 
 ## 6.1 Perfil del usuario
