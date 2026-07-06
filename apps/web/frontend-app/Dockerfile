@@ -9,6 +9,11 @@ RUN pnpm install --filter @fluxsql/web... --frozen-lockfile
 
 COPY apps/web/frontend-app apps/web/frontend-app
 WORKDIR /repo/apps/web/frontend-app
+ARG NEXT_PUBLIC_SUPABASE_URL=
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=
+ENV DATABASE_URL=postgres://fluxsql:fluxsql@127.0.0.1:5432/fluxsql
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
