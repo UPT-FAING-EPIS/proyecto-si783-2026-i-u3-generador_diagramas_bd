@@ -269,7 +269,9 @@ export function parseMongoDB(code: string): ParseResult {
       flattenNodes(node.data.columns as Column[], node.id)
     })
 
-    result.nodes = layoutByRelationships(result.nodes, result.edges)
+    // Recalculate layout for ALL nodes including subdocuments using hierarchical relationships
+    const laidOutNodes = layoutByRelationships(result.nodes, result.edges)
+    result.nodes = laidOutNodes
 
     return result
   } catch (error) {

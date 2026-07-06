@@ -102,8 +102,8 @@ export function Canvas({ emitNodeMove, onSave }: CanvasProps) {
             const relType = (e.data as { relType?: string })?.relType ?? e.label
             return relType === neo4jFilterRelationship
           })
-        // If asterisk or label is selected, hide ALL edges
-        : [])
+        // If asterisk or label is selected, show ALL edges (so React Flow filters them automatically)
+        : edges)
     : edges
 
   // 2. Filter nodes based on active filters

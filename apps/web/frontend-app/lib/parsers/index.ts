@@ -140,7 +140,8 @@ function processJsonObject(obj: Record<string, unknown>): ParseResult {
     })
   })
 
-  return { nodes: layoutByRelationships(nodes, edges), edges, errors: [] }
+  const laidOutNodes = layoutByRelationships(nodes, edges)
+  return { nodes: laidOutNodes, edges, errors: [] }
 }
 
 function processJsonSchema(obj: Record<string, unknown>): ParseResult {
@@ -175,7 +176,8 @@ function processJsonSchema(obj: Record<string, unknown>): ParseResult {
     data: { tableName: title, columns }
   })
 
-  return { nodes: layoutByRelationships(nodes, edges), edges, errors: [] }
+  const laidOutNodes = layoutByRelationships(nodes, edges)
+  return { nodes: laidOutNodes, edges, errors: [] }
 }
 
 export interface MermaidResult {
