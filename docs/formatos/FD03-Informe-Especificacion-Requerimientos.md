@@ -123,36 +123,180 @@ flowchart TD
 
 ## 3.1 Descripcion del problema
 
-En el ámbito del diseño de bases de datos, los equipos técnicos enfrentan dificultades para documentar esquemas heredados ("legacy") y mantener sincronizados los diagramas relacionales con la base de datos real. Las soluciones existentes en la nube obligan a exponer cadenas de conexión y puertos sensibles en internet, comprometiendo la seguridad corporativa.
+En el ámbito del diseño de bases de datos, los equipos técnicos enfrentan dificultades significativas para documentar esquemas heredados y mantener sincronizados los diagramas relacionales o de grafos con la base de datos real. Las soluciones existentes en la nube obligan a exponer cadenas de conexión, usuarios y puertos sensibles directamente en internet, comprometiendo gravemente la seguridad corporativa IT (violación del principio Zero-Trust). Además, muchas herramientas se limitan a motores SQL tradicionales, dejando de lado ecosistemas NoSQL modernos (MongoDB, Neo4j).
 
 ## 3.2 Objetivo de negocios
 
-Proveer una herramienta de modelado visual que reduzca el tiempo de documentación de bases de datos, garantizando la seguridad de las credenciales mediante procesamiento local, y facilitando la colaboración en equipo a través de la sincronización en la nube de diagramas estandarizados.
+Proveer a analistas de datos, DBAs y desarrolladores una plataforma de modelado visual segura y de próxima generación que reduzca drásticamente el tiempo de documentación de esquemas híbridos (SQL/NoSQL). El sistema debe garantizar que las credenciales corporativas nunca abandonen la máquina local, habilitando al mismo tiempo una colaboración fluida en equipo mediante la sincronización selectiva de artefactos de diseño (JSON) hacia un Cloud seguro.
 
 ## 3.3 Objetivo de diseño
 
-Diseñar una solución híbrida y modular (Monorepo) que incluya:
-- Una **Web App** (Next.js) para la colaboración y diseño manual mediante DDL.
-- Un **Cloud API** (NestJS) para gestionar proyectos y persistir modelos estandarizados de manera segura.
-- Una **Desktop App** local (Tauri + FastAPI Sidecar) que se encargue de la introspección segura de bases de datos conectadas en intranets o redes privadas sin exponer los datos sensibles.
+Diseñar una arquitectura políglota, modular y orientada a eventos estructurada en un monorepo:
+- **Web App (Next.js / React Flow):** Lienzo altamente interactivo y colaborativo para el diseño manual o importado de diagramas relacionales, documentales y de grafos.
+- **Cloud API (NestJS):** Backend robusto y seguro para la orquestación de usuarios, gestión de proyectos y persistencia del modelo estandarizado *SchemaModel*.
+- **Desktop Sidecar (Tauri + FastAPI / Python):** Componente ejecutable local que abstrae la complejidad de la red para realizar la introspección (extracción profunda) en bases de datos internas, almacenando los secretos de conexión en el Keyring cifrado del sistema operativo.
+- **MCP Bridge:** Fundaciones para futuras interacciones de agentes de Inteligencia Artificial que auditen y editen el modelo (Model Context Protocol).
 
 ## 3.4 Alcance del proyecto
 
 **Incluido en la versión actual:**
-- Modelado de bases de datos mediante editor de texto (DDL) y parsers.
-- Extracción automatizada de esquemas mediante un ejecutable local (Sidecar FastAPI).
-- Soporte para múltiples motores: PostgreSQL, MySQL, SQLite, MongoDB y SQL Server.
-- Visualización interactiva de diagramas Entidad-Relación usando Mermaid.js.
-- Sincronización híbrida: *SchemaModel* JSON a la nube; credenciales cifradas localmente.
-- Gestión básica de proyectos, usuarios y versionado.
+- Extracción automatizada de metadatos locales (Information Schema) mediante *Sidecar FastAPI*.
+- Soporte extendido para múltiples dialectos de bases de datos: PostgreSQL, MySQL, SQL Server, MongoDB (Documental) y Neo4j (Grafos).
+- Lienzo visual interactivo potenciado por **React Flow** para arrastrar, redimensionar y enrutar nodos y aristas heurísticamente (ortogonal, bezier, step).
+- Parseo bidireccional en tiempo real de SQL DDL y JSON Schema en el cliente (TypeScript Parsers).
+- Sincronización híbrida Push/Pull entre Tauri UI y el Cloud API (NestJS).
+- Gestión segura de identidades (JWT) y perfiles de conexión locales (SO Keyring).
 
 **Fuera de alcance en la versión actual:**
-- Migraciones inversas automáticas (alterar la BD desde el diagrama interactivo).
-- Reemplazo total de clientes SQL pesados (DBeaver, DataGrip).
+- Ejecución directa de mutaciones (`ALTER TABLE`) en bases de datos en producción desde el lienzo.
+- Integración nativa de Large Language Models (LLMs) como agentes autónomos (planeado para futuras versiones vía MCP).
 
 ## 3.5 Viabilidad del sistema
 
-De acuerdo al FD01, la viabilidad del sistema es **alta**. La combinación de tecnologías open-source maduras (React, NestJS, FastAPI, Rust/Tauri) minimiza costos operativos. La estrategia de un Sidecar para conectividad elimina los obstáculos legales y de seguridad (no se requieren servidores perimetrales ni abrir puertos a internet).
+El sistema es altamente **viable**. La unificación de herramientas open-source consolidadas (React Flow, NestJS, FastAPI, Tauri) minimiza la deuda técnica. La decisión arquitectónica de usar un patrón *Sidecar* resuelve de raíz el obstáculo de seguridad IT empresarial, eliminando la necesidad de VPNs perimetrales complejas o túneles SSH para la extracción de metadatos.
+
+## 3.6 Informacion obtenida del Levantamiento de informacion
+
+- **Documento de Factibilidad (FD01):** Validó la transición a arquitecturas Zero-Trust y las restricciones de infraestructura.
+- **Documento de Visión (FD02):** Justificó la urgente migración de Mermaid.js a React Flow para soportar grafos jerárquicos masivos (Neo4j/MongoDB).
+- **Entrevistas y Análisis de Dominio:** Evidenciaron la necesidad de incluir análisis de consultas (QueryAnalysisReport) para auditorías.
+
+# 4. Analisis de procesos
+
+## 4.1 Diagrama de Procesos Actual
+
+Modelado y documentación manual sin integración híbrida ni soporte poli-dialecto.
+
+```mermaid
+flowchart TD
+    A["Inicio: Analista requiere documentar BD"] --> B["Conectar a BD manualmente mediante cliente SQL/NoSQL"]
+    B --> C["Inspeccionar tablas, colecciones y relaciones una por una"]
+    C --> D["Anotar metadatos (columnas, FKs) en bloc de notas"]
+    D --> E["Abrir herramienta de diagramado web genérica"]
+    E --> F["Dibujar rectángulos (tablas) y flechas (relaciones) manualmente"]
+    F --> G{"¿El esquema es masivo o un Grafo?"}
+    G -- "Sí" --> H["Invertir múltiples horas o días intentando visualizar"]
+    G -- "No" --> I["Finalizar diseño inicial"]
+    H --> I
+    I --> J["Exportar diagrama como imagen PNG o PDF estático"]
+    J --> K["Compartir imagen estática por correo o chat al equipo"]
+    K --> L{"¿La BD sufre alteraciones en producción?"}
+    L -- "Sí" --> M["El PNG queda obsoleto y el equipo pierde sincronía"]
+    M --> B
+    L -- "No" --> N["Fin: Proceso concluido temporalmente"]
+```
+
+## 4.2 Diagrama de Procesos Propuesto
+
+Modelado híbrido inteligente, multidialecto y automatizado con FluxSQL.
+
+```mermaid
+flowchart TD
+    A["Inicio"] --> B["Seleccionar interfaz: CLI, TUI, API, MCP o VS Code"]
+    B --> C["Crear o elegir perfil de conexión"]
+    C --> D["Diagnosticar conexión"]
+    D --> E{"¿Conexión válida?"}
+    E -- "No" --> F["Mostrar mensaje sanitizado y corregir perfil"]
+    F --> C
+    E -- "Sí" --> G["Ingresar consulta"]
+    G --> H["Crear adaptador mediante AdapterRegistry"]
+    H --> I["Ejecutar EXPLAIN o equivalente"]
+    I --> J["Construir QueryAnalysisReport factual"]
+    J --> K{"¿IA configurada?"}
+    K -- "Sí" --> L["Generar AIAnalysisResult separado"]
+    K -- "No" --> M["Continuar sin IA"]
+    L --> N["Presentar y exportar reporte"]
+    M --> N
+    N --> O["Guardar historial local si aplica"]
+    O --> P["Fin"]
+```
+
+# 5. Especificacion de Requerimientos de Software
+
+## 5.1 Cuadro de Requerimientos funcionales Inicial
+
+| ID     | Requerimiento funcional inicial             | Criterio general de aceptación                                                               |
+|--------|---------------------------------------------|----------------------------------------------------------------------------------------------|
+| RFI-01 | Diseño por Código (DDL / JSON)              | El usuario redacta `CREATE TABLE` o JSON y el UI renderiza el lienzo interactivo al vuelo. |
+| RFI-02 | Extracción Local Zero-Trust                 | El Sidecar acepta credenciales locales y se conecta al motor de BD sin exponer redes.        |
+| RFI-03 | Soporte Multi-Dialecto                      | El sistema soporta la extracción desde MySQL, Postgres, MongoDB y Neo4j.                     |
+| RFI-04 | Normalización de Modelos                    | Los parsers unifican cualquier dialecto a la interfaz genérica `SchemaModel`.              |
+| RFI-05 | Visor de Grafo Interactivo                  | El sistema utiliza React Flow para posicionar y enrutar esquemas lógicos visualmente.        |
+| RFI-06 | Control de Proyectos Híbrido                | Sincronización a demanda de diseños al Cloud API para visualización del equipo de trabajo.   |
+
+## 5.2 Cuadro de Requerimientos no funcionales
+
+| ID     | Requerimiento no funcional | Métrica / Umbral                                               | Evidencia esperada                                              |
+|--------|----------------------------|----------------------------------------------------------------|-----------------------------------------------------------------|
+| RNF-01 | **Seguridad Aislada**      | Cero (0) contraseñas enviadas en los payloads de red hacia el Cloud | Análisis de tráfico HTTP (Network Tab) / Auditoría de Base de datos |
+| RNF-02 | **Respuesta del Lienzo UI**| Redibujado de grafo masivo (<200 nodos) en < 500 ms            | Lighthouse / React Profiler Trace                               |
+| RNF-03 | **Robustez Desktop**       | Ejecutable binario nativo (Rust/Tauri) autocontenido           | Despliegue CI/CD para binarios de Windows, Mac y Linux          |
+| RNF-04 | **Compatibilidad Extensible**| El esquema `SchemaModel` debe estar validado estructuralmente    | Pruebas unitarias de Zod o ClassValidator                       |
+
+## 5.3 Cuadro de Requerimientos funcionales Final
+
+| ID    | Requerimiento funcional final                                                             | Prioridad | Trazabilidad técnica (módulo/código)                                    |
+|-------|-------------------------------------------------------------------------------------------|-----------|-------------------------------------------------------------------------|
+| RF-01 | Registrar, autenticar y emitir JWT seguros mediante NestJS AuthGuard                      | Alta      | `apps/backend-api/auth`                                                 |
+| RF-02 | Parsear SQL DDL, Neo4j Cypher y MongoDB JSON dinámicamente en el cliente UI               | Alta      | `packages/parsers/dialects` (`mongodb.ts`, `neo4j.ts`)                  |
+| RF-03 | Administrar Keyring de credenciales y perfiles de conexión local en escritorio            | Alta      | `apps/desktop/backend-python/connection_manager.py`                     |
+| RF-04 | Iniciar *Introspección* usando extractores especializados (AdapterRegistry)               | Alta      | `apps/desktop/backend-python/extractors`                                |
+| RF-05 | Consolidar DTOs heterogéneos al contrato universal `SchemaModel`                          | Alta      | `packages/parsers/SchemaModel.ts`                                       |
+| RF-06 | Renderizar, arrastrar y editar diagramas utilizando `@xyflow/react`                       | Alta      | `packages/ui/components/editor`                                         |
+| RF-07 | Sincronizar `SchemaModel` (Push/Pull) hacia `diagrams.controller.ts` (NestJS Cloud)       | Alta      | `packages/sync/CloudSyncService.ts`                                     |
+| RF-08 | Puente Integrado MCP para agentes de IA que requieran análisis del diagrama               | Media     | `apps/desktop/backend-python/mcp_bridge.py`                             |
+
+## 5.4 Regla de Negocio
+
+| ID    | Regla de negocio                                                                                               | Aplicación                                         |
+|-------|----------------------------------------------------------------------------------------------------------------|----------------------------------------------------|
+| RN-01 | **Dominio Zero-Trust**: Está terminantemente prohibido que el cliente envíe parámetros sensibles (Host, Puerto, Usuario, Contraseña) al Cloud API NestJS bajo cualquier circunstancia. | DTO Validation NestJS / Interceptor Axios |
+| RN-02 | El motor `React Flow` no posee lógica de negocio de modelado. Todas las relaciones, tipos de bordes (`step`, `smoothstep`) y semántica posicional dependen estrictamente de los Parsers y el `useEditorStore`. | Flujo arquitectónico del UI (`EditorLayout`) |
+| RN-03 | Las credenciales persistidas localmente en Tauri nunca pueden exportarse a texto plano; dependen siempre del mecanismo seguro nativo del sistema operativo (Windows Credential Manager / Keychain). | `CryptoService.py` en FastAPI Sidecar            |
+
+# 6. Fase de Desarrollo
+
+## 6.1 Perfil del usuario
+
+| Perfil                      | Características                           | Necesidades principales                       |
+|-----------------------------|-------------------------------------------|-----------------------------------------------|
+| Analista de Datos / DBA     | Conoce credenciales de conexión interna   | Generar diagramas ERD sin exponer IPs locales |
+| Desarrollador Backend       | Escribe esquemas SQL frecuentemente       | Ver los cambios de su DDL en tiempo real      |
+| Desarrollador Frontend      | Consume diagramas documentados            | Consultar el proyecto online sin instalar nada|
+| Administrador (Team Lead)   | Organiza espacios de trabajo y accesos    | Dashboard centralizado en la nube (Web App)   |
+
+## 6.2 Modelo Conceptual
+
+### 6.2.1 Diagrama de paquetes
+
+```mermaid
+flowchart TD
+    WEB["apps/web : Next.js UI"]
+    DESK["apps/desktop : Tauri"]
+    API["apps/backend-api : NestJS"]
+    SIDE["apps/desktop/backend-python : FastAPI"]
+    PKG_UI["packages/ui : React Components"]
+    PKG_PRS["packages/parsers : Data Modeling"]
+
+    WEB --> PKG_UI
+    WEB --> PKG_PRS
+    DESK --> PKG_UI
+    DESK --> PKG_PRS
+    DESK --> SIDE
+    WEB -.->|HTTP/JSON| API
+    DESK -.->|HTTPS Sync| API
+```
+
+### 6.2.2 Inventario de Casos de Uso (20 CUs)
+
+Para abarcar exhaustivamente el sistema implementado en la arquitectura híbrida (Tauri, Next.js, NestJS y FastAPI), se han definido **20 Casos de Uso** reales agrupados por módulos funcionales.
+
+#### Módulo I: Autenticación y Nube (NestJS API)
+1. **CU-01:** Iniciar sesión de usuario (JWT).
+2. **CU-02:** Registrar nueva cuenta de usuario.
+3. **CU-03:** Cerrar sesión de usuario.
+4. **CU-04:** Visualizar galería de proyectos guardados.
+5. **CU-05:** Crear nuevo proyecto de modelado en blanco.
 6. **CU-06:** Guardar / Sincronizar estado del diagrama (Push).
 7. **CU-07:** Cargar / Restaurar diagrama desde la nube (Pull).
 8. **CU-08:** Eliminar proyecto de la nube.
