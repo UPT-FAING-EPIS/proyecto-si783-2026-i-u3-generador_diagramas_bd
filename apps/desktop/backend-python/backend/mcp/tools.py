@@ -1,5 +1,5 @@
-from backend.models.schemas import McpRpcResponse, SkillRunRequest
-from backend.skills.registry import list_skills
+from backend.models.schemas import DatabaseProfile, McpRpcResponse, SkillRunRequest
+from backend.skills.registry import list_skills, resolve_skills
 from backend.skills.runner import run_skill
 
 
@@ -39,28 +39,27 @@ MCP_TOOLS = [
     },
     {
         "name": "fluxy_list_skills",
-        "description": "List installed Fluxy skills.",
+        "description": "List Fluxy skills with their local installed/enabled state.",
         "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "fluxy_resolve_skills",
+        "description": "Resolve installed and enabled skills compatible with a saved local database connection.",
+        "inputSchema": {"type": "object", "properties": {"conexion_id": {"type": "integer"}}, "required": ["conexion_id"]},
     },
     {
         "name": "fluxy_run_skill",
         "description": "Run a Fluxy skill through the local policy engine.",
-        "inputSchema": {"type": "object", "properties": {"skill_id": {"type": "string"}}},
-    },
-    {
-        "name": "fluxy_get_skill_status",
-        "description": "Return baseline skill run status. Persistent status store arrives in audit phase.",
-        "inputSchema": {"type": "object", "properties": {"run_id": {"type": "string"}}},
-    },
-    {
-        "name": "fluxy_get_artifact",
-        "description": "Return baseline artifact lookup status. Persistent artifact store arrives in audit phase.",
-        "inputSchema": {"type": "object", "properties": {"artifact_id": {"type": "string"}}},
-    },
-    {
-        "name": "fluxy_request_approval",
-        "description": "Create an approval request placeholder for risky operations.",
-        "inputSchema": {"type": "object", "properties": {"reason": {"type": "string"}}},
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "skill_id": {"type": "string"},
+                "conexion_id": {"type": "integer"},
+                "instruction": {"type": "string"},
+                "input": {"type": "object"},
+            },
+            "required": ["skill_id"],
+        },
     },
 ]
 
@@ -69,7 +68,7 @@ def text_result(text: str):
     return {"content": [{"type": "text", "text": text}]}
 
 
-def call_tool(name: str, arguments: dict, list_connections, get_profile, inspect_schema, read_sql, execute_sql):
+def call_tool(name: str, arguments: dict, db, list_connections, get_profile, inspect_schema, read_sql, execute_sql):
     if name == "fluxy_list_connections":
         return {"content": [{"type": "json", "json": list_connections()}]}
     if name == "fluxy_get_database_profile":
@@ -81,16 +80,17 @@ def call_tool(name: str, arguments: dict, list_connections, get_profile, inspect
     if name == "fluxy_execute_sql":
         return {"content": [{"type": "json", "json": execute_sql(arguments["conexion_id"], arguments["sql"])}]}
     if name == "fluxy_list_skills":
-        return {"content": [{"type": "json", "json": [skill.model_dump() for skill in list_skills()]}]}
+        return {"content": [{"type": "json", "json": [skill.model_dump() for skill in list_skills(db)]}]}
+    if name == "fluxy_resolve_skills":
+        profile = DatabaseProfile(**get_profile(arguments["conexion_id"]))
+        return {"content": [{"type": "json", "json": [skill.model_dump() for skill in resolve_skills(profile, db)]}]}
     if name == "fluxy_run_skill":
-        response = run_skill(SkillRunRequest(**arguments))
+        payload = dict(arguments)
+        conexion_id = payload.pop("conexion_id", None)
+        if conexion_id is not None and "profile" not in payload:
+            payload["profile"] = get_profile(conexion_id)
+        response = run_skill(SkillRunRequest(**payload), db)
         return {"content": [{"type": "json", "json": response.model_dump()}]}
-    if name == "fluxy_get_skill_status":
-        return text_result("Skill status persistence will be available in the audit phase.")
-    if name == "fluxy_get_artifact":
-        return text_result("Artifact persistence will be available in the audit phase.")
-    if name == "fluxy_request_approval":
-        return text_result("Approval request recorded as pending in this baseline bridge.")
     raise ValueError(f"Unknown MCP tool: {name}")
 
 

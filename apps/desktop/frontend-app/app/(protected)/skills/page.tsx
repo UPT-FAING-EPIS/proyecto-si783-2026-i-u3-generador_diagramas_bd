@@ -176,42 +176,54 @@ export default function DesktopSkillsPage() {
           )}
 
           <Dialog open={Boolean(selectedSkill)} onOpenChange={(open) => !open && setSelectedSkill(null)}>
-            <DialogContent className="max-h-[88vh] w-[min(980px,94vw)] max-w-none overflow-auto border-slate-200 bg-white text-slate-950 dark:border-border dark:bg-accent dark:text-white">
+            <DialogContent className="max-h-[92vh] w-[min(1180px,96vw)] max-w-none overflow-auto border-slate-200 bg-white text-slate-950 dark:border-border dark:bg-accent dark:text-white">
               {selectedSkill && (
                 <>
                   <DialogHeader>
-                    <DialogTitle className="flex items-center justify-between gap-3">
+                    <DialogTitle className="flex flex-wrap items-center justify-between gap-3 text-2xl">
                       <span>{selectedSkill.name}</span>
                       <Badge variant="outline" className="border-slate-200 text-slate-500 dark:border-border dark:text-muted-foreground">{selectedSkill.risk_level}</Badge>
                     </DialogTitle>
-                    <p className="text-sm text-slate-500 dark:text-muted-foreground">{selectedSkill.description}</p>
+                    <p className="max-w-4xl text-base leading-7 text-slate-600 dark:text-muted-foreground">{selectedSkill.description}</p>
                   </DialogHeader>
-                  <div className="grid gap-4 lg:grid-cols-3">
-                    <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
-                      <h3 className="text-sm font-semibold">Que permite</h3>
-                      <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
-                        <li>Resolver compatibilidad por motor local.</li>
-                        <li>Ejecutarse solo si esta instalada y activa.</li>
-                        <li>Producir artefactos seguros y auditables.</li>
-                        <li>Respetar permisos y guardas locales por base conectada.</li>
-                      </ul>
-                    </div>
-                    <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
-                      <h3 className="text-sm font-semibold">Guardas</h3>
-                      <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
-                        <p>Control: permisos locales por base conectada</p>
-                        <p>Backup: {selectedSkill.requires_backup ? 'Si' : 'No'}</p>
-                        <p>Sandbox: {selectedSkill.requires_sandbox ? 'Si' : 'No'}</p>
+                  <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
+                    <div className="space-y-5">
+                      <div className="rounded-lg border border-slate-200 p-5 dark:border-border">
+                        <h3 className="text-base font-semibold">Que permite</h3>
+                        <ul className="mt-4 grid gap-3 text-sm leading-6 text-slate-600 dark:text-muted-foreground sm:grid-cols-2">
+                          <li>Resolver compatibilidad por motor local.</li>
+                          <li>Ejecutarse solo si esta instalada y activa.</li>
+                          <li>Producir artefactos seguros y auditables.</li>
+                          <li>Respetar permisos y guardas locales por base conectada.</li>
+                        </ul>
+                      </div>
+                      <div className="rounded-lg border border-slate-200 p-5 dark:border-border">
+                        <h3 className="text-base font-semibold">Uso recomendado</h3>
+                        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-muted-foreground">
+                          Instala y activa esta skill cuando el agente necesite trabajar con bases compatibles sin mover credenciales fuera de Desktop.
+                          Las ejecuciones pasan por el sidecar local, usan perfiles guardados y producen salidas pensadas para revisarse antes de aplicar cambios.
+                        </p>
                       </div>
                     </div>
-                    <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
-                      <h3 className="text-sm font-semibold">Metadata</h3>
-                      <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
-                        <p>ID: <span className="font-mono text-xs">{selectedSkill.id}</span></p>
-                        <p>Version: {selectedSkill.version}</p>
-                        <p>Motores: {(selectedSkill.engines.length ? selectedSkill.engines : ['multi-engine']).join(', ')}</p>
+                    <aside className="space-y-4">
+                      <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
+                        <h3 className="text-sm font-semibold">Guardas</h3>
+                        <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
+                          <p>Control: permisos locales por base conectada</p>
+                          <p>Backup: {selectedSkill.requires_backup ? 'Si' : 'No'}</p>
+                          <p>Sandbox: {selectedSkill.requires_sandbox ? 'Si' : 'No'}</p>
+                        </div>
                       </div>
-                    </div>
+                      <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
+                        <h3 className="text-sm font-semibold">Metadata</h3>
+                        <div className="mt-3 space-y-2 break-words text-sm text-slate-600 dark:text-muted-foreground">
+                          <p>ID: <span className="font-mono text-xs">{selectedSkill.id}</span></p>
+                          <p>Version: {selectedSkill.version}</p>
+                          <p>Motores: {(selectedSkill.engines.length ? selectedSkill.engines : ['multi-engine']).join(', ')}</p>
+                          <p>Tags: {(selectedSkill.tags.length ? selectedSkill.tags : ['sin tags']).join(', ')}</p>
+                        </div>
+                      </div>
+                    </aside>
                   </div>
                   {selectedSkill.id === 'query_analyzer' && (
                     <Button type="button" className="mt-4 w-fit" onClick={() => window.location.href = '/analyzer'}>

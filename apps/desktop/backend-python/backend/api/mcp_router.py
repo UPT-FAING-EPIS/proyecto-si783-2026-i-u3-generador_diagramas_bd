@@ -251,7 +251,7 @@ def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
         try:
             return McpRpcResponse(
                 id=req.id,
-                result=call_tool(tool_name, arguments, list_connections, get_profile, inspect_schema, read_sql, execute_sql),
+                result=call_tool(tool_name, arguments, db, list_connections, get_profile, inspect_schema, read_sql, execute_sql),
             )
         except Exception as error:
             return mcp_error(req.id, -32000, str(error))

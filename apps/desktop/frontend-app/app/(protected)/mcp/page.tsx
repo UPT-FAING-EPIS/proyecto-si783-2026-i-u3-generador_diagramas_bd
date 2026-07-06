@@ -9,47 +9,53 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { mcpAPI } from '@/lib/api/client'
 
 const TOOL_DETAILS: Record<string, { title: string; description: string; input: string; safety: string }> = {
-  fluxsql_list_connections: {
+  fluxy_list_connections: {
     title: 'Listar conexiones locales',
     description: 'Devuelve las conexiones guardadas en este Desktop para que un agente pueda escoger una base sin ver passwords.',
     input: 'No necesita argumentos.',
     safety: 'Solo expone alias, motor, host enmascarado, usuario y capacidades; las credenciales se quedan cifradas localmente.',
   },
-  fluxsql_get_database_profile: {
+  fluxy_get_database_profile: {
     title: 'Perfil de base de datos',
     description: 'Lee el perfil de una conexion: motor, entorno, capacidades disponibles y datos necesarios para resolver skills compatibles.',
     input: 'connection_id de una conexion guardada.',
     safety: 'No devuelve credenciales. Sirve para decidir que herramientas se pueden usar antes de tocar una base.',
   },
-  fluxsql_list_skills: {
+  fluxy_inspect_schema: {
+    title: 'Inspeccionar schema',
+    description: 'Lee tablas, columnas, claves primarias y relaciones desde una conexion local guardada.',
+    input: 'conexion_id numerico de una conexion guardada.',
+    safety: 'Usa credenciales cifradas dentro del sidecar y devuelve metadatos, no passwords ni cadenas de conexion.',
+  },
+  fluxy_read_sql: {
+    title: 'SQL de solo lectura',
+    description: 'Ejecuta consultas SELECT, WITH, SHOW o EXPLAIN con limite automatico para que el agente pueda inspeccionar datos de forma controlada.',
+    input: 'conexion_id y una sentencia SQL de lectura.',
+    safety: 'Bloquea INSERT, UPDATE, DELETE, ALTER, DROP y otras operaciones de escritura.',
+  },
+  fluxy_execute_sql: {
+    title: 'SQL protegido',
+    description: 'Permite ejecutar sentencias CREATE, INSERT o COMMENT en flujos controlados.',
+    input: 'conexion_id y una unica sentencia SQL permitida.',
+    safety: 'Bloquea operaciones destructivas y mantiene la ejecucion dentro del sidecar local.',
+  },
+  fluxy_list_skills: {
     title: 'Listar skills instaladas',
     description: 'Devuelve las skills instaladas y activas en este Desktop para que Codex, Antigravity u otro cliente MCP pueda elegir una.',
     input: 'No necesita argumentos.',
     safety: 'Respeta el estado local y la sincronizacion con FluxSQL Web cuando hay cuenta enlazada.',
   },
-  fluxsql_run_skill: {
+  fluxy_resolve_skills: {
+    title: 'Resolver skills compatibles',
+    description: 'Devuelve las skills instaladas y activas que aplican al motor de una base conectada.',
+    input: 'conexion_id numerico de una conexion guardada.',
+    safety: 'Solo combina perfil local sin secretos con el estado local de Skill Store.',
+  },
+  fluxy_run_skill: {
     title: 'Ejecutar skill FluxSQL',
     description: 'Ejecuta una skill instalada contra un contexto controlado, por ejemplo revisar schema, generar SQL o preparar documentacion.',
     input: 'skill_id, connection_id y parametros de ejecucion de la skill.',
     safety: 'Pasa por permisos locales y guardas de entorno antes de operaciones riesgosas.',
-  },
-  fluxsql_execute_sql: {
-    title: 'SQL protegido',
-    description: 'Permite a un agente ejecutar sentencias SQL limitadas para flujos controlados.',
-    input: 'connection_id y una unica sentencia SQL permitida.',
-    safety: 'Bloquea operaciones destructivas y respeta permisos locales por base conectada.',
-  },
-  fluxsql_get_skill_status: {
-    title: 'Estado de ejecucion de skill',
-    description: 'Consulta el estado base de una ejecucion agentica para conectar auditoria y seguimiento.',
-    input: 'run_id de la ejecucion.',
-    safety: 'No toca bases de datos; solo expone estado de ejecucion.',
-  },
-  fluxsql_get_artifact: {
-    title: 'Obtener artefacto',
-    description: 'Busca artefactos generados por una skill, como reportes, SQL o documentacion.',
-    input: 'artifact_id del artefacto.',
-    safety: 'No revela credenciales ni conexiones; devuelve artefactos permitidos por FluxSQL.',
   },
 }
 
