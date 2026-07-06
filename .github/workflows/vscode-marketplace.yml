@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
 
     steps:
       - name: Checkout
@@ -44,6 +45,14 @@ jobs:
         working-directory: apps/vscode-extension
         run: pnpm exec vsce publish -p "$VSCE_PAT"
 
+      - name: Ensure Open VSX namespace
+        if: ${{ env.OPEN_VSX_TOKEN != '' }}
+        run: pnpm dlx ovsx create-namespace JeffersonVargas -p "$OPEN_VSX_TOKEN" || true
+
+      - name: Publish to Open VSX Registry
+        if: ${{ env.OPEN_VSX_TOKEN != '' }}
+        run: pnpm dlx ovsx publish apps/vscode-extension/*.vsix -p "$OPEN_VSX_TOKEN"
+
       - name: Calculate VSIX checksum
         run: sha256sum apps/vscode-extension/*.vsix > vscode-extension-checksums.txt
 
@@ -59,6 +68,7 @@ jobs:
             Includes:
             - VSIX package
             - SHA256 checksum
+            - Marketplace publishing workflow for Visual Studio Marketplace and Open VSX
           files: |
             apps/vscode-extension/*.vsix
             vscode-extension-checksums.txt
