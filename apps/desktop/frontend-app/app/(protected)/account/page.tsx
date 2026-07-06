@@ -109,7 +109,7 @@ export default function AccountPage() {
     setIsSyncing(true)
     try {
       const result = await syncAPI.syncCloud()
-      setMessage(`Sincronizacion completa: ${result.pushed_projects} proyectos enviados, ${result.pushed_diagrams} diagramas enviados, ${result.projects_imported} proyectos importados y ${result.diagrams_imported} diagramas importados.`)
+      setMessage(`Sincronizacion completa: ${result.projects_imported} proyectos importados, ${result.diagrams_imported} diagramas importados y ${result.projects_seen} proyectos revisados desde Web.`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No pude sincronizar los diagramas desde Web.')
     } finally {

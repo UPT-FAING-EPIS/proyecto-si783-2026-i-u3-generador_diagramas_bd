@@ -389,26 +389,15 @@ def push_cloud_project(project_id: int, db: Session = Depends(get_db)):
 
 @router.post("/cloud/sync")
 def sync_cloud(db: Session = Depends(get_db)):
-    pushed_projects = 0
-    pushed_diagrams = 0
-    push_errors: list[dict] = []
-
-    local_projects = db.query(Project).filter(Project.deleted_at == None).order_by(Project.updated_at.asc()).all()
-    for project in local_projects:
-        try:
-            result = push_cloud_project(project.id, db)
-            if result.get("ok"):
-                pushed_projects += 1
-                pushed_diagrams += int(result.get("diagrams_synced") or 0)
-        except HTTPException as error:
-            push_errors.append({"project_id": project.id, "detail": error.detail})
-
+    # "Sincronizar" follows Web as the source of truth. Local publishing remains
+    # explicit through /cloud/projects/{project_id}/push to avoid resurrecting
+    # diagrams that the user deleted from Web.
     pulled = pull_cloud_projects(db)
     return {
-        "ok": len(push_errors) == 0 and bool(pulled.get("ok")),
-        "pushed_projects": pushed_projects,
-        "pushed_diagrams": pushed_diagrams,
-        "push_errors": push_errors,
+        "ok": bool(pulled.get("ok")),
+        "pushed_projects": 0,
+        "pushed_diagrams": 0,
+        "push_errors": [],
         "projects_imported": pulled.get("projects_imported", 0),
         "diagrams_imported": pulled.get("diagrams_imported", 0),
         "projects_seen": pulled.get("projects_seen", 0),

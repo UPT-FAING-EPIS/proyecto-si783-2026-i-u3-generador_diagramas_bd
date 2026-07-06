@@ -115,7 +115,7 @@ export function DashboardClient({ projects, loading, error, onRetry, onProjectsC
           <button
             onClick={() => void runAutoSync()}
             disabled={isSyncing}
-            title="Sincronizar proyectos con la nube"
+            title="Traer cambios desde FluxSQL Web"
             className="bg-card hover:bg-muted text-foreground border border-border transition-all flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-[#1A6CF6]' : ''}`} />
