@@ -14,9 +14,22 @@ jobs:
   deploy:
     name: Deploy to No-IP VPS
     runs-on: ubuntu-latest
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+      VPS_APP_DIR: ${{ secrets.VPS_APP_DIR }}
+      PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
 
     steps:
+      - name: Skip when VPS secrets are not configured
+        if: ${{ env.VPS_HOST == '' || env.VPS_USER == '' || env.VPS_PASSWORD == '' || env.VPS_APP_DIR == '' || env.PRODUCTION_ENV == '' }}
+        run: |
+          echo "VPS deployment skipped because one or more required secrets are missing."
+          echo "Required: VPS_HOST, VPS_USER, VPS_PASSWORD, VPS_APP_DIR, PRODUCTION_ENV."
+
       - name: Deploy over SSH
+        if: ${{ env.VPS_HOST != '' && env.VPS_USER != '' && env.VPS_PASSWORD != '' && env.VPS_APP_DIR != '' && env.PRODUCTION_ENV != '' }}
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.VPS_HOST }}
