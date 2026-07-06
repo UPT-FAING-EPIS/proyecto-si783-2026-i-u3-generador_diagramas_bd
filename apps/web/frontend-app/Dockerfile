@@ -20,9 +20,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-COPY --from=builder /repo/apps/web/frontend-app/public ./public
-COPY --from=builder /repo/apps/web/frontend-app/.next/static ./.next/static
 COPY --from=builder /repo/apps/web/frontend-app/.next/standalone ./
+COPY --from=builder /repo/apps/web/frontend-app/public ./apps/web/frontend-app/public
+COPY --from=builder /repo/apps/web/frontend-app/.next/static ./apps/web/frontend-app/.next/static
+
+WORKDIR /app/apps/web/frontend-app
 
 EXPOSE 3000
 CMD ["node", "server.js"]
