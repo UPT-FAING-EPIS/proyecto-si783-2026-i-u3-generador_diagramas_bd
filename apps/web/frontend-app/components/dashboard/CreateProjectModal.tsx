@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { createProjectAction } from '@/lib/backend/actions/projects/create'
 import { TagInput } from '@/components/ui/TagInput'
-import { Database, Braces, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Braces, Database, FileJson, GitBranch } from 'lucide-react'
+import type { EditorDialect } from '@/lib/editor-schema'
 
 interface CreateProjectModalProps {
   open: boolean
@@ -16,6 +17,29 @@ interface CreateProjectModalProps {
 }
 
 type EngineFamily = 'sql' | 'nosql'
+type DialectOption = {
+  value: EditorDialect
+  label: string
+  description: string
+  icon: typeof Database
+}
+
+const SQL_DIALECTS: DialectOption[] = [
+  { value: 'postgresql', label: 'PostgreSQL', description: 'Recomendado para Supabase y SQL estandar.', icon: Database },
+  { value: 'mysql', label: 'MySQL', description: 'Ideal para apps web clasicas y MariaDB.', icon: Database },
+  { value: 'sqlserver', label: 'SQL Server', description: 'Para entornos Microsoft y T-SQL.', icon: Database },
+]
+
+const NOSQL_DIALECTS: DialectOption[] = [
+  { value: 'mongodb', label: 'MongoDB', description: 'Recomendado para colecciones y documentos.', icon: Braces },
+  { value: 'neo4j', label: 'Neo4j', description: 'Para grafos con nodos y relaciones fuertes.', icon: GitBranch },
+  { value: 'json', label: 'JSON', description: 'Flexible para importar o bosquejar estructuras.', icon: FileJson },
+]
+
+const DEFAULT_DIALECT_BY_FAMILY: Record<EngineFamily, EditorDialect> = {
+  sql: 'postgresql',
+  nosql: 'mongodb',
+}
 
 export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalProps) {
   const [error, setError] = useState<string | null>(null)
@@ -23,9 +47,14 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
   const [tags, setTags] = useState<string[]>([])
   const [step, setStep] = useState<'select' | 'form'>('select')
   const [engineFamily, setEngineFamily] = useState<EngineFamily>('sql')
+  const [dialect, setDialect] = useState<EditorDialect>('postgresql')
+
+  const dialectOptions = engineFamily === 'sql' ? SQL_DIALECTS : NOSQL_DIALECTS
+  const selectedDialect = dialectOptions.find((option) => option.value === dialect) ?? dialectOptions[0]
 
   function handleSelectFamily(family: EngineFamily) {
     setEngineFamily(family)
+    setDialect(DEFAULT_DIALECT_BY_FAMILY[family])
     setStep('form')
   }
 
@@ -34,13 +63,15 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
     setError(null)
   }
 
-  function handleClose(open: boolean) {
-    if (!open) {
+  function handleClose(openState: boolean) {
+    if (!openState) {
       setStep('select')
       setError(null)
       setTags([])
+      setEngineFamily('sql')
+      setDialect('postgresql')
     }
-    onOpenChange(open)
+    onOpenChange(openState)
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -51,6 +82,7 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
     const formData = new FormData(e.currentTarget)
     formData.set('tags', JSON.stringify(tags))
     formData.set('engineFamily', engineFamily)
+    formData.set('dialect', dialect)
     const result = await createProjectAction(formData)
 
     if (result?.error) {
@@ -65,9 +97,7 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px] bg-background border-border text-foreground p-0 shadow-xl overflow-hidden rounded-xl">
-
-        {/* ── STEP 1: Selector SQL / NoSQL ── */}
+      <DialogContent className="sm:max-w-[520px] bg-background border-border text-foreground p-0 shadow-xl overflow-hidden rounded-xl">
         {step === 'select' && (
           <div className="p-6">
             <DialogHeader>
@@ -78,7 +108,6 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
             </DialogHeader>
 
             <div className="grid grid-cols-2 gap-4 pt-6">
-              {/* SQL Card */}
               <button
                 type="button"
                 onClick={() => handleSelectFamily('sql')}
@@ -95,7 +124,6 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
                 </div>
               </button>
 
-              {/* NoSQL Card */}
               <button
                 type="button"
                 onClick={() => handleSelectFamily('nosql')}
@@ -107,7 +135,7 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
                 <div className="text-center">
                   <p className="text-sm font-bold text-foreground">NoSQL</p>
                   <p className="mt-1 text-[11px] text-muted-foreground leading-tight">
-                    MongoDB, Neo4j
+                    MongoDB, Neo4j, JSON
                   </p>
                 </div>
               </button>
@@ -115,7 +143,6 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
           </div>
         )}
 
-        {/* ── STEP 2: Form ── */}
         {step === 'form' && (
           <div className="p-6">
             <DialogHeader>
@@ -132,62 +159,103 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
                 </DialogTitle>
                 <span className={`ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full ${
                   engineFamily === 'sql'
-                    ? 'bg-blue-50 text-[#1A6CF6] border border-blue-200'
-                    : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                    ? 'bg-blue-50 text-[#1A6CF6] border border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/30'
+                    : 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30'
                 }`}>
-                  {engineFamily === 'sql' ? 'SQL' : 'NoSQL'}
+                  {selectedDialect.label}
                 </span>
               </div>
               <DialogDescription className="text-muted-foreground">
-                Ingresa los detalles para tu nuevo diagrama de base de datos.
+                Elige el motor para abrir el editor con el dialecto correcto desde el inicio.
               </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-5 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-foreground font-medium">Nombre <span className="text-red-500">*</span></Label>
-                <Input 
-                  id="name" 
-                  name="name" 
-                  required 
+                <Input
+                  id="name"
+                  name="name"
+                  required
                   maxLength={50}
-                  placeholder={engineFamily === 'sql' ? 'Ej. Sistema de Ventas' : 'Ej. Catálogo de Productos'}
+                  placeholder={engineFamily === 'sql' ? 'Ej. Sistema de Ventas' : 'Ej. Catalogo de Productos'}
                   className="bg-background border-border focus-visible:ring-primary focus-visible:border-primary text-foreground"
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-foreground font-medium">Descripción (opcional)</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
+                <Label className="text-foreground font-medium">Motor / base de datos</Label>
+                <div className="grid gap-2">
+                  {dialectOptions.map(({ value, label, description, icon: Icon }) => {
+                    const active = dialect === value
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setDialect(value)}
+                        className={`flex items-center gap-3 rounded-lg border p-3 text-left transition ${
+                          active
+                            ? engineFamily === 'sql'
+                              ? 'border-primary bg-primary/10 shadow-sm shadow-primary/10'
+                              : 'border-emerald-500 bg-emerald-500/10 shadow-sm shadow-emerald-500/10'
+                            : 'border-border bg-card hover:bg-muted'
+                        }`}
+                      >
+                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                          active
+                            ? engineFamily === 'sql'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-emerald-600 text-white'
+                            : 'bg-muted text-muted-foreground'
+                        }`}>
+                          <Icon size={17} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-semibold text-foreground">{label}</span>
+                          <span className="block text-xs leading-snug text-muted-foreground">{description}</span>
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-foreground font-medium">Descripcion (opcional)</Label>
+                <Textarea
+                  id="description"
+                  name="description"
                   maxLength={200}
                   placeholder="Un breve resumen del proyecto..."
                   className="bg-background border-border focus-visible:ring-primary focus-visible:border-primary text-foreground resize-none"
                   rows={3}
                 />
               </div>
+
               <div className="space-y-2">
                 <Label className="text-foreground font-medium">
                   Tags <span className="text-muted-foreground font-normal">(opcional)</span>
                 </Label>
                 <TagInput value={tags} onChange={setTags} />
               </div>
+
               {error && (
-                <div className="bg-red-50 border border-red-200 p-3 rounded-md">
-                  <p className="text-red-600 text-sm font-medium">{error}</p>
+                <div className="bg-red-50 border border-red-200 p-3 rounded-md dark:bg-red-500/10 dark:border-red-500/30">
+                  <p className="text-red-600 text-sm font-medium dark:text-red-300">{error}</p>
                 </div>
               )}
+
               <div className="flex justify-end gap-3 pt-4 border-t border-border mt-6">
-                <Button 
-                  type="button" 
-                  variant="ghost" 
+                <Button
+                  type="button"
+                  variant="ghost"
                   onClick={() => handleClose(false)}
                   className="hover:bg-muted hover:text-foreground text-muted-foreground"
                 >
                   Cancelar
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={isPending}
                   className={`min-w-[140px] text-primary-foreground ${
                     engineFamily === 'sql'
