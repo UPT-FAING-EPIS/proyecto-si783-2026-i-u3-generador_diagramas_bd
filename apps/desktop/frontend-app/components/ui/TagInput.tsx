@@ -22,8 +22,7 @@ export function TagInput({ value, onChange, placeholder }: TagInputProps) {
 
   return (
     <div
-      className="flex flex-wrap gap-1.5 p-2 rounded-lg min-h-[42px] cursor-text"
-      style={{ backgroundColor: '#111827', border: '1px solid #1E2A45' }}
+      className="flex min-h-[42px] cursor-text flex-wrap gap-1.5 rounded-lg border border-border bg-accent p-2"
       onClick={() => inputRef.current?.focus()}
     >
       {value.map(tag => (
@@ -64,7 +63,7 @@ export function TagInput({ value, onChange, placeholder }: TagInputProps) {
           }
         }}
         placeholder={value.length === 0 ? (placeholder ?? 'Añadir tag... (Enter o coma)') : ''}
-        className="flex-1 min-w-[140px] bg-transparent text-sm text-white outline-none placeholder-[#4B5563]"
+        className="min-w-[140px] flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
       />
     </div>
   )

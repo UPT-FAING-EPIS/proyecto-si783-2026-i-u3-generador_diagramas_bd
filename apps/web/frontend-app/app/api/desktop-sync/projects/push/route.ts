@@ -89,43 +89,55 @@ export async function POST(request: Request) {
       })
     }
 
-    const [existingDiagram] = await tx.select().from(diagrams).where(eq(diagrams.projectId, projectId)).limit(1)
-    const firstDiagram = incomingDiagrams[0]
-    let diagramId = existingDiagram?.id ?? null
+    const existingDiagrams = await tx.select().from(diagrams).where(eq(diagrams.projectId, projectId))
+    const existingById = new Map(existingDiagrams.map((diagram) => [diagram.id, diagram]))
+    const diagramIds: Array<{ localId: number | string | null; cloudDiagramId: string }> = []
+    const touchedDiagramIds = new Set<string>()
 
-    if (firstDiagram) {
-      const flowJson = firstDiagram.flowJson && typeof firstDiagram.flowJson === 'object'
-        ? firstDiagram.flowJson
+    for (const incomingDiagram of incomingDiagrams) {
+      const flowJson = incomingDiagram.flowJson && typeof incomingDiagram.flowJson === 'object'
+        ? incomingDiagram.flowJson
         : { nodes: [], edges: [] }
+      const requestedCloudId = typeof incomingDiagram.cloudDiagramId === 'string' ? incomingDiagram.cloudDiagramId : null
+      const currentDiagram = requestedCloudId ? existingById.get(requestedCloudId) : null
 
-      if (diagramId) {
+      if (currentDiagram) {
         await tx
           .update(diagrams)
           .set({
-            name: firstDiagram.name || 'Diagrama Desktop',
-            sourceCode: firstDiagram.sourceCode ?? '',
-            dialect: firstDiagram.dialect ?? 'postgresql',
+            name: incomingDiagram.name || 'Diagrama Desktop',
+            sourceCode: incomingDiagram.sourceCode ?? '',
+            dialect: incomingDiagram.dialect ?? 'postgresql',
             flowJson,
             isPublic: true,
             shareAccess: 'view',
             updatedAt: now,
           })
-          .where(eq(diagrams.id, diagramId))
+          .where(eq(diagrams.id, currentDiagram.id))
+        touchedDiagramIds.add(currentDiagram.id)
+        diagramIds.push({ localId: incomingDiagram.localId ?? null, cloudDiagramId: currentDiagram.id })
       } else {
         const [createdDiagram] = await tx.insert(diagrams).values({
           projectId,
-          name: firstDiagram.name || 'Diagrama Desktop',
-          sourceCode: firstDiagram.sourceCode ?? '',
-          dialect: firstDiagram.dialect ?? 'postgresql',
+          name: incomingDiagram.name || 'Diagrama Desktop',
+          sourceCode: incomingDiagram.sourceCode ?? '',
+          dialect: incomingDiagram.dialect ?? 'postgresql',
           flowJson,
           isPublic: true,
           shareAccess: 'view',
         }).returning({ id: diagrams.id })
-        diagramId = createdDiagram.id
+        touchedDiagramIds.add(createdDiagram.id)
+        diagramIds.push({ localId: incomingDiagram.localId ?? null, cloudDiagramId: createdDiagram.id })
       }
     }
 
-    return { projectId, diagramId }
+    for (const existingDiagram of existingDiagrams) {
+      if (!touchedDiagramIds.has(existingDiagram.id)) {
+        await tx.delete(diagrams).where(eq(diagrams.id, existingDiagram.id))
+      }
+    }
+
+    return { projectId, diagramId: diagramIds[0]?.cloudDiagramId ?? null, diagramIds }
   })
 
   return NextResponse.json({ ok: true, ...result })

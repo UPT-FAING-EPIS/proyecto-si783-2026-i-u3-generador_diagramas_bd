@@ -191,13 +191,13 @@ export default function NewDiagramPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-[#0A0F1E] dark:text-white">
+    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-background dark:text-white">
       <DashboardSidebar userName="Usuario Local" userAvatarUrl={null} />
       <main className="flex h-screen flex-1 flex-col overflow-hidden">
-        <header className="sticky top-0 z-10 shrink-0 border-b border-slate-200 bg-white shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+        <header className="sticky top-0 z-10 shrink-0 border-b border-slate-200 bg-white shadow-sm dark:border-border dark:bg-accent">
           <div className="container mx-auto flex h-16 items-center justify-between px-6">
             <div className="flex items-center">
-              <Link href="/dashboard" className="mr-4 text-slate-500 transition-colors hover:text-slate-950 dark:text-[#94A3B8] dark:hover:text-white">
+              <Link href="/dashboard" className="mr-4 text-slate-500 transition-colors hover:text-slate-950 dark:text-muted-foreground dark:hover:text-white">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <Database className="mr-3 h-5 w-5 text-[#1A6CF6]" />
@@ -214,17 +214,17 @@ export default function NewDiagramPage() {
 
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8 pb-20">
-            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Nombre del diagrama</label>
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-border dark:bg-accent">
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-muted-foreground">Nombre del diagrama</label>
               <input
                 type="text"
                 value={diagramName}
                 onChange={(event) => setDiagramName(event.target.value)}
-                className="h-11 w-full max-w-md rounded-lg border border-slate-200 bg-white px-4 text-sm outline-none focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                className="h-11 w-full max-w-md rounded-lg border border-slate-200 bg-white px-4 text-sm outline-none focus:border-[#1A6CF6] dark:border-border dark:bg-background"
               />
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-border dark:bg-accent">
               <p className="text-sm font-semibold">1. Tipo de base de datos</p>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <ChoiceButton active={family === 'sql'} icon={<Database className="h-5 w-5" />} title="SQL" description="PostgreSQL, MySQL o SQL Server." onClick={() => setFamily('sql')} />
@@ -232,7 +232,7 @@ export default function NewDiagramPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-border dark:bg-accent">
               <p className="text-sm font-semibold">2. Origen del diagrama</p>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <ChoiceButton active={mode === 'database'} icon={<Database className="h-5 w-5" />} title="Desde base conectada" description="Seleccionar una conexion local y escoger tablas u objetos." onClick={() => setMode('database')} />
@@ -241,12 +241,12 @@ export default function NewDiagramPage() {
             </section>
 
             {mode === 'blank' ? (
-              <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+              <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-border dark:bg-accent">
                 <p className="text-sm font-semibold">3. Motor del diagrama</p>
                 <select
                   value={family === 'sql' ? blankSqlEngine : blankNoSqlEngine}
                   onChange={(event) => family === 'sql' ? setBlankSqlEngine(event.target.value as EditorDialect) : setBlankNoSqlEngine(event.target.value as Extract<EditorDialect, 'mongodb' | 'neo4j'>)}
-                  className="mt-3 h-11 w-full max-w-sm rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  className="mt-3 h-11 w-full max-w-sm rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#1A6CF6] dark:border-border dark:bg-background"
                 >
                   {(family === 'sql' ? SQL_ENGINES : NOSQL_ENGINES).map((engine) => (
                     <option key={engine.value} value={engine.value}>{engine.label}</option>
@@ -259,10 +259,10 @@ export default function NewDiagramPage() {
               </section>
             ) : (
               <section className="grid gap-6 lg:grid-cols-[360px_1fr]">
-                <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+                <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-border dark:bg-accent">
                   <h2 className="font-semibold">3. Selecciona la base conectada</h2>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-[#94A3B8]">Mostrando solo conexiones {family === 'sql' ? 'SQL' : 'NoSQL'}.</p>
-                  <select value={selectedConnectionId} onChange={(event) => setSelectedConnectionId(event.target.value)} className="mt-4 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-[#1E2A45] dark:bg-[#0B1322]">
+                  <p className="mt-1 text-sm text-slate-500 dark:text-muted-foreground">Mostrando solo conexiones {family === 'sql' ? 'SQL' : 'NoSQL'}.</p>
+                  <select value={selectedConnectionId} onChange={(event) => setSelectedConnectionId(event.target.value)} className="mt-4 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-border dark:bg-background">
                     <option value="">Selecciona una conexion</option>
                     {compatibleConnections.map((connection) => (
                       <option key={connection.connection_id} value={connection.connection_id}>
@@ -272,9 +272,9 @@ export default function NewDiagramPage() {
                   </select>
 
                   {selectedConnection && (
-                    <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-[#1E2A45] dark:bg-[#0B1322]">
+                    <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-border dark:bg-background">
                       <p className="font-medium">{selectedConnection.database}</p>
-                      <p className="mt-1 text-slate-500 dark:text-[#94A3B8]">{selectedConnection.engine} · {selectedConnection.host_masked}:{selectedConnection.port}</p>
+                      <p className="mt-1 text-slate-500 dark:text-muted-foreground">{selectedConnection.engine} · {selectedConnection.host_masked}:{selectedConnection.port}</p>
                       <button type="button" onClick={() => router.push(`/agent-tools?tool=memory&scope=database&subject=${encodeURIComponent(selectedConnection.connection_id)}`)} className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-[#1A6CF6] hover:underline">
                         <Brain className="h-4 w-4" />
                         Editar memoria de esta BD
@@ -290,11 +290,11 @@ export default function NewDiagramPage() {
 
                 <div className={isLoadingSchema ? 'opacity-50' : ''}>
                   {compatibleConnections.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#94A3B8]">
+                    <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-border dark:bg-accent dark:text-muted-foreground">
                       No hay conexiones {family === 'sql' ? 'SQL' : 'NoSQL'} guardadas. Ve a Conexiones y agrega una base primero.
                     </div>
                   ) : !selectedConnection ? (
-                    <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#94A3B8]">
+                    <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-border dark:bg-accent dark:text-muted-foreground">
                       Selecciona una conexion para cargar su schema y elegir {family === 'sql' ? 'tablas' : 'colecciones u objetos'}.
                     </div>
                   ) : (
@@ -337,7 +337,7 @@ function ChoiceButton({
       className={`rounded-lg border p-4 text-left transition ${
         active
           ? 'border-[#1A6CF6] bg-blue-50 text-[#1A6CF6] dark:bg-blue-500/10'
-          : 'border-slate-200 text-slate-700 hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:text-[#CBD5E1]'
+          : 'border-slate-200 text-slate-700 hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-border dark:text-muted-foreground'
       }`}
     >
       {icon}

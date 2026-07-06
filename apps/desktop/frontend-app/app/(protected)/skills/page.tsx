@@ -114,10 +114,10 @@ export default function DesktopSkillsPage() {
   }, [engineFilter, installFilter, query, skills])
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-[#0A0F1E] dark:text-white">
+    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-background dark:text-white">
       <DashboardSidebar userName="Usuario Local" userAvatarUrl={null} />
       <main className="flex-1">
-        <div className="border-b border-slate-200 bg-white dark:border-[#1E2A45] dark:bg-[#111827]">
+        <div className="border-b border-slate-200 bg-white dark:border-border dark:bg-accent">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1A6CF6] text-white">
@@ -125,22 +125,22 @@ export default function DesktopSkillsPage() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold">Skill Store</h1>
-                <p className="text-sm text-slate-500 dark:text-[#94A3B8]">Instala skills locales para agentes especializados en bases de datos.</p>
+                <p className="text-sm text-slate-500 dark:text-muted-foreground">Instala skills locales para agentes especializados en bases de datos.</p>
               </div>
             </div>
-            <Badge variant="outline" className="hidden border-slate-200 text-slate-500 dark:border-[#1E2A45] dark:text-[#94A3B8] sm:inline-flex">Agent Skills v1</Badge>
+            <Badge variant="outline" className="hidden border-slate-200 text-slate-500 dark:border-border dark:text-muted-foreground sm:inline-flex">Agent Skills v1</Badge>
           </div>
         </div>
 
         <div className="mx-auto max-w-6xl px-6 py-8">
-          <section className="mb-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827] lg:grid-cols-[1fr_180px_180px]">
+          <section className="mb-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-border dark:bg-accent lg:grid-cols-[1fr_180px_180px]">
             <label className="relative block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Buscar por nombre, motor, categoria o tag"
-                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
               />
             </label>
             <label className="relative block">
@@ -148,7 +148,7 @@ export default function DesktopSkillsPage() {
               <select
                 value={installFilter}
                 onChange={(event) => setInstallFilter(event.target.value as InstallFilter)}
-                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
               >
                 <option value="all">Todas</option>
                 <option value="installed">Instaladas</option>
@@ -159,7 +159,7 @@ export default function DesktopSkillsPage() {
             <select
               value={engineFilter}
               onChange={(event) => setEngineFilter(event.target.value)}
-              className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+              className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
             >
               <option value="all">Todos los motores</option>
               {engines.map((engine) => (
@@ -168,7 +168,7 @@ export default function DesktopSkillsPage() {
             </select>
           </section>
 
-          {loading && <p className="text-sm text-slate-500 dark:text-[#94A3B8]">Cargando skills...</p>}
+          {loading && <p className="text-sm text-slate-500 dark:text-muted-foreground">Cargando skills...</p>}
           {error && (
             <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
               {error}
@@ -176,37 +176,37 @@ export default function DesktopSkillsPage() {
           )}
 
           <Dialog open={Boolean(selectedSkill)} onOpenChange={(open) => !open && setSelectedSkill(null)}>
-            <DialogContent className="max-h-[88vh] w-[min(980px,94vw)] max-w-none overflow-auto border-slate-200 bg-white text-slate-950 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-white">
+            <DialogContent className="max-h-[88vh] w-[min(980px,94vw)] max-w-none overflow-auto border-slate-200 bg-white text-slate-950 dark:border-border dark:bg-accent dark:text-white">
               {selectedSkill && (
                 <>
                   <DialogHeader>
                     <DialogTitle className="flex items-center justify-between gap-3">
                       <span>{selectedSkill.name}</span>
-                      <Badge variant="outline" className="border-slate-200 text-slate-500 dark:border-[#1E2A45] dark:text-[#94A3B8]">{selectedSkill.risk_level}</Badge>
+                      <Badge variant="outline" className="border-slate-200 text-slate-500 dark:border-border dark:text-muted-foreground">{selectedSkill.risk_level}</Badge>
                     </DialogTitle>
-                    <p className="text-sm text-slate-500 dark:text-[#94A3B8]">{selectedSkill.description}</p>
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground">{selectedSkill.description}</p>
                   </DialogHeader>
                   <div className="grid gap-4 lg:grid-cols-3">
-                    <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
+                    <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
                       <h3 className="text-sm font-semibold">Que permite</h3>
-                      <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-[#CBD5E1]">
+                      <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                         <li>Resolver compatibilidad por motor local.</li>
                         <li>Ejecutarse solo si esta instalada y activa.</li>
                         <li>Producir artefactos seguros y auditables.</li>
                         <li>Respetar permisos y guardas locales por base conectada.</li>
                       </ul>
                     </div>
-                    <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
+                    <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
                       <h3 className="text-sm font-semibold">Guardas</h3>
-                      <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-[#CBD5E1]">
+                      <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                         <p>Control: permisos locales por base conectada</p>
                         <p>Backup: {selectedSkill.requires_backup ? 'Si' : 'No'}</p>
                         <p>Sandbox: {selectedSkill.requires_sandbox ? 'Si' : 'No'}</p>
                       </div>
                     </div>
-                    <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
+                    <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
                       <h3 className="text-sm font-semibold">Metadata</h3>
-                      <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-[#CBD5E1]">
+                      <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                         <p>ID: <span className="font-mono text-xs">{selectedSkill.id}</span></p>
                         <p>Version: {selectedSkill.version}</p>
                         <p>Motores: {(selectedSkill.engines.length ? selectedSkill.engines : ['multi-engine']).join(', ')}</p>
@@ -226,34 +226,34 @@ export default function DesktopSkillsPage() {
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredSkills.map((skill) => (
-              <article key={skill.id} className="flex min-h-[260px] flex-col rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+              <article key={skill.id} className="flex min-h-[260px] flex-col rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-border dark:bg-accent">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="text-base font-semibold">{skill.name}</h2>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-[#94A3B8]">{skill.category} · v{skill.version}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-muted-foreground">{skill.category} · v{skill.version}</p>
                   </div>
                   <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${riskTone[skill.risk_level] ?? riskTone.low}`}>
                     {skill.risk_level}
                   </span>
                 </div>
 
-                <p className="mt-4 flex-1 text-sm leading-6 text-slate-600 dark:text-[#CBD5E1]">{skill.description}</p>
+                <p className="mt-4 flex-1 text-sm leading-6 text-slate-600 dark:text-muted-foreground">{skill.description}</p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {(skill.engines.length ? skill.engines : ['multi-engine']).map((engine) => (
-                    <Badge key={engine} variant="secondary" className="rounded-md bg-slate-100 text-slate-600 dark:bg-[#1E2A45] dark:text-[#CBD5E1]">{engine}</Badge>
+                    <Badge key={engine} variant="secondary" className="rounded-md bg-slate-100 text-slate-600 dark:bg-[#1E2A45] dark:text-muted-foreground">{engine}</Badge>
                   ))}
                 </div>
 
                 {(skill.requires_approval || skill.requires_backup || skill.requires_sandbox) && (
-                  <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-[#94A3B8]">
+                  <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-muted-foreground">
                     <ShieldCheck className="h-4 w-4 text-[#1A6CF6]" />
                     Requiere guardas: {[skill.requires_backup && 'backup', skill.requires_sandbox && 'sandbox'].filter(Boolean).join(', ')}
                   </div>
                 )}
 
                 <div className="mt-5 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-[#94A3B8]">
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-muted-foreground">
                     <Wrench className="h-4 w-4" />
                     {skill.installed ? (skill.enabled ? 'Activa' : 'Instalada') : 'Disponible'}
                   </div>
@@ -284,7 +284,7 @@ export default function DesktopSkillsPage() {
               </article>
             ))}
             {!loading && filteredSkills.length === 0 && (
-              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#94A3B8] md:col-span-2 xl:col-span-3">
+              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-border dark:bg-accent dark:text-muted-foreground md:col-span-2 xl:col-span-3">
                 No hay skills que coincidan con esos filtros.
               </div>
             )}

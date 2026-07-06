@@ -67,7 +67,7 @@ export function OnboardingTour() {
         <div
           className="pointer-events-auto w-full max-w-sm rounded-xl p-6 shadow-2xl"
           style={{
-            backgroundColor: '#111827',
+            backgroundColor: 'var(--accent)',
             border: '1px solid rgba(26,108,246,0.4)',
           }}
         >
@@ -94,7 +94,7 @@ export function OnboardingTour() {
                 <div
                   key={i}
                   className="w-2 h-2 rounded-full transition-colors"
-                  style={{ backgroundColor: i === step ? '#1A6CF6' : '#1E2A45' }}
+                  style={{ backgroundColor: i === step ? 'var(--primary)' : 'var(--border)' }}
                 />
               ))}
             </div>

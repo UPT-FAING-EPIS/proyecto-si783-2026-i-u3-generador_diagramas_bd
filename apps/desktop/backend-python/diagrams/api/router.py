@@ -122,7 +122,7 @@ def schema_to_sql(tables, dialect: str) -> str:
     return "\n\n".join(statements)
 
 
-def schema_to_flow(tables, existing_flow=None):
+def schema_to_flow(tables, existing_flow=None, dialect="postgresql"):
     existing_flow = existing_flow or {}
     existing_positions = {
         node.get("id"): node.get("position")
@@ -135,6 +135,14 @@ def schema_to_flow(tables, existing_flow=None):
 
     graph_positions = calculate_graph_positions(tables)
 
+    node_type = "tableNode"
+    if dialect == "mongodb":
+        node_type = "mongoNode"
+    elif dialect == "neo4j":
+        node_type = "neo4jNode"
+    elif dialect == "json":
+        node_type = "nosqlNode"
+
     for index, table in enumerate(tables):
         node_id = table.name.lower()
         position = existing_positions.get(node_id) or graph_positions.get(node_id) or {
@@ -143,7 +151,7 @@ def schema_to_flow(tables, existing_flow=None):
         }
         nodes.append({
             "id": node_id,
-            "type": "tableNode",
+            "type": node_type,
             "position": position,
             "data": {
                 "tableName": table.name,
@@ -454,13 +462,13 @@ def generate_diagram_from_db(req: GenerateDiagramRequest, projectId: int = Query
 
     try:
         full_schema, selected_tables = introspect_selected_schema(req.connection, req.selected_tables)
-        dialect = full_schema.motor if full_schema.motor in {"postgresql", "mysql", "sqlserver"} else "json"
-        flow_json = json.dumps(schema_to_flow(selected_tables))
+        dialect = full_schema.motor if full_schema.motor in {"postgresql", "mysql", "sqlserver", "mongodb", "neo4j"} else "json"
+        flow_json = json.dumps(schema_to_flow(selected_tables, dialect=dialect))
         
         diagram = Diagram(
             name=req.name,
             schema_json=flow_json,
-            sql_content=schema_to_sql(selected_tables, dialect) if dialect != "json" else schema_to_json_document(selected_tables, full_schema.motor),
+            sql_content=schema_to_sql(selected_tables, dialect) if dialect not in {"json", "mongodb", "neo4j"} else schema_to_json_document(selected_tables, full_schema.motor),
             active_dialect=dialect,
             source_database=f"{full_schema.motor}:{full_schema.database_name}",
             selected_tables_json=json.dumps(req.selected_tables),
@@ -507,9 +515,9 @@ def refresh_diagram(diagram_id: int, req: RefreshDiagramRequest, db: Session = D
     try:
         existing_flow = json.loads(diagram.schema_json or "{}")
         full_schema, tables = introspect_selected_schema(req.connection, selected_tables, strict=False)
-        dialect = full_schema.motor if full_schema.motor in {"postgresql", "mysql", "sqlserver"} else "json"
-        diagram.schema_json = json.dumps(schema_to_flow(tables, existing_flow))
-        diagram.sql_content = schema_to_sql(tables, dialect) if dialect != "json" else schema_to_json_document(tables, full_schema.motor)
+        dialect = full_schema.motor if full_schema.motor in {"postgresql", "mysql", "sqlserver", "mongodb", "neo4j"} else "json"
+        diagram.schema_json = json.dumps(schema_to_flow(tables, existing_flow, dialect=dialect))
+        diagram.sql_content = schema_to_sql(tables, dialect) if dialect not in {"json", "mongodb", "neo4j"} else schema_to_json_document(tables, full_schema.motor)
         diagram.active_dialect = dialect
         diagram.source_database = f"{full_schema.motor}:{full_schema.database_name}"
         diagram.selected_tables_json = json.dumps([table.name for table in tables])

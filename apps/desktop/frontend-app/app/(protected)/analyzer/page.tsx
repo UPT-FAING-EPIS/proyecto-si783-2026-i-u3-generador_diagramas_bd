@@ -85,14 +85,14 @@ export default function AnalyzerPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-[#0A0F1E] dark:text-white">
+    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-background dark:text-white">
       <DashboardSidebar
         userName="Usuario Local"
         activeSection=""
         onSectionChange={() => {}}
       />
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+        <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white shadow-sm dark:border-border dark:bg-accent">
           <div className="container mx-auto px-6 h-16 flex items-center">
             <Activity className="w-5 h-5 text-blue-500 mr-3" />
             <span className="text-base font-semibold">Analizador de Consultas</span>

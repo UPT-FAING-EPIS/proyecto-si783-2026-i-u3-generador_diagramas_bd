@@ -28,10 +28,7 @@ export function ProjectListView({ projects }: ProjectListViewProps) {
         <Link
           key={item.project.id}
           href={`/editor?projectId=${item.project.id}`}
-          className="flex items-center gap-4 px-4 py-3 rounded-lg transition-all group"
-          style={{ backgroundColor: '#0D1117', border: '1px solid #1E2A45' }}
-          onMouseEnter={e => (e.currentTarget.style.borderColor = '#1A6CF6')}
-          onMouseLeave={e => (e.currentTarget.style.borderColor = '#1E2A45')}
+          className="group flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 transition-all hover:border-[#1A6CF6]"
         >
           {/* Miniatura */}
           <div
@@ -45,9 +42,9 @@ export function ProjectListView({ projects }: ProjectListViewProps) {
 
           {/* Nombre + descripción */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white">{item.project.name}</p>
+            <p className="text-sm font-medium text-foreground">{item.project.name}</p>
             {item.project.description && (
-              <p className="text-xs truncate" style={{ color: '#6B7280' }}>
+              <p className="truncate text-xs text-muted-foreground">
                 {item.project.description}
               </p>
             )}
@@ -65,7 +62,7 @@ export function ProjectListView({ projects }: ProjectListViewProps) {
           </span>
 
           {/* Fecha */}
-          <span className="text-xs flex-shrink-0" style={{ color: '#6B7280' }}>
+          <span className="flex-shrink-0 text-xs text-muted-foreground">
             {getRelativeDate(item.project.updatedAt ?? item.project.createdAt ?? new Date())}
           </span>
         </Link>

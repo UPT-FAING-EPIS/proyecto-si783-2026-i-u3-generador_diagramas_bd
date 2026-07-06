@@ -17,6 +17,7 @@ export interface ProjectResponse {
   deleted_at: string | null;
   is_public: boolean;
   share_access: 'view' | 'edit';
+  members_json?: string;
 }
 
 interface DiagramResponse {
@@ -300,6 +301,7 @@ export const diagramsAPI = {
     connection: DatabaseConnection,
     page = 1,
     pageSize = 25,
+    filterText?: string,
   ) =>
     apiCall<{
       table_name: string;
@@ -315,6 +317,7 @@ export const diagramsAPI = {
         connection: mapConnectionForGenerator(connection),
         page,
         page_size: pageSize,
+        filter_text: filterText,
       }),
     }),
 };
@@ -551,8 +554,21 @@ export interface CloudAccountStatus {
 
 export const syncAPI = {
   account: () => apiCall<CloudAccountStatus>('/sync/account'),
+  unlinkAccount: () => apiCall<{ ok: boolean; message: string }>('/sync/account/unlink', { method: 'POST' }),
   startDeviceLink: () => apiCall<DeviceLinkStart>('/sync/device/start', { method: 'POST' }),
   deviceStatus: (deviceCode: string) => apiCall<DeviceLinkStatus>(`/sync/device/status/${deviceCode}`),
+  syncCloud: () =>
+    apiCall<{
+      ok: boolean;
+      pushed_projects: number;
+      pushed_diagrams: number;
+      projects_imported: number;
+      diagrams_imported: number;
+      projects_seen: number;
+      skills_imported?: number;
+      skills_seen?: number;
+      push_errors?: Array<{ project_id: number; detail: string }>;
+    }>('/sync/cloud/sync', { method: 'POST' }),
   pullCloud: () =>
     apiCall<{ ok: boolean; projects_imported: number; diagrams_imported: number; projects_seen: number; skills_imported?: number; skills_seen?: number }>(
       '/sync/cloud/pull',

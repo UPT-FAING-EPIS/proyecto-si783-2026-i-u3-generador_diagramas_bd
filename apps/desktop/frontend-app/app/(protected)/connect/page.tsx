@@ -104,27 +104,27 @@ export default function ConnectPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-[#0A0F1E] dark:text-white">
+    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-background dark:text-white">
       <DashboardSidebar userName="Usuario Local" userAvatarUrl={null} />
       <main className="flex-1 overflow-auto">
-        <div className="border-b border-slate-200 bg-white px-6 py-5 dark:border-[#1E2A45] dark:bg-[#111827]">
+        <div className="border-b border-slate-200 bg-white px-6 py-5 dark:border-border dark:bg-accent">
           <div className="mx-auto flex max-w-7xl items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1A6CF6] text-white">
               <Database className="h-5 w-5" />
             </div>
             <div>
               <h1 className="text-xl font-semibold">Conexiones</h1>
-              <p className="text-sm text-slate-500 dark:text-[#94A3B8]">Gestiona las bases locales que usaran los diagramas, skills y el MCP.</p>
+              <p className="text-sm text-slate-500 dark:text-muted-foreground">Gestiona las bases locales que usaran los diagramas, skills y el MCP.</p>
             </div>
           </div>
         </div>
 
         <section className="mx-auto max-w-7xl px-6 py-8">
-          <form onSubmit={handleConnect} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+          <form onSubmit={handleConnect} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-border dark:bg-accent">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
                 <h2 className="font-semibold">Agregar conexion</h2>
-                <p className="text-sm text-slate-500 dark:text-[#94A3B8]">Las credenciales se cifran y quedan solo en esta maquina.</p>
+                <p className="text-sm text-slate-500 dark:text-muted-foreground">Las credenciales se cifran y quedan solo en esta maquina.</p>
               </div>
               <Server className="h-5 w-5 text-[#1A6CF6]" />
             </div>
@@ -145,23 +145,23 @@ export default function ConnectPage() {
 
             <div className="grid gap-5">
               <label className="grid max-w-xl gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Nombre de la conexion</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-muted-foreground">Nombre de la conexion</span>
                 <input
                   value={config.alias}
                   onChange={(e) => setConfig({ ...config, alias: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
                   placeholder="Ej. Produccion ventas, Staging inventario"
                 />
-                <span className="text-xs text-slate-400 dark:text-[#64748B]">Te ayuda a diferenciar conexiones aunque usen el mismo motor o host.</span>
+                <span className="text-xs text-slate-400 dark:text-muted-foreground">Te ayuda a diferenciar conexiones aunque usen el mismo motor o host.</span>
               </label>
 
-              <div className="grid gap-4 lg:grid-cols-[220px_minmax(220px,1fr)_160px_minmax(220px,1fr)]">
+              <div className="grid gap-4 lg:grid-cols-[200px_minmax(180px,1fr)_minmax(120px,1fr)_minmax(220px,1.5fr)]">
               <label className="grid gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Motor</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-muted-foreground">Motor</span>
                 <select
                   value={config.engine}
                   onChange={(e) => setConfig({ ...config, engine: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
                 >
                   <option value="postgresql">PostgreSQL</option>
                   <option value="mysql">MySQL</option>
@@ -172,31 +172,31 @@ export default function ConnectPage() {
                 </select>
               </label>
               <label className="grid gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Base</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-muted-foreground">Base</span>
                 <input
                   value={config.database}
                   onChange={(e) => setConfig({ ...config, database: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
                   placeholder="fluxsql_test"
                   required
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Puerto</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-muted-foreground">Puerto</span>
                 <input
                   value={config.port}
                   onChange={(e) => setConfig({ ...config, port: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
                   placeholder="5432"
                   required
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Host</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-muted-foreground">Host</span>
                 <input
                   value={config.host}
                   onChange={(e) => setConfig({ ...config, host: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
                   placeholder="localhost"
                   required
                 />
@@ -205,22 +205,22 @@ export default function ConnectPage() {
 
               <div className="grid gap-4 lg:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)_minmax(240px,380px)]">
               <label className="grid gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Usuario</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-muted-foreground">Usuario</span>
                 <input
                   value={config.username}
                   onChange={(e) => setConfig({ ...config, username: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
                   placeholder="postgres"
                   required
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">Password</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-muted-foreground">Password</span>
                 <input
                   type="password"
                   value={config.password}
                   onChange={(e) => setConfig({ ...config, password: e.target.value })}
-                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                  className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#1A6CF6] dark:border-border dark:bg-background"
                   placeholder="********"
                 />
               </label>
@@ -242,23 +242,23 @@ export default function ConnectPage() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h2 className="font-semibold">Conexiones guardadas</h2>
-                <p className="text-sm text-slate-500 dark:text-[#94A3B8]">Selecciona una conexion para usarla en diagramas o herramientas agenticas.</p>
+                <p className="text-sm text-slate-500 dark:text-muted-foreground">Selecciona una conexion para usarla en diagramas o herramientas agenticas.</p>
               </div>
-              <span className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-500 dark:border-[#1E2A45] dark:text-[#94A3B8]">{savedConnections.length} locales</span>
+              <span className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-500 dark:border-border dark:text-muted-foreground">{savedConnections.length} locales</span>
             </div>
 
             {isLoadingSaved ? (
-              <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#94A3B8]">Cargando conexiones...</div>
+              <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 dark:border-border dark:bg-accent dark:text-muted-foreground">Cargando conexiones...</div>
             ) : savedConnections.length === 0 ? (
-              <div className="flex min-h-48 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center dark:border-[#1E2A45] dark:bg-[#111827]">
+              <div className="flex min-h-48 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center dark:border-border dark:bg-accent">
                 <Plug className="mb-3 h-8 w-8 text-slate-400" />
                 <p className="text-sm font-medium">Aun no hay conexiones guardadas.</p>
-                <p className="mt-1 text-sm text-slate-500 dark:text-[#94A3B8]">Agrega una arriba para empezar con diagramas desde una base real.</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-muted-foreground">Agrega una arriba para empezar con diagramas desde una base real.</p>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {savedConnections.map((conn) => (
-                  <article key={conn.connection_id} className="group flex aspect-square flex-col justify-between rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#111827]">
+                  <article key={conn.connection_id} className="group flex aspect-square flex-col justify-between rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#1A6CF6] dark:border-border dark:bg-accent">
                     <div>
                       <div className="mb-4 flex items-start justify-between gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-[#1A6CF6] dark:bg-blue-500/10">
@@ -274,9 +274,9 @@ export default function ConnectPage() {
                         </button>
                       </div>
                       <h3 className="line-clamp-2 text-sm font-semibold">{conn.alias || conn.database}</h3>
-                      <p className="mt-2 text-xs uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">{conn.engine}</p>
-                      <p className="mt-1 break-all text-xs text-slate-500 dark:text-[#94A3B8]">{conn.host_masked}:{conn.port}</p>
-                      <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-[#94A3B8]">Memoria DB: proposito, etapa, reglas de negocio y decisiones de tablas.</p>
+                      <p className="mt-2 text-xs uppercase tracking-wide text-slate-500 dark:text-muted-foreground">{conn.engine}</p>
+                      <p className="mt-1 break-all text-xs text-slate-500 dark:text-muted-foreground">{conn.host_masked}:{conn.port}</p>
+                      <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-muted-foreground">Memoria DB: proposito, etapa, reglas de negocio y decisiones de tablas.</p>
                     </div>
                     <div className="mt-4 grid gap-2">
                       <button
@@ -291,7 +291,7 @@ export default function ConnectPage() {
                       <button
                         type="button"
                         onClick={() => router.push(`/agent-tools?tool=memory&scope=database&subject=${encodeURIComponent(conn.connection_id)}`)}
-                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 transition hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322] dark:text-[#CBD5E1]"
+                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 transition hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-border dark:bg-background dark:text-muted-foreground"
                       >
                         <Brain className="h-3.5 w-3.5" />
                         Memoria DB

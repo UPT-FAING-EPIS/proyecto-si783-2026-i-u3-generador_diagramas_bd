@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Database, KeyRound, Link2, RefreshCw, Rows3, TableProperties } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Database, Filter, KeyRound, Link2, RefreshCw, Rows3, TableProperties, Search } from 'lucide-react'
 import { useEditorStore } from '@/store/useEditorStore'
 import { isEditorNode, type EditorNode } from '@/lib/editor-schema'
 import { useConnectionStore } from '@/lib/store/useConnectionStore'
@@ -26,6 +26,9 @@ export function SchemaInspector({ projectId }: { projectId: string }) {
   const selectedTableName = selected?.data.tableName
   const [tab, setTab] = useState<'schema' | 'data'>('schema')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
+  const [filterText, setFilterText] = useState('')
+  const [appliedFilter, setAppliedFilter] = useState('')
   const [reload, setReload] = useState(0)
   const [tableRows, setTableRows] = useState<TableRows | null>(null)
   const [loading, setLoading] = useState(false)
@@ -35,6 +38,8 @@ export function SchemaInspector({ projectId }: { projectId: string }) {
     // Reset pagination when the user selects another table on the canvas.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1)
+    setFilterText('')
+    setAppliedFilter('')
     setTableRows(null)
     setError(null)
   }, [selectedTableName])
@@ -48,7 +53,7 @@ export function SchemaInspector({ projectId }: { projectId: string }) {
       setLoading(true)
       setError(null)
       try {
-        const result = await diagramsAPI.previewTable(projectId, selectedTableName, connection, page)
+        const result = await diagramsAPI.previewTable(projectId, selectedTableName, connection, page, pageSize, appliedFilter)
         if (!cancelled) setTableRows(result)
       } catch (cause) {
         if (!cancelled) {
@@ -63,7 +68,7 @@ export function SchemaInspector({ projectId }: { projectId: string }) {
     return () => {
       cancelled = true
     }
-  }, [activeConnection, page, projectId, reload, selectedTableName, tab])
+  }, [activeConnection, page, pageSize, appliedFilter, projectId, reload, selectedTableName, tab])
 
   if (!selected) {
     return <p className="p-4 text-sm text-[#94A3B8]">No hay tablas en este diagrama.</p>
@@ -91,17 +96,62 @@ export function SchemaInspector({ projectId }: { projectId: string }) {
         {tab === 'schema' ? (
           <SchemaView selected={selected} />
         ) : (
-          <DataView
-            tableName={selected.data.tableName}
-            data={tableRows}
-            loading={loading}
-            error={error}
-            hasConnection={Boolean(activeConnection)}
-            onRetry={() => {
-              setTableRows(null)
-              setReload((current) => current + 1)
-            }}
-          />
+          <div className="flex h-full flex-col">
+            <div className="flex shrink-0 items-center gap-2 border-b border-[#1E2A45] bg-[#0A0F1E] p-2">
+              <div className="flex flex-1 items-center gap-2 rounded-md border border-[#1E2A45] bg-[#111827] px-2 text-xs">
+                <Filter size={14} className="text-[#64748B]" />
+                <input
+                  type="text"
+                  placeholder="Filtro SQL (ej. id > 10)"
+                  value={filterText}
+                  onChange={(e) => setFilterText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setAppliedFilter(filterText)
+                      setPage(1)
+                    }
+                  }}
+                  className="flex-1 bg-transparent py-1.5 outline-none placeholder:text-[#64748B]"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setAppliedFilter(filterText)
+                  setPage(1)
+                }}
+                className="flex items-center justify-center rounded-md bg-[#1A6CF6] p-1.5 text-white hover:bg-[#1A6CF6]/80"
+              >
+                <Search size={14} />
+              </button>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value))
+                  setPage(1)
+                }}
+                className="rounded-md border border-[#1E2A45] bg-[#111827] px-2 py-1.5 text-xs text-[#CBD5E1] outline-none"
+              >
+                <option value={25}>25 / pág</option>
+                <option value={50}>50 / pág</option>
+                <option value={100}>100 / pág</option>
+                <option value={500}>500 / pág</option>
+              </select>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <DataView
+                tableName={selected.data.tableName}
+                data={tableRows}
+                loading={loading}
+                error={error}
+                hasConnection={Boolean(activeConnection)}
+                onRetry={() => {
+                  setTableRows(null)
+                  setReload((current) => current + 1)
+                }}
+              />
+            </div>
+          </div>
         )}
       </div>
 

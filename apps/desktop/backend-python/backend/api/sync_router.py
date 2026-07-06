@@ -148,6 +148,15 @@ def get_cloud_account(db: Session = Depends(get_db)):
     }
 
 
+@router.post("/account/unlink")
+def unlink_cloud_account(db: Session = Depends(get_db)):
+    account = db.query(CloudAccountSession).filter(CloudAccountSession.id == 1).first()
+    if account:
+        db.delete(account)
+        db.commit()
+    return {"ok": True, "message": "Cuenta desvinculada."}
+
+
 def _cloud_marker(cloud_id: str) -> str:
     return f"cloud_project_id:{cloud_id}"
 
@@ -166,6 +175,12 @@ def _strip_cloud_markers(description: str | None) -> str:
         line for line in description.splitlines()
         if not line.strip().startswith(("cloud_project_id:", "cloud_diagram_id:"))
     ).strip()
+
+
+def _extract_cloud_diagram_id(source_database: str | None) -> str | None:
+    if not source_database or not source_database.startswith("cloud_diagram_id:"):
+        return None
+    return source_database.replace("cloud_diagram_id:", "", 1)
 
 
 def _safe_json_object(value: str | None) -> dict:
@@ -255,6 +270,13 @@ def pull_cloud_projects(db: Session = Depends(get_db)):
 
     projects_imported = 0
     diagrams_imported = 0
+
+    incoming_project_ids = {str(p["id"]) for p in payload.get("projects", [])}
+    for local_project in db.query(Project).filter(Project.deleted_at == None).all():
+        cloud_id = _extract_cloud_project_id(local_project.description)
+        if cloud_id and cloud_id not in incoming_project_ids:
+            local_project.deleted_at = datetime.utcnow()
+
     for cloud_project in payload.get("projects", []):
         marker = _cloud_marker(cloud_project["id"])
         project = db.query(Project).filter(Project.description.like(f"%{marker}%")).first()
@@ -270,6 +292,14 @@ def pull_cloud_projects(db: Session = Depends(get_db)):
             project.description = synced_description
         project.is_public = True
         project.share_access = "edit"
+        project.members_json = json.dumps(cloud_project.get("members", []))
+
+        incoming_diagram_ids = {str(d["id"]) for d in cloud_project.get("diagrams", [])}
+        for ld in db.query(Diagram).filter(Diagram.project_id == project.id).all():
+            if ld.source_database and ld.source_database.startswith("cloud_diagram_id:"):
+                ld_cloud_id = ld.source_database.replace("cloud_diagram_id:", "")
+                if ld_cloud_id not in incoming_diagram_ids:
+                    db.delete(ld)
 
         for cloud_diagram in cloud_project.get("diagrams", []):
             diagram_marker = f"cloud_diagram_id:{cloud_diagram['id']}"
@@ -321,12 +351,13 @@ def push_cloud_project(project_id: int, db: Session = Depends(get_db)):
         "diagrams": [
             {
                 "localId": diagram.id,
+                "cloudDiagramId": _extract_cloud_diagram_id(diagram.source_database),
                 "name": diagram.name or "Diagrama Desktop",
                 "flowJson": _safe_json_object(diagram.schema_json),
                 "sourceCode": diagram.sql_content or "",
                 "dialect": diagram.active_dialect or "postgresql",
             }
-            for diagram in diagrams[:1]
+            for diagram in diagrams
         ],
     }
     result = _web_json_request(db, "/api/desktop-sync/projects/push", method="POST", payload=payload)
@@ -336,10 +367,54 @@ def push_cloud_project(project_id: int, db: Session = Depends(get_db)):
         project.description = f"{cleaned_description}\n\n{_cloud_marker(cloud_project_id)}".strip()
         project.is_public = True
         project.share_access = "view"
+        diagram_id_map = {
+            str(item.get("localId")): item.get("cloudDiagramId")
+            for item in result.get("diagramIds", [])
+            if item.get("localId") is not None and item.get("cloudDiagramId")
+        }
         for diagram in diagrams:
+            cloud_diagram_id = diagram_id_map.get(str(diagram.id))
+            if cloud_diagram_id:
+                diagram.source_database = f"cloud_diagram_id:{cloud_diagram_id}"
             diagram.last_synced_at = datetime.utcnow()
         db.commit()
-    return {"ok": True, "project_id": project.id, "cloud_project_id": cloud_project_id, "cloud_diagram_id": result.get("diagramId")}
+    return {
+        "ok": True,
+        "project_id": project.id,
+        "cloud_project_id": cloud_project_id,
+        "cloud_diagram_id": result.get("diagramId"),
+        "diagrams_synced": len(result.get("diagramIds", [])),
+    }
+
+
+@router.post("/cloud/sync")
+def sync_cloud(db: Session = Depends(get_db)):
+    pushed_projects = 0
+    pushed_diagrams = 0
+    push_errors: list[dict] = []
+
+    local_projects = db.query(Project).filter(Project.deleted_at == None).order_by(Project.updated_at.asc()).all()
+    for project in local_projects:
+        try:
+            result = push_cloud_project(project.id, db)
+            if result.get("ok"):
+                pushed_projects += 1
+                pushed_diagrams += int(result.get("diagrams_synced") or 0)
+        except HTTPException as error:
+            push_errors.append({"project_id": project.id, "detail": error.detail})
+
+    pulled = pull_cloud_projects(db)
+    return {
+        "ok": len(push_errors) == 0 and bool(pulled.get("ok")),
+        "pushed_projects": pushed_projects,
+        "pushed_diagrams": pushed_diagrams,
+        "push_errors": push_errors,
+        "projects_imported": pulled.get("projects_imported", 0),
+        "diagrams_imported": pulled.get("diagrams_imported", 0),
+        "projects_seen": pulled.get("projects_seen", 0),
+        "skills_imported": pulled.get("skills_imported", 0),
+        "skills_seen": pulled.get("skills_seen", 0),
+    }
 
 
 @router.post("/cloud/skills/pull")

@@ -174,10 +174,10 @@ export function CreateProjectModal({ open, onOpenChange, onCreated }: CreateProj
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] flex-col border-slate-200 bg-white p-6 text-slate-950 shadow-xl dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#E2E8F0] sm:max-w-[720px]">
+      <DialogContent className="flex max-h-[92vh] flex-col border-slate-200 bg-white p-6 text-slate-950 shadow-xl dark:border-border dark:bg-accent dark:text-[#E2E8F0] sm:max-w-[720px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Nuevo Proyecto ER</DialogTitle>
-          <DialogDescription className="text-slate-500 dark:text-[#94A3B8]">
+          <DialogDescription className="text-slate-500 dark:text-muted-foreground">
             Primero elige SQL o NoSQL, luego decide si usaras una conexion local o un diagrama libre.
           </DialogDescription>
         </DialogHeader>
@@ -210,23 +210,23 @@ export function CreateProjectModal({ open, onOpenChange, onCreated }: CreateProj
           </WizardSection>
 
           {creationMode === 'blank' ? (
-            <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
+            <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
               <Label>3. Motor del diagrama libre</Label>
               <select
                 value={family === 'sql' ? blankSqlEngine : blankNoSqlEngine}
                 onChange={(event) => family === 'sql' ? setBlankSqlEngine(event.target.value as EditorDialect) : setBlankNoSqlEngine(event.target.value)}
-                className="mt-3 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                className="mt-3 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-border dark:bg-background"
               >
                 {(family === 'sql' ? SQL_ENGINES : NOSQL_ENGINES).map((engine) => <option key={engine.value} value={engine.value}>{engine.label}</option>)}
               </select>
             </div>
           ) : (
-            <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
+            <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
               <div className="flex items-center justify-between">
                 <Label>3. Conexion y {family === 'sql' ? 'tablas' : 'objetos'}</Label>
                 {isLoadingSchema && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
               </div>
-              <select value={selectedConnectionId} onChange={(event) => setSelectedConnectionId(event.target.value)} className="mt-3 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-[#1E2A45] dark:bg-[#0B1322]">
+              <select value={selectedConnectionId} onChange={(event) => setSelectedConnectionId(event.target.value)} className="mt-3 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-border dark:bg-background">
                 <option value="">Selecciona una conexion {family === 'sql' ? 'SQL' : 'NoSQL'}</option>
                 {compatibleConnections.map((connection) => (
                   <option key={connection.connection_id} value={connection.connection_id}>
@@ -235,8 +235,8 @@ export function CreateProjectModal({ open, onOpenChange, onCreated }: CreateProj
                 ))}
               </select>
               {selectedConnection && tables.length > 0 ? (
-                <div className="mt-3 max-h-44 space-y-1.5 overflow-y-auto rounded-lg border border-slate-200 p-2 dark:border-[#1E2A45]">
-                  <label className="flex items-center gap-2 border-b border-slate-200 pb-2 text-sm font-medium dark:border-[#1E2A45]">
+                <div className="mt-3 max-h-44 space-y-1.5 overflow-y-auto rounded-lg border border-slate-200 p-2 dark:border-border">
+                  <label className="flex items-center gap-2 border-b border-slate-200 pb-2 text-sm font-medium dark:border-border">
                     <input type="checkbox" checked={selectedTables.length === tables.length} onChange={(event) => setSelectedTables(event.target.checked ? tables : [])} />
                     Seleccionar todo
                   </label>
@@ -248,7 +248,7 @@ export function CreateProjectModal({ open, onOpenChange, onCreated }: CreateProj
                   ))}
                 </div>
               ) : (
-                <div className="mt-3 rounded-lg border border-dashed border-slate-300 p-4 text-center text-sm text-slate-500 dark:border-[#1E2A45] dark:text-[#94A3B8]">
+                <div className="mt-3 rounded-lg border border-dashed border-slate-300 p-4 text-center text-sm text-slate-500 dark:border-border dark:text-muted-foreground">
                   {compatibleConnections.length === 0 ? `No hay conexiones ${family === 'sql' ? 'SQL' : 'NoSQL'} guardadas.` : 'Selecciona una conexion para cargar el schema.'}
                 </div>
               )}
@@ -257,7 +257,7 @@ export function CreateProjectModal({ open, onOpenChange, onCreated }: CreateProj
 
           {error && <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm font-medium text-red-600 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">{error}</div>}
 
-          <div className="mt-6 flex justify-end gap-3 border-t border-slate-200 pt-4 dark:border-[#1E2A45]">
+          <div className="mt-6 flex justify-end gap-3 border-t border-slate-200 pt-4 dark:border-border">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={isPending} className="min-w-[140px] bg-[#1A6CF6] text-white hover:bg-blue-700">
               {isPending ? 'Creando...' : 'Crear Proyecto'}
@@ -271,7 +271,7 @@ export function CreateProjectModal({ open, onOpenChange, onCreated }: CreateProj
 
 function WizardSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
+    <div className="rounded-lg border border-slate-200 p-4 dark:border-border">
       <p className="mb-3 text-sm font-semibold">{title}</p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>
     </div>
@@ -286,7 +286,7 @@ function ModeButton({ active, icon, title, description, onClick }: { active: boo
       className={`rounded-lg border p-3 text-left transition ${
         active
           ? 'border-[#1A6CF6] bg-blue-50 text-[#1A6CF6] dark:bg-[#1A6CF6]/15 dark:text-white'
-          : 'border-slate-200 text-slate-600 hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:text-[#94A3B8] dark:hover:bg-[#0B1322]'
+          : 'border-slate-200 text-slate-600 hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-border dark:text-muted-foreground dark:hover:bg-[#0B1322]'
       }`}
     >
       {icon}

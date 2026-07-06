@@ -154,10 +154,10 @@ export default function GeneratorPage() {
   const isConfigured = Boolean(selectedConnectionId) && selectedTables.length > 0
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-[#0A0F1E] dark:text-white">
+    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-background dark:text-white">
       <DashboardSidebar userName="Usuario Local" activeSection="" onSectionChange={() => {}} />
       <main className="flex h-screen flex-1 flex-col overflow-hidden">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm dark:border-border dark:bg-accent">
           <div className="flex items-center">
             <Database className="mr-3 h-5 w-5 text-blue-500" />
             <span className="text-base font-semibold">Generador de Datos Ficticios</span>

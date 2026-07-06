@@ -33,6 +33,18 @@ interface ProjectCardProps {
   onProjectsChanged?: () => void
 }
 
+const getProjectGradient = (id: string) => {
+  const gradients = [
+    'from-blue-50 via-sky-50 to-indigo-50 dark:from-blue-950/55 dark:via-slate-900 dark:to-indigo-950/45',
+    'from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/50 dark:via-slate-900 dark:to-teal-950/40',
+    'from-amber-50 via-orange-50 to-rose-50 dark:from-amber-950/40 dark:via-slate-900 dark:to-rose-950/35',
+    'from-purple-50 via-violet-50 to-fuchsia-50 dark:from-purple-950/45 dark:via-slate-900 dark:to-fuchsia-950/35',
+    'from-rose-50 via-pink-50 to-slate-50 dark:from-rose-950/40 dark:via-slate-900 dark:to-slate-950',
+  ]
+  const charCode = id.length > 0 ? id.charCodeAt(0) + id.charCodeAt(id.length - 1) : 0;
+  return gradients[charCode % gradients.length]
+}
+
 export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged }: ProjectCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -97,8 +109,8 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
 
   return (
     <Link href={isDeleted ? '#' : `/editor?projectId=${project.id}`} onClick={(event) => { if (isDeleted) event.preventDefault() }} className="block h-full">
-      <Card className={`h-full flex flex-col bg-gray-900 group relative rounded-xl border border-gray-800 transition-all duration-200 ${isDeleted ? 'cursor-default opacity-80' : 'cursor-pointer hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/20'}`}>
-        <div className="relative h-28 bg-gradient-to-br from-blue-900 via-purple-900 to-gray-900 flex items-end p-3 rounded-t-xl">
+      <Card className={`h-full flex flex-col bg-card text-card-foreground group relative rounded-xl border border-border transition-all duration-300 ${isDeleted ? 'cursor-default opacity-80' : 'cursor-pointer hover:border-primary/60 hover:shadow-xl hover:-translate-y-1'}`}>
+        <div className={`relative h-28 bg-gradient-to-br ${getProjectGradient(project.id)} flex items-end p-3 rounded-t-xl border-b border-border/70`}>
           <div
             className="absolute inset-0 rounded-t-xl"
             style={{
@@ -107,7 +119,7 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
               opacity: 0.3,
             }}
           />
-          <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/35 px-2 py-1 text-[11px] font-medium text-white">
+          <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-border bg-card/90 shadow-sm backdrop-blur-md px-2 py-1 text-[11px] font-bold text-foreground">
             {isCloud ? <Cloud size={12} /> : <HardDrive size={12} />}
             {isCloud ? 'Nube' : 'Local'}
           </span>
@@ -119,13 +131,13 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
                 event.stopPropagation()
                 setIsMenuOpen(!isMenuOpen)
               }}
-              className="p-1.5 rounded-full bg-black/40 hover:bg-black/60 transition-colors text-gray-300 hover:text-white"
+              className="p-1.5 rounded-full bg-card/70 hover:bg-card transition-colors text-card-foreground shadow-sm backdrop-blur-md border border-border"
             >
               <MoreVertical size={16} />
             </button>
 
             {isMenuOpen && (
-              <div className="absolute right-0 top-8 z-50 min-w-44 rounded-lg bg-gray-900 border border-gray-700 shadow-xl py-1">
+              <div className="absolute right-0 top-8 z-[80] min-w-44 rounded-lg bg-popover text-popover-foreground border border-border shadow-xl py-1">
                 {isDeleted ? (
                   <>
                     <button
@@ -135,7 +147,7 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
                         setIsMenuOpen(false)
                         handleRestore()
                       }}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-emerald-300 hover:bg-emerald-950/40 transition-colors rounded-t-lg"
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30 transition-colors rounded-t-lg"
                     >
                       <RotateCcw size={16} />
                       Restaurar
@@ -147,7 +159,7 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
                         setIsMenuOpen(false)
                         handlePermanentDelete()
                       }}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-950/40 transition-colors rounded-b-lg border-t border-gray-800"
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors rounded-b-lg border-t border-border"
                     >
                       <Trash2 size={16} />
                       Eliminar definitivamente
@@ -163,7 +175,7 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
                           setIsMenuOpen(false)
                           handleSaveToCloud()
                         }}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-blue-300 hover:bg-blue-950/40 transition-colors rounded-t-lg"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30 transition-colors rounded-t-lg"
                       >
                         <UploadCloud size={16} />
                         Guardar en la nube
@@ -176,7 +188,7 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
                         setIsMenuOpen(false)
                         handleDelete()
                       }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-950/40 transition-colors ${isCloud ? 'rounded-lg' : 'rounded-b-lg border-t border-gray-800'}`}
+                      className={`w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors ${isCloud ? 'rounded-lg' : 'rounded-b-lg border-t border-border'}`}
                     >
                       <Trash2 size={16} />
                       Eliminar
@@ -187,7 +199,7 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
             )}
           </div>
 
-          <h3 className="text-white font-bold text-base leading-tight z-10 relative">
+          <h3 className="text-foreground font-bold text-lg leading-tight z-10 relative">
             {project.name}
           </h3>
           {isDeleted && (
@@ -197,15 +209,15 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
           )}
         </div>
 
-        <CardContent className="flex-grow pb-2 px-3 pt-3">
+        <CardContent className="flex-grow pb-2 px-4 pt-4">
           {project.description && (
-            <p className="text-sm text-gray-400 line-clamp-2 mb-2">
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
               {project.description}
             </p>
           )}
 
           <div className="mb-2 flex flex-wrap gap-1">
-            <span className="inline-flex items-center gap-1 rounded-full border border-gray-700 bg-gray-800 px-2 py-0.5 text-xs text-gray-300">
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               <Database size={12} />
               {isCloud ? 'Sincronizado desde Web' : isDatabaseDiagram ? project.sourceDatabase : 'Diagrama libre'}
             </span>
@@ -227,7 +239,7 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
                 </span>
               ))}
               {tags.length > 2 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                   +{tags.length - 2}
                 </span>
               )}
@@ -235,13 +247,13 @@ export function ProjectCard({ project, isOwner = false, tags, onProjectsChanged 
           )}
         </CardContent>
 
-        <CardFooter className="p-3 bg-gray-800/50 border-t border-gray-700 mt-auto rounded-b-xl">
+        <CardFooter className="p-4 bg-muted/30 border-t border-border mt-auto rounded-b-xl">
           <div className="flex items-center justify-between w-full">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${isOwner ? 'bg-green-900/50 text-green-300 border-green-800' : 'bg-purple-900/50 text-purple-300 border-purple-800'}`}>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${isOwner ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-300 dark:border-green-800' : 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800'}`}>
               {isOwner ? 'Propietario' : 'Proyecto'}
             </span>
 
-            <div className="flex items-center gap-1 text-gray-400 text-xs">
+            <div className="flex items-center gap-1 text-muted-foreground text-xs">
               <Clock size={14} />
               <span>Hace {getRelativeDate(project.updatedAt ?? project.createdAt)}</span>
             </div>

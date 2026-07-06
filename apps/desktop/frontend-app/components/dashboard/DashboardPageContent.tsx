@@ -56,12 +56,7 @@ export function DashboardPageContent({
         onSectionChange={setActiveSection}
       />
       <main className="flex-1 flex flex-col">
-        <header className="border-b border-[#1E2A45] bg-[#111827] sticky top-0 z-10 shadow-sm">
-          <div className="container mx-auto px-4 h-16 flex items-center">
-            <DatabaseZap className="w-5 h-5 text-[#1A6CF6] mr-2" />
-            <span className="text-sm font-medium text-[#94A3B8]">CDCart — Local</span>
-          </div>
-        </header>
+
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto px-4 py-10 max-w-6xl">
             <DashboardClient

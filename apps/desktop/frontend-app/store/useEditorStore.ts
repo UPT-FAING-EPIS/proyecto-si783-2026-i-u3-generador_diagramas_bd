@@ -77,11 +77,15 @@ export const useEditorStore = create<EditorStore>((set) => ({
   onNodesChange: (changes) =>
     set((state) => {
       const nodes = applyNodeChanges(changes, state.nodes)
+      const affectsSql = changes.some(c => c.type === 'remove' || c.type === 'add')
+      if (!affectsSql) return { nodes }
       return { nodes, sqlValue: serializeSchema(nodes, state.dialect, state.edges), syncPaused: true, userEditedSql: false }
     }),
   onEdgesChange: (changes) =>
     set((state) => {
       const edges = applyEdgeChanges(changes, state.edges)
+      const affectsSql = changes.some(c => c.type === 'remove' || c.type === 'add')
+      if (!affectsSql) return { edges }
       return { edges, sqlValue: serializeSchema(state.nodes, state.dialect, edges), syncPaused: true, userEditedSql: false }
     }),
   setNodesAndEdges: (nodes, edges) => set({ nodes, edges, userEditedSql: false }),

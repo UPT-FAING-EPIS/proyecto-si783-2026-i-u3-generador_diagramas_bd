@@ -27,7 +27,7 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: '#0A0F1E' }}>
+    <div className="flex min-h-screen bg-background">
       <DashboardPageContent
         userName="Usuario Local"
         userEmail={undefined}

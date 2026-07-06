@@ -38,6 +38,22 @@ export async function GET(request: Request) {
     ? await db.select().from(diagrams).where(inArray(diagrams.projectId, projectIds))
     : []
 
+  const allCollaborators = projectIds.length
+    ? await db
+        .select({
+          projectId: collaborators.projectId,
+          role: collaborators.role,
+          user: {
+            id: users.id,
+            name: users.name,
+            email: users.email,
+          },
+        })
+        .from(collaborators)
+        .innerJoin(users, eq(users.id, collaborators.userId))
+        .where(inArray(collaborators.projectId, projectIds))
+    : []
+
   return NextResponse.json({
     user: { id: dbUser.id, email: dbUser.email, name: dbUser.name },
     projects: projectRows.map((row) => ({
@@ -48,6 +64,13 @@ export async function GET(request: Request) {
       engineFamily: row.project.engineFamily,
       updatedAt: row.project.updatedAt,
       createdAt: row.project.createdAt,
+      members: allCollaborators
+        .filter((c) => c.projectId === row.project.id)
+        .map((c) => ({
+          id: c.user.id,
+          name: c.user.name || c.user.email,
+          role: c.role,
+        })),
       diagrams: diagramRows
         .filter((diagram) => diagram.projectId === row.project.id)
         .map((diagram) => ({

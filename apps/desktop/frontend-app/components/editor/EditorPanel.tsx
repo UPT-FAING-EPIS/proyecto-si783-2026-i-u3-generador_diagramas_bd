@@ -12,8 +12,8 @@ const MonacoEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full animate-pulse items-center justify-center bg-white dark:bg-[#0B1322]">
-        <span className="text-sm text-slate-500 dark:text-[#64748B]">Cargando editor...</span>
+      <div className="flex h-full w-full animate-pulse items-center justify-center bg-white dark:bg-background">
+        <span className="text-sm text-slate-500 dark:text-muted-foreground">Cargando editor...</span>
       </div>
     ),
   }
@@ -44,10 +44,10 @@ export function EditorPanel({ mode, emitSqlChange }: EditorPanelProps) {
   }
 
   return (
-    <div className="flex h-full w-full flex-col bg-white border-r border-slate-200 dark:bg-[#0B1322] dark:border-[#1E2A45]">
-      <div className="flex shrink-0 items-center border-b border-slate-200 bg-slate-50 px-4 py-2 dark:border-[#1E2A45] dark:bg-[#07101F]">
-        <span className="font-mono text-xs text-slate-600 font-semibold dark:text-[#94A3B8]">schema.{fileExtension}</span>
-        <span className="ml-auto rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#64748B]">
+    <div className="flex h-full w-full flex-col bg-white border-r border-slate-200 dark:bg-background dark:border-border">
+      <div className="flex shrink-0 items-center border-b border-slate-200 bg-slate-50 px-4 py-2 dark:border-border dark:bg-background">
+        <span className="font-mono text-xs text-slate-600 font-semibold dark:text-muted-foreground">schema.{fileExtension}</span>
+        <span className="ml-auto rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500 dark:border-border dark:bg-accent dark:text-muted-foreground">
           {mode}
         </span>
       </div>

@@ -124,7 +124,7 @@ def get_external_schema(req: ConexionRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error obteniendo esquema: {str(e)}")
 
 
-def list_rows_for_connection(connection: ConexionRequest, table_name: str, page: int, page_size: int) -> TableRowsResponse:
+def list_rows_for_connection(connection: ConexionRequest, table_name: str, page: int, page_size: int, filter_text: str | None = None) -> TableRowsResponse:
     try:
         motor = connection.motor.value if connection.motor else ""
         with get_connector(connection) as connector:
@@ -135,19 +135,20 @@ def list_rows_for_connection(connection: ConexionRequest, table_name: str, page:
 
             table = quote_table(table_name, motor)
             offset = (page - 1) * page_size
+            where_clause = f" WHERE {filter_text}" if filter_text and filter_text.strip() else ""
             cursor = connector._connection.cursor()
-            cursor.execute(f"SELECT COUNT(*) FROM {table}")
+            cursor.execute(f"SELECT COUNT(*) FROM {table}{where_clause}")
             count_row = cursor.fetchone()
             total_rows = int(next(iter(count_row.values())) if isinstance(count_row, dict) else count_row[0])
 
             if motor == "sqlserver":
                 cursor.execute(
-                    f"SELECT * FROM {table} ORDER BY (SELECT NULL) OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
+                    f"SELECT * FROM {table}{where_clause} ORDER BY (SELECT NULL) OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
                     offset,
                     page_size,
                 )
             else:
-                cursor.execute(f"SELECT * FROM {table} LIMIT %s OFFSET %s", (page_size, offset))
+                cursor.execute(f"SELECT * FROM {table}{where_clause} LIMIT %s OFFSET %s", (page_size, offset))
 
             columns = [description[0] for description in cursor.description]
             rows = [
@@ -173,7 +174,7 @@ def list_rows_for_connection(connection: ConexionRequest, table_name: str, page:
 
 @router.post("/table-rows", response_model=TableRowsResponse)
 def list_table_rows(req: TableRowsRequest):
-    return list_rows_for_connection(req.connection, req.table_name, req.page, req.page_size)
+    return list_rows_for_connection(req.connection, req.table_name, req.page, req.page_size, req.filter_text)
 
 
 @router.get("/saved", response_model=List[ConexionGuardadaResponse])
@@ -246,11 +247,7 @@ def get_saved_connection_schema(conexion_id: str, db: Session = Depends(get_db))
 
 @router.get("/saved/{conexion_id}/table-rows/{table_name}", response_model=TableRowsResponse)
 def list_saved_table_rows(
-    conexion_id: str,
-    table_name: str,
-    page: int = 1,
-    page_size: int = 25,
-    db: Session = Depends(get_db),
+    conexion_id: str, table_name: str, page: int = 1, page_size: int = 25, filter_text: str | None = None, db: Session = Depends(get_db)
 ):
     if page < 1:
         raise HTTPException(status_code=422, detail="La pagina debe ser mayor o igual a 1.")
@@ -262,7 +259,7 @@ def list_saved_table_rows(
     if not conexion:
         raise HTTPException(status_code=404, detail="Conexion no encontrada.")
 
-    return list_rows_for_connection(connection_request_from_model(conexion), table_name, page, page_size)
+    return list_rows_for_connection(connection_request_from_model(conexion), table_name, page, page_size, filter_text)
 
 
 @router.delete("/saved/{conexion_id}")

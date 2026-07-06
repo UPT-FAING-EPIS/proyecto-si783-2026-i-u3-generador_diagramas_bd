@@ -45,6 +45,18 @@ export async function getProjectsByUser(): Promise<ProjectListItem[]> {
         || p.description?.includes('cloud_project_id:')
         || firstDiagram?.source_database?.startsWith('cloud_diagram_id:')
       );
+      let rawMembers: any = [];
+      if (p.members_json) {
+        try {
+          rawMembers = JSON.parse(p.members_json);
+        } catch {
+          rawMembers = [];
+        }
+      }
+      const members = Array.isArray(rawMembers) && rawMembers.length > 0 
+        ? rawMembers 
+        : [{ id: 'local-user', name: 'Usuario Local' }];
+
       return {
         project: {
           id: String(p.id),
@@ -61,7 +73,7 @@ export async function getProjectsByUser(): Promise<ProjectListItem[]> {
           lastSyncedAt: firstDiagram?.last_synced_at ? new Date(firstDiagram.last_synced_at) : null,
         },
         role: 'owner',
-        members: [{ id: 'local-user', name: 'Usuario Local' }]
+        members
       };
     }));
   } catch (error) {

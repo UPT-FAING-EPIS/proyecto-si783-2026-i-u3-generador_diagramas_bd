@@ -70,17 +70,17 @@ export function DiffViewerModal({ open, onClose, originalCode, modifiedCode, ver
               <SummaryCard tone="blue" label="Total cambios" value={diff.added + diff.removed} />
             </div>
 
-            <div className="grid min-h-0 flex-1 grid-cols-[1fr_320px]">
-              <div className="min-h-0">
-                <div className="grid grid-cols-2 border-b border-slate-200 bg-white text-xs font-semibold text-slate-500">
-                  <div className="border-r border-slate-200 px-4 py-2">Versión antigua</div>
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="grid grid-cols-2 border-b border-slate-200 dark:border-[#1E2A45] bg-white dark:bg-[#111827] text-xs font-semibold text-slate-500 dark:text-[#B6C7E3]">
+                  <div className="border-r border-slate-200 dark:border-[#1E2A45] px-4 py-2">Versión antigua</div>
                   <div className="px-4 py-2">Versión actual</div>
                 </div>
                 <DiffEditor
                   original={originalCode}
                   modified={modifiedCode}
                   language="sql"
-                  theme="light"
+                  theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
                   options={{
                     readOnly: true,
                     renderSideBySide: true,
@@ -93,20 +93,6 @@ export function DiffViewerModal({ open, onClose, originalCode, modifiedCode, ver
                   }}
                 />
               </div>
-
-              <aside className="min-h-0 overflow-y-auto border-l border-slate-200 bg-slate-50 p-3">
-                <h3 className="mb-3 text-sm font-semibold text-slate-900">Cambios detectados</h3>
-                <div className="space-y-2">
-                  {diff.rows.length === 0 ? (
-                    <p className="text-xs text-slate-500">Hay cambios de formato o espacios.</p>
-                  ) : diff.rows.slice(0, 80).map((row, index) => (
-                    <div key={`${row.type}-${index}`} className={`rounded-lg border p-2 text-xs ${row.type === 'added' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
-                      {row.type === 'added' ? <Plus className="mr-1 inline h-3 w-3" /> : <Minus className="mr-1 inline h-3 w-3" />}
-                      <code className="break-words">{row.text.trim()}</code>
-                    </div>
-                  ))}
-                </div>
-              </aside>
             </div>
           </>
         )}

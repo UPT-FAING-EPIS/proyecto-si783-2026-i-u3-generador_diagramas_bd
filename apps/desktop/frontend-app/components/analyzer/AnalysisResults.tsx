@@ -97,7 +97,7 @@ export function AnalysisResults({ results, aiAnalysis }: AnalysisResultsProps) {
       {results.plan_tree && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-950">
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-gray-300">Arbol de Ejecucion</h3>
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white p-4 font-mono text-sm dark:border-gray-800 dark:bg-[#0A0F1E]">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white p-4 font-mono text-sm dark:border-gray-800 dark:bg-background">
             <PlanTreeNode node={results.plan_tree} depth={0} />
           </div>
         </div>

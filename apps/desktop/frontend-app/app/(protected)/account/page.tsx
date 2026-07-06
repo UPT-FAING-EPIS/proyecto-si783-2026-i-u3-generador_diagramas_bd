@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { open } from '@tauri-apps/plugin-shell'
-import { Cloud, Copy, ExternalLink, Monitor, RefreshCw, ShieldCheck, Users } from 'lucide-react'
+import { Cloud, Copy, ExternalLink, LogOut, Monitor, RefreshCw, ShieldCheck, Users } from 'lucide-react'
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
 import { Button } from '@/components/ui/button'
 import { syncAPI, type DeviceLinkStart } from '@/lib/api/client'
@@ -13,6 +13,7 @@ export default function AccountPage() {
   const [linkedEmail, setLinkedEmail] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isSyncing, setIsSyncing] = useState(false)
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -60,7 +61,7 @@ export default function AccountPage() {
       if (account.linked && account.user_email) {
         setLinkedEmail(account.user_email)
         setDeviceLink(null)
-        await syncAPI.pullCloud().catch(() => null)
+        await syncAPI.syncCloud().catch(() => null)
         setMessage(`Desktop sincronizado con ${account.user_email}. Ya actualizamos tus diagramas y skills.`)
         return true
       }
@@ -82,7 +83,7 @@ export default function AccountPage() {
       if (status.status === 'linked') {
         setLinkedEmail(status.user_email ?? 'cuenta FluxSQL')
         setDeviceLink(null)
-        await syncAPI.pullCloud().catch(() => null)
+        await syncAPI.syncCloud().catch(() => null)
         setMessage(`Desktop sincronizado con ${status.user_email ?? 'tu cuenta FluxSQL'}. Ya actualizamos tus diagramas y skills.`)
       } else {
         const accountLinked = await refreshAccount()
@@ -105,42 +106,58 @@ export default function AccountPage() {
   async function syncNow() {
     setError(null)
     setMessage(null)
+    setIsSyncing(true)
     try {
-      const result = await syncAPI.pullCloud()
-      setMessage(`Sincronizacion completa: ${result.projects_imported} proyectos y ${result.diagrams_imported} diagramas importados desde Web.`)
+      const result = await syncAPI.syncCloud()
+      setMessage(`Sincronizacion completa: ${result.pushed_projects} proyectos enviados, ${result.pushed_diagrams} diagramas enviados, ${result.projects_imported} proyectos importados y ${result.diagrams_imported} diagramas importados.`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No pude sincronizar los diagramas desde Web.')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
+  async function unlinkAccount() {
+    setError(null)
+    setMessage(null)
+    try {
+      await syncAPI.unlinkAccount()
+      setLinkedEmail(null)
+      setDeviceLink(null)
+      setMessage('Cuenta desvinculada correctamente.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pude desvincular la cuenta.')
     }
   }
 
   return (
-    <div className="flex min-h-screen bg-white text-slate-950 dark:bg-[#0A0F1E] dark:text-white">
+    <div className="flex min-h-screen bg-background text-foreground">
       <DashboardSidebar userName="Usuario Local" userAvatarUrl={null} />
       <main className="flex flex-1 items-center justify-center px-6 py-10">
-        <section className="w-full max-w-3xl rounded-lg border border-slate-200 bg-white p-8 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
+        <section className="w-full max-w-3xl rounded-lg border border-border bg-card text-card-foreground p-8 shadow-sm">
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#1A6CF6] text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Cloud className="h-6 w-6" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold">Cuenta y sincronizacion</h1>
-              <p className="text-sm text-slate-500 dark:text-[#94A3B8]">Conecta Desktop con FluxSQL Web sin mover tus credenciales locales.</p>
+              <p className="text-sm text-muted-foreground">Conecta Desktop con FluxSQL Web sin mover tus credenciales locales.</p>
             </div>
           </div>
 
-          <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-[#1E2A45] dark:bg-[#0B1322]">
+          <div className="mb-6 rounded-lg border border-border bg-muted/50 p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="font-semibold">{linkedEmail ? 'Desktop enlazado' : 'Enlazar este Desktop'}</h2>
-                <p className="mt-1 text-sm text-slate-600 dark:text-[#CBD5E1]">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {linkedEmail ? `Cuenta: ${linkedEmail}` : 'Genera un codigo, valida tu cuenta en Web y vuelve a Desktop sincronizado.'}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {linkedEmail ? (
-                  <Button onClick={syncNow}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Sincronizar ahora
+                  <Button onClick={syncNow} disabled={isSyncing}>
+                    <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                    Sincronizar
                   </Button>
                 ) : (
                   <Button onClick={startLink}>
@@ -148,21 +165,27 @@ export default function AccountPage() {
                     {deviceLink ? 'Generar nuevo codigo' : 'Enlazar Desktop'}
                   </Button>
                 )}
-                {(deviceLink || linkedEmail) && (
+                {deviceLink && (
                   <Button variant="outline" onClick={checkStatus}>
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Verificar
+                  </Button>
+                )}
+                {linkedEmail && (
+                  <Button variant="outline" onClick={unlinkAccount} className="text-destructive hover:bg-destructive/10">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Salir
                   </Button>
                 )}
               </div>
             </div>
             {deviceLink && (
               <div className="mt-4 grid gap-3 md:grid-cols-[180px_1fr_auto] md:items-center">
-                <div className="rounded-lg border border-slate-200 bg-white p-3 text-center dark:border-[#1E2A45] dark:bg-[#111827]">
-                  <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Codigo</p>
+                <div className="rounded-lg border border-border bg-card p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Codigo</p>
                   <p className="mt-1 font-mono text-lg font-semibold">{deviceLink.user_code}</p>
                 </div>
-                <code className="overflow-x-auto rounded-lg border border-slate-200 bg-white px-3 py-3 text-xs text-slate-700 dark:border-[#1E2A45] dark:bg-[#111827] dark:text-[#CBD5E1]">
+                <code className="overflow-x-auto rounded-lg border border-border bg-card px-3 py-3 text-xs text-muted-foreground">
                   {deviceLink.verification_url}
                 </code>
                 <Button variant="outline" onClick={copyLoginUrl}>
@@ -174,18 +197,18 @@ export default function AccountPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
+            <div className="rounded-lg border border-border p-4">
               <h2 className="font-semibold">Que se sincroniza a Web</h2>
-              <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-[#CBD5E1]">
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li>Diagramas y versiones.</li>
                 <li>Memoria por proyecto, base de datos y equipo.</li>
                 <li>Permisos de skills y guardas locales por base conectada.</li>
                 <li>Presencia y colaboracion en tiempo real.</li>
               </ul>
             </div>
-            <div className="rounded-lg border border-slate-200 p-4 dark:border-[#1E2A45]">
+            <div className="rounded-lg border border-border p-4">
               <h2 className="font-semibold">Que queda local</h2>
-              <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-[#CBD5E1]">
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li>Credenciales de base de datos.</li>
                 <li>Hosts reales y passwords.</li>
                 <li>MCP Local y sidecar.</li>
@@ -195,40 +218,40 @@ export default function AccountPage() {
           </div>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-[#1E2A45] dark:bg-[#0B1322]">
-              <Monitor className="mb-2 h-5 w-5 text-[#1A6CF6]" />
+            <div className="rounded-lg border border-border bg-muted/50 p-4">
+              <Monitor className="mb-2 h-5 w-5 text-primary" />
               <h2 className="font-semibold">Modo local</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-[#CBD5E1]">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Usas Desktop para conectar bases, leer schemas, generar diagramas y ejecutar skills con MCP. Ideal cuando la base solo existe en tu maquina o red privada.
               </p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-[#1E2A45] dark:bg-[#0B1322]">
-              <Users className="mb-2 h-5 w-5 text-[#1A6CF6]" />
+            <div className="rounded-lg border border-border bg-muted/50 p-4">
+              <Users className="mb-2 h-5 w-5 text-primary" />
               <h2 className="font-semibold">Modo sincronizado</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-[#CBD5E1]">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Publicas diagramas y memoria segura a Web para verlos desde otra PC o compartirlos con un companero sin instalar Desktop.
               </p>
             </div>
           </div>
 
-          <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+          <div className="mt-6 rounded-lg border border-primary/20 bg-primary/10 p-4 text-sm text-primary">
             <ShieldCheck className="mr-2 inline h-4 w-4" />
             Al iniciar sesion, Desktop debe quedarse abierto como cliente local. FluxSQL Web muestra lo sincronizado, pero no recibe passwords ni hosts secretos.
           </div>
 
           {message && (
-            <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-100">
+            <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-600 dark:text-emerald-400">
               {message}
             </div>
           )}
 
           {error && (
-            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-100">
+            <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
               {error}
             </div>
           )}
 
-          <p className="mt-6 text-xs text-slate-500 dark:text-[#94A3B8]">Web autoriza este Desktop con la sesion real de FluxSQL. El token se recibe en el sidecar local para habilitar sincronizacion segura.</p>
+          <p className="mt-6 text-xs text-muted-foreground">Web autoriza este Desktop con la sesion real de FluxSQL. El token se recibe en el sidecar local para habilitar sincronizacion segura.</p>
         </section>
       </main>
     </div>

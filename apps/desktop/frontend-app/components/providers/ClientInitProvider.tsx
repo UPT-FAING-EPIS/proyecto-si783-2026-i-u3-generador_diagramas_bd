@@ -40,10 +40,10 @@ export function ClientInitProvider({ children }: { children: React.ReactNode }) 
 
   if (startupError) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#0A0F1E] flex items-center justify-center px-6 text-slate-950 dark:text-white">
-        <div className="max-w-md rounded-lg border border-red-500/25 bg-white p-6 text-center shadow-2xl dark:bg-[#111827]">
+      <div className="min-h-screen bg-white dark:bg-background flex items-center justify-center px-6 text-slate-950 dark:text-white">
+        <div className="max-w-md rounded-lg border border-red-500/25 bg-white p-6 text-center shadow-2xl dark:bg-accent">
           <h1 className="text-lg font-semibold">No se pudo iniciar FluxSQL Desktop</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-[#94A3B8]">{startupError}</p>
+          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-muted-foreground">{startupError}</p>
           <button
             type="button"
             onClick={() => setStartupAttempt((attempt) => attempt + 1)}
@@ -58,7 +58,7 @@ export function ClientInitProvider({ children }: { children: React.ReactNode }) 
 
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#0A0F1E] flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-blue-500 font-medium">Iniciando entorno local...</p>

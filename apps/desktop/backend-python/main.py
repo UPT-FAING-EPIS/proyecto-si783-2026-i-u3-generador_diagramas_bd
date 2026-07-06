@@ -38,6 +38,7 @@ def startup_event():
             "deleted_at": "DATETIME",
             "is_public": "BOOLEAN NOT NULL DEFAULT 0",
             "share_access": "VARCHAR NOT NULL DEFAULT 'view'",
+            "members_json": "TEXT NOT NULL DEFAULT '[]'",
         },
         "diagrams": {
             "sql_content": "TEXT DEFAULT ''",

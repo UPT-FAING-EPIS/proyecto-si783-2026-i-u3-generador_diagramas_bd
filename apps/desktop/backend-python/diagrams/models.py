@@ -14,6 +14,7 @@ class Project(Base):
     deleted_at = Column(DateTime, nullable=True)
     is_public = Column(Boolean, default=False, nullable=False)
     share_access = Column(String, default="view", nullable=False)
+    members_json = Column(Text, default="[]", nullable=False)
     
     diagrams = relationship("Diagram", back_populates="project", cascade="all, delete-orphan")
 

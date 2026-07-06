@@ -59,7 +59,7 @@ export function ExportMenu({ projectName }: ExportMenuProps) {
       const viewport = getViewportForBounds(bounds, width, height, 0.5, 2, padding / Math.max(width, height))
 
       const options = {
-        backgroundColor: '#07101F',
+        backgroundColor: 'var(--background)',
         width,
         height,
         cacheBust: true,

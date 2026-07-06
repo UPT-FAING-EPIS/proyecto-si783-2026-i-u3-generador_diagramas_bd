@@ -60,10 +60,10 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
   const isDark = resolvedTheme === 'dark'
 
   return (
-    <aside className="hidden h-screen w-[240px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-950 dark:border-[#1E2A45] dark:bg-[#0D1117] dark:text-white lg:sticky lg:top-0 lg:flex">
+    <aside className="hidden h-screen w-[240px] flex-shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-950 dark:border-border dark:bg-card dark:text-white lg:sticky lg:top-0 lg:flex">
       
       {/* Logo */}
-      <div className="flex items-center gap-2.5 border-b border-slate-200 px-4 py-5 dark:border-[#1E2A45]">
+      <div className="flex items-center gap-2.5 border-b border-slate-200 px-4 py-5 dark:border-border">
         <div className="w-7 h-7 bg-[#1A6CF6] rounded-lg flex items-center justify-center flex-shrink-0">
           <span className="text-white text-xs font-bold">DB</span>
         </div>
@@ -132,12 +132,12 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
       </div>
 
       {/* Usuario / Conexión en la parte inferior */}
-      <div className="mt-auto border-t border-slate-200 px-3 py-4 dark:border-[#1E2A45]">
+      <div className="mt-auto border-t border-slate-200 px-3 py-4 dark:border-border">
         <div className="flex flex-col gap-3 px-2">
           <button
             type="button"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className="flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 transition hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:text-gray-300 dark:hover:bg-gray-800"
+            className="flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 transition hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-border dark:text-gray-300 dark:hover:bg-gray-800"
           >
             {isDark ? <Sun size={14} /> : <Moon size={14} />}
             {isDark ? 'Tema claro' : 'Tema oscuro'}
@@ -169,7 +169,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
           
           {/* Active Connection Info */}
           {activeConnection && (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 flex items-center justify-between dark:border-[#1E2A45] dark:bg-[#111827]">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 flex items-center justify-between dark:border-border dark:bg-accent">
               <div className="flex flex-col min-w-0">
                 <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider dark:text-gray-500">Conectado a</span>
                 <span className="text-xs text-green-400 font-medium truncate" title="Base de datos activa">
