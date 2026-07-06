@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.3
+
+- Refresh the Marketplace icon with a square 1:1 FluxSQL database and graph mark.
+
 ## 0.0.2
 
 - Add guided SQL/NoSQL engine selection before diagram generation.
