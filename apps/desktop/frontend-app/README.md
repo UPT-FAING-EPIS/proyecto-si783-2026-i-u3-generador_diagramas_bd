@@ -14,7 +14,7 @@ pnpm install
 pnpm desktop:dev
 ```
 
-Durante desarrollo, Next.js usa `http://localhost:3002` exclusivamente para hot reload. Tauri ejecuta `backend-python/main.py` con el Python local y administra su ciclo de vida.
+Durante desarrollo, Next.js usa `http://127.0.0.1:3002` exclusivamente para hot reload. Tauri ejecuta `backend-python/main.py` con el Python local y administra su ciclo de vida.
 
 ## Instalador Windows
 
@@ -27,7 +27,7 @@ El comando reconstruye el sidecar PyInstaller, exporta Next.js a `out/` y genera
 Salida esperada:
 
 ```text
-src-tauri/target/release/bundle/nsis/FluxSQL Desktop_0.1.0_x64-setup.exe
+src-tauri/target/release/bundle/nsis/*setup.exe
 ```
 
 El instalador final no requiere Node.js, pnpm ni Python y no levanta un servidor Next.js. Los datos locales se guardan en AppData bajo `com.fluxsql.desktop`.
@@ -41,7 +41,7 @@ El instalador final no requiere Node.js, pnpm ni Python y no levanta un servidor
 5. Cerrar la ventana varias veces.
 6. Confirmar en el Administrador de tareas que no queden procesos `python`, `cdcart-backend` o `fluxsql-desktop` iniciados por FluxSQL.
 7. Ejecutar `pnpm desktop:build`.
-8. Instalar `src-tauri/target/release/bundle/nsis/FluxSQL Desktop_0.1.0_x64-setup.exe`.
+8. Instalar el `.exe` generado en `src-tauri/target/release/bundle/nsis/`.
 9. Abrir la app instalada y confirmar que no necesita Node.js, pnpm, Python ni `localhost:3002`.
 10. Confirmar que los datos sobreviven al reinicio y estan bajo `%APPDATA%\com.fluxsql.desktop`.
 

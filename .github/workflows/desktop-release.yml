@@ -48,23 +48,75 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Apply release version
+        shell: powershell
+        run: |
+          $tag = "${{ github.event.inputs.tag || github.ref_name }}"
+          $version = $tag -replace '^desktop-v', ''
+
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+            throw "Release tag must look like desktop-v0.1.0. Received: $tag"
+          }
+
+          $packagePath = "apps/desktop/frontend-app/package.json"
+          $packageJson = Get-Content $packagePath -Raw | ConvertFrom-Json
+          $packageJson.version = $version
+          $packageJson | ConvertTo-Json -Depth 20 | Set-Content $packagePath -Encoding utf8
+
+          $tauriConfigPath = "apps/desktop/frontend-app/src-tauri/tauri.conf.json"
+          $tauriConfig = Get-Content $tauriConfigPath -Raw | ConvertFrom-Json
+          $tauriConfig.version = $version
+          $tauriConfig | ConvertTo-Json -Depth 20 | Set-Content $tauriConfigPath -Encoding utf8
+
+          $cargoPath = "apps/desktop/frontend-app/src-tauri/Cargo.toml"
+          $cargoToml = Get-Content $cargoPath -Raw
+          $cargoToml = $cargoToml -replace '(?m)^version = ".*"$', "version = `"$version`""
+          Set-Content $cargoPath $cargoToml -Encoding utf8
+
+          "Desktop release version: $version"
+
       - name: Build desktop installer
         run: pnpm --filter @fluxsql/desktop desktop:build
+
+      - name: Locate installer
+        id: installer
+        shell: powershell
+        run: |
+          $asset = Get-ChildItem "apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis" -Filter "*setup.exe" |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $asset) {
+            throw "No NSIS setup.exe installer was generated."
+          }
+
+          "path=$($asset.FullName)" >> $env:GITHUB_OUTPUT
+          "name=$($asset.Name)" >> $env:GITHUB_OUTPUT
+          "Located installer: $($asset.FullName)"
 
       - name: Calculate checksum
         id: checksum
         shell: powershell
         run: |
-          $asset = "apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis/FluxSQL_0.1.0_x64-setup.exe"
+          $asset = "${{ steps.installer.outputs.path }}"
           $hash = (Get-FileHash $asset -Algorithm SHA256).Hash
           "sha256=$hash" >> $env:GITHUB_OUTPUT
-          "FluxSQL_0.1.0_x64-setup.exe SHA256: $hash" | Out-File -FilePath desktop-release-notes.txt -Encoding utf8
+          "${{ steps.installer.outputs.name }} SHA256: $hash" | Out-File -FilePath desktop-checksums.txt -Encoding utf8
+          @"
+          FluxSQL Desktop ${{ github.event.inputs.tag || github.ref_name }}
+
+          Windows installer:
+          - ${{ steps.installer.outputs.name }}
+
+          SHA256:
+          - $hash
+          "@ | Out-File -FilePath desktop-release-notes.txt -Encoding utf8
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FluxSQL_0.1.0_x64-setup
-          path: apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis/FluxSQL_0.1.0_x64-setup.exe
+          name: ${{ steps.installer.outputs.name }}
+          path: ${{ steps.installer.outputs.path }}
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
@@ -72,4 +124,6 @@ jobs:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           name: FluxSQL Desktop ${{ github.event.inputs.tag || github.ref_name }}
           body_path: desktop-release-notes.txt
-          files: apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis/FluxSQL_0.1.0_x64-setup.exe
+          files: |
+            ${{ steps.installer.outputs.path }}
+            desktop-checksums.txt

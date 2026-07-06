@@ -5,7 +5,7 @@
   "identifier": "com.fluxsql.desktop",
   "build": {
     "frontendDist": "../out",
-    "devUrl": "http://localhost:3002",
+    "devUrl": "http://127.0.0.1:3002",
     "beforeDevCommand": "pnpm run dev",
     "beforeBuildCommand": "pnpm run build"
   },
@@ -13,9 +13,11 @@
     "windows": [
       {
         "title": "FluxSQL",
-        "width": 800,
-        "height": 600,
-        "visible": false,
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 680,
+        "visible": true,
         "resizable": true,
         "fullscreen": false
       }
