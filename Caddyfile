@@ -1,0 +1,9 @@
+fluxsql.sytes.net {
+  encode zstd gzip
+
+  handle_path /cloud-api/* {
+    reverse_proxy fluxsql-api:3001
+  }
+
+  reverse_proxy fluxsql-web:3000
+}

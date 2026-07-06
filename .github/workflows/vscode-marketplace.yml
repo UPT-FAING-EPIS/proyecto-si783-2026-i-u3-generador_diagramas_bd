@@ -1,0 +1,64 @@
+name: Publish VS Code Extension
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "vscode-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Package and publish VSIX
+    runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test extension
+        run: pnpm --filter ./apps/vscode-extension test
+
+      - name: Package extension
+        run: pnpm run package:vscode-extension
+
+      - name: Publish to Visual Studio Marketplace
+        if: ${{ env.VSCE_PAT != '' }}
+        working-directory: apps/vscode-extension
+        run: pnpm exec vsce publish -p "$VSCE_PAT"
+
+      - name: Calculate VSIX checksum
+        run: sha256sum apps/vscode-extension/*.vsix > vscode-extension-checksums.txt
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: FluxSQL VS Code Extension ${{ github.ref_name }}
+          body: |
+            FluxSQL VS Code extension package.
+
+            Includes:
+            - VSIX package
+            - SHA256 checksum
+          files: |
+            apps/vscode-extension/*.vsix
+            vscode-extension-checksums.txt

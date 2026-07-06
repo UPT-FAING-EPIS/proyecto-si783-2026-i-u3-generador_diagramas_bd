@@ -1,0 +1,117 @@
+name: Product Release Bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example release-v0.1.0"
+        required: true
+        default: "release-v0.1.0"
+  push:
+    tags:
+      - "release-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows-desktop:
+    name: Windows desktop installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install NSIS
+        shell: powershell
+        run: choco install nsis -y
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build desktop installer
+        run: pnpm run build:desktop
+
+      - name: Calculate desktop checksum
+        shell: powershell
+        run: |
+          Get-ChildItem apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis/*.exe |
+            ForEach-Object {
+              $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+              "$($_.Name) SHA256: $hash"
+            } | Out-File -FilePath desktop-checksums.txt -Encoding utf8
+
+      - name: Publish desktop assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: FluxSQL Product ${{ github.event.inputs.tag || github.ref_name }}
+          body: |
+            FluxSQL product release bundle.
+
+            Includes desktop installer, VS Code extension and Codex skill package when all release jobs finish.
+          files: |
+            apps/desktop/frontend-app/src-tauri/target/release/bundle/nsis/*.exe
+            desktop-checksums.txt
+
+  vscode-and-skill:
+    name: VSIX and npm skill tarball
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and package VS Code extension
+        run: pnpm run package:vscode-extension
+
+      - name: Pack Codex skill
+        working-directory: packages/fluxsql-codex-skill
+        run: npm pack
+
+      - name: Calculate checksums
+        run: |
+          sha256sum apps/vscode-extension/*.vsix > package-checksums.txt
+          sha256sum packages/fluxsql-codex-skill/*.tgz >> package-checksums.txt
+
+      - name: Publish package assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: FluxSQL Product ${{ github.event.inputs.tag || github.ref_name }}
+          files: |
+            apps/vscode-extension/*.vsix
+            packages/fluxsql-codex-skill/*.tgz
+            package-checksums.txt

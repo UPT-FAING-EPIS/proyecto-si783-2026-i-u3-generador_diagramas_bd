@@ -1,0 +1,67 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/frontend-app/Dockerfile
+    container_name: fluxsql-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      FLUXY_API_INTERNAL_URL: http://fluxsql-api:3001
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+      DATABASE_URL: ${DATABASE_URL:-postgres://fluxsql:${POSTGRES_PASSWORD:-fluxsql_change_me}@postgres:5432/fluxsql}
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/web/backend-api/Dockerfile
+    container_name: fluxsql-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      FRONTEND_URL: ${FRONTEND_URL:-https://fluxsql.sytes.net}
+      DATABASE_URL: ${DATABASE_URL:-postgres://fluxsql:${POSTGRES_PASSWORD:-fluxsql_change_me}@postgres:5432/fluxsql}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fluxsql-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fluxsql}
+      POSTGRES_USER: ${POSTGRES_USER:-fluxsql}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fluxsql} -d ${POSTGRES_DB:-fluxsql}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: fluxsql-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:

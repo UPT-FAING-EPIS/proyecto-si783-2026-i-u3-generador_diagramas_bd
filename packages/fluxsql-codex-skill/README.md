@@ -24,7 +24,7 @@ Use the skill in Codex with:
 $fluxsql-workbench
 ```
 
-The skill covers FluxSQL web, desktop, local sidecar, MCP, Docker test databases, sync troubleshooting, the VS Code extension, and Marketplace/package workflows.
+The skill covers FluxSQL web, cloud API, desktop, local sidecar, MCP, local memory boundaries, Docker test databases, VPS deployment, sync troubleshooting, GitHub releases, the VS Code extension, npm publishing and Marketplace workflows.
 
 ## Development
 
@@ -32,3 +32,5 @@ The skill covers FluxSQL web, desktop, local sidecar, MCP, Docker test databases
 npm pack --dry-run
 npm publish --access public
 ```
+
+The repository also includes a GitHub Actions workflow for publishing from `skill-v*` tags after npm trusted publishing or `NPM_TOKEN` is configured.

@@ -2,7 +2,7 @@
 
 For bugs, feature requests and publishing issues, use the FluxSQL repository issue tracker:
 
-https://github.com/iovargasjeff/fluxsql-bd/issues
+https://github.com/UPT-FAING-EPIS/proyecto-si783-2026-i-u3-generador_diagramas_bd/issues
 
 Please include:
 
