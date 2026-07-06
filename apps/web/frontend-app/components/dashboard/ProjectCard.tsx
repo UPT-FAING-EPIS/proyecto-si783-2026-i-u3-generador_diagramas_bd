@@ -35,11 +35,11 @@ interface ProjectCardProps {
 
 const getProjectGradient = (id: string) => {
   const gradients = [
-    'from-blue-50 to-indigo-50/50',
-    'from-emerald-50 to-teal-50/50',
-    'from-amber-50 to-orange-50/50',
-    'from-purple-50 to-fuchsia-50/50',
-    'from-rose-50 to-pink-50/50',
+    'from-blue-50 via-sky-50 to-indigo-50 dark:from-blue-950/55 dark:via-slate-900 dark:to-indigo-950/45',
+    'from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/50 dark:via-slate-900 dark:to-teal-950/40',
+    'from-amber-50 via-orange-50 to-rose-50 dark:from-amber-950/40 dark:via-slate-900 dark:to-rose-950/35',
+    'from-purple-50 via-violet-50 to-fuchsia-50 dark:from-purple-950/45 dark:via-slate-900 dark:to-fuchsia-950/35',
+    'from-rose-50 via-pink-50 to-slate-50 dark:from-rose-950/40 dark:via-slate-900 dark:to-slate-950',
   ]
   const charCode = id.length > 0 ? id.charCodeAt(0) + id.charCodeAt(id.length - 1) : 0;
   return gradients[charCode % gradients.length]
@@ -152,24 +152,24 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
 
   return (
     <Link href={`/editor/${project.id}`} className="block h-full">
-      <Card className="h-full flex flex-col p-0 gap-0 bg-white group relative rounded-xl border border-slate-200 hover:border-[#1A6CF6]/50 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+      <Card className="h-full flex flex-col p-0 gap-0 overflow-hidden bg-card text-card-foreground group relative rounded-xl border border-border hover:border-[#1A6CF6]/60 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-950/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
         {/* PORTADA CON GRADIENTE Y BADGES ABSOLUTOS */}
-        <div className={`relative h-28 bg-gradient-to-br ${getProjectGradient(project.id)} rounded-t-xl flex items-end p-3 border-b border-transparent`}>
+        <div className={`relative h-28 bg-gradient-to-br ${getProjectGradient(project.id)} flex items-end p-3 border-b border-border/70`}>
           
           {/* Badge Plan (esquina superior izquierda) */}
           <div className="absolute top-3 left-3 z-10">
             <div className={`text-xs font-bold px-3 py-1 rounded-full shadow-sm backdrop-blur-md ${
               role === 'owner' 
-                ? 'bg-background text-foreground border border-border' 
-                : 'bg-background text-foreground border border-border'
+                ? 'bg-card/90 text-card-foreground border border-border' 
+                : 'bg-card/90 text-card-foreground border border-border'
             }`}>
               {role === 'owner' ? 'Pro' : 'Free'}
             </div>
             {project.engineFamily && (
               <div className={`mt-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm backdrop-blur-md ${
                 project.engineFamily === 'nosql'
-                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                  : 'bg-blue-100 text-[#1A6CF6] border border-blue-200'
+                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800'
+                  : 'bg-blue-100 text-[#1A6CF6] border border-blue-200 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800'
               }`}>
                 {project.engineFamily === 'nosql' ? 'NoSQL' : 'SQL'}
               </div>
@@ -189,7 +189,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                   e.stopPropagation()
                   setIsMenuOpen(!isMenuOpen)
                 }}
-                className="p-1.5 rounded-full bg-background/50 hover:bg-background transition-colors text-foreground shadow-sm backdrop-blur-md border border-border"
+                className="p-1.5 rounded-full bg-card/70 hover:bg-card transition-colors text-card-foreground shadow-sm backdrop-blur-md border border-border"
                 disabled={isProcessing}
               >
                 <MoreVertical size={16} />
@@ -197,7 +197,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
 
               {/* Dropdown Menu */}
               {isMenuOpen && (
-                <div className="absolute right-0 top-8 z-50 min-w-40 rounded-lg bg-white border border-slate-200 shadow-xl py-1">
+                <div className="absolute right-0 top-8 z-50 min-w-40 rounded-lg bg-popover text-popover-foreground border border-border shadow-xl py-1">
                   {project.deleted_at === null ? (
                     <>
                       {/* Opción: Invitar Colaborador */}
@@ -208,7 +208,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                           setIsMenuOpen(false)
                           setIsInviteOpen(true)
                         }}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-popover-foreground hover:bg-muted transition-colors"
                       >
                         <UserPlus size={16} />
                         Invitar colaborador
@@ -222,7 +222,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                           setIsMenuOpen(false)
                           setIsRenaming(true)
                         }}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-popover-foreground hover:bg-muted transition-colors"
                       >
                         <Pencil size={16} />
                         Renombrar proyecto
@@ -235,17 +235,17 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                           e.stopPropagation()
                           handleCopyLink()
                         }}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-popover-foreground hover:bg-muted transition-colors"
                       >
                         <LinkIcon size={16} />
                         Copiar link público
                       </button>
 
                       {/* Separador */}
-                      <div className="border-t border-slate-100 my-1"></div>
+                      <div className="border-t border-border my-1"></div>
                       {showDeleteConfirm ? (
                         <div className="px-4 py-2 text-sm">
-                          <p className="text-slate-700 mb-2">¿Mover a papelera?</p>
+                          <p className="text-popover-foreground mb-2">¿Mover a papelera?</p>
                           <div className="flex gap-2">
                             <button
                               onClick={(e) => {
@@ -254,7 +254,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                                 setShowDeleteConfirm(false)
                                 setIsMenuOpen(false)
                               }}
-                              className="flex-1 px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors"
+                              className="flex-1 px-2 py-1 text-xs bg-muted text-muted-foreground rounded hover:bg-muted/80 transition-colors"
                             >
                               Cancelar
                             </button>
@@ -278,7 +278,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                             e.stopPropagation()
                             handleDelete()
                           }}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                         >
                           <Trash2 size={16} />
                           Eliminar proyecto
@@ -294,7 +294,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                           e.stopPropagation()
                           handleRestore()
                         }}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors disabled:opacity-50"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30 transition-colors disabled:opacity-50"
                         disabled={isProcessing}
                       >
                         <RotateCcw size={16} />
@@ -302,7 +302,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                       </button>
 
                       {/* Separador */}
-                      <div className="border-t border-slate-100 my-1"></div>
+                      <div className="border-t border-border my-1"></div>
 
                       {/* Opción: Eliminar Permanente */}
                       <button
@@ -311,7 +311,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                           e.stopPropagation()
                           handleDeletePermanent()
                         }}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                       >
                         <Trash2 size={16} />
                         Eliminar permanente
@@ -397,7 +397,7 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
                 </span>
               ))}
               {tags.length > 2 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                   +{tags.length - 2}
                 </span>
               )}
@@ -409,8 +409,8 @@ export function ProjectCard({ project, role, isOwner = false, members, tags, cur
           <div className="flex items-center justify-between w-full">
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
               isOwner 
-                ? 'bg-green-50 text-green-700 border-green-200'
-                : 'bg-purple-50 text-purple-700 border-purple-200'
+                ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-300 dark:border-green-800'
+                : 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800'
             }`}>
               {isOwner ? 'Propietario' : 'Colaborador'}
             </span>

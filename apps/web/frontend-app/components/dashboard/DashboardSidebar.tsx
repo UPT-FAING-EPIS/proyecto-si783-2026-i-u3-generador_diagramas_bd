@@ -36,8 +36,8 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
   const isAgentToolsActive = pathname === '/agent-tools' || pathname?.startsWith('/agent-tools/');
 
   return (
-    <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 h-screen sticky top-0 bg-background border-r border-border">
-      <div className="flex items-center gap-2.5 px-4 py-5 border-b border-slate-100">
+    <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 h-screen sticky top-0 bg-card text-card-foreground border-r border-border">
+      <div className="flex items-center gap-2.5 px-4 py-5 border-b border-border">
         <div className="h-8 w-8 rounded-lg bg-[#1A6CF6] flex items-center justify-center text-white text-xs font-bold">
           F
         </div>
@@ -46,7 +46,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
 
       <nav className="flex-1 px-2 py-4 flex flex-col gap-6">
         <div>
-          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Mi Espacio</h3>
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mi Espacio</h3>
           <div className="flex flex-col gap-0.5">
             {NAV_ITEMS.map(({ icon: Icon, label, id }) => {
               const isActive = !isSkillsActive && !isAgentToolsActive && activeSection === id;
@@ -73,7 +73,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
         </div>
 
         <div>
-          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Herramientas</h3>
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Herramientas</h3>
           <div className="flex flex-col gap-0.5">
             {TOOL_ITEMS.map(({ icon: Icon, label, href }) => {
               const isActive = pathname === href || pathname?.startsWith(`${href}/`);
@@ -96,7 +96,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
         </div>
       </nav>
 
-      <div className="px-3 py-4 border-t border-slate-100">
+      <div className="px-3 py-4 border-t border-border">
         <Link
           href="/profile"
           className="flex items-center gap-2.5 mb-3 px-1 py-1 rounded-lg transition-colors hover:bg-muted"
@@ -108,7 +108,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
               width={32}
               height={32}
               unoptimized
-              className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-2 border-slate-100"
+              className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-2 border-border"
             />
           ) : (
             <div

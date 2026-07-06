@@ -119,8 +119,7 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
         <div className="relative flex-1 max-w-xs">
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ color: '#6B7280' }}
+            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground"
           />
           <input
             type="text"
@@ -134,8 +133,7 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2"
-              style={{ color: '#6B7280' }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X size={13} />
             </button>
@@ -168,13 +166,13 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
         <HistorialSection userId={currentUserId} />
       ) : activeSection === 'papelera' && filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <Trash2 className="w-8 h-8 text-slate-400" />
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+            <Trash2 className="w-8 h-8 text-muted-foreground" />
           </div>
           <p className="text-foreground font-medium text-lg">
             La papelera está vacía
           </p>
-          <p className="text-slate-500 text-sm mt-2 max-w-xs">
+          <p className="text-muted-foreground text-sm mt-2 max-w-xs">
             Los proyectos eliminados aparecerán aquí. 
             Puedes restaurarlos cuando quieras.
           </p>
@@ -184,7 +182,7 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
           <p className="text-foreground font-medium mb-1">
             Sin resultados para &ldquo;{query}&rdquo;
           </p>
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Intenta con otro nombre de proyecto
           </p>
           <button
@@ -199,7 +197,7 @@ export function DashboardClient({ projects, currentUserId, currentUser, activeSe
           <p className="text-foreground font-medium mb-1">
             Sin proyectos en esta sección
           </p>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Crea un nuevo proyecto para comenzar
           </p>
         </div>

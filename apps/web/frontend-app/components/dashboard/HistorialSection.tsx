@@ -112,11 +112,11 @@ export function HistorialSection({ userId }: HistorialSectionProps) {
         {/* Skeleton loaders */}
         {Array.from({ length: 5 }).map((_, index) => (
           <div key={index} className="animate-pulse">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
-              <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700"></div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
+              <div className="w-4 h-4 rounded bg-muted"></div>
               <div className="flex-1">
-                <div className="h-4 w-3/4 rounded mb-2 bg-slate-200 dark:bg-slate-700"></div>
-                <div className="h-3 w-1/4 rounded bg-slate-300 dark:bg-slate-600"></div>
+                <div className="h-4 w-3/4 rounded mb-2 bg-muted"></div>
+                <div className="h-3 w-1/4 rounded bg-muted/70"></div>
               </div>
             </div>
           </div>
@@ -128,9 +128,9 @@ export function HistorialSection({ userId }: HistorialSectionProps) {
   if (activities.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <Clock size={48} style={{ color: '#6B7280' }} className="mb-4" />
+        <Clock size={48} className="mb-4 text-muted-foreground" />
         <p className="font-medium mb-1">Aún no hay actividad registrada</p>
-        <p className="text-sm" style={{ color: '#6B7280' }}>
+        <p className="text-sm text-muted-foreground">
           Comienza creando o abriendo un proyecto
         </p>
       </div>
@@ -148,7 +148,7 @@ export function HistorialSection({ userId }: HistorialSectionProps) {
         {activities.map((item) => (
           <div
             key={item.id}
-            className="flex items-start gap-3 p-3 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 bg-slate-50 dark:bg-slate-800/50"
+            className="flex items-start gap-3 p-3 rounded-lg border border-border bg-card transition-colors hover:bg-muted/70"
           >
             <div className="flex-shrink-0 mt-0.5">
               {getActionIcon(item.action)}
@@ -158,7 +158,7 @@ export function HistorialSection({ userId }: HistorialSectionProps) {
               <p className="text-sm font-medium">
                 {getActionText(item)}
               </p>
-              <p className="text-xs" style={{ color: '#6B7280' }}>
+              <p className="text-xs text-muted-foreground">
                 {relativeTime(item.createdAt)}
               </p>
             </div>

@@ -53,7 +53,7 @@ export function InviteCollaboratorModal({
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-[#94A3B8] hover:text-white hover:bg-[#1E2A45] px-2 h-7"
+          className="text-muted-foreground hover:text-foreground hover:bg-muted px-2 h-7"
           onClick={(e) => e.stopPropagation()} // Prevent card link navigation
         >
           <UserPlus className="w-4 h-4 mr-1" />
@@ -61,7 +61,7 @@ export function InviteCollaboratorModal({
         </Button>
       </DialogTrigger>
       <DialogContent 
-        className="bg-[#111827] border-[#1E2A45] text-white sm:max-w-[425px]"
+        className="bg-popover border-border text-popover-foreground sm:max-w-[425px]"
         onClick={(e) => e.stopPropagation()} // Prevent card link navigation
       >
         <motion.div
@@ -72,7 +72,7 @@ export function InviteCollaboratorModal({
         >
           <DialogHeader>
             <DialogTitle>Invitar Colaborador</DialogTitle>
-            <DialogDescription className="text-[#94A3B8]">
+            <DialogDescription className="text-muted-foreground">
               Ingresa el email del usuario que deseas invitar a este proyecto.
             </DialogDescription>
           </DialogHeader>
@@ -85,7 +85,7 @@ export function InviteCollaboratorModal({
                   placeholder="usuario@ejemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-[#0A0F1E] border-[#1E2A45] focus-visible:ring-[#1A6CF6]"
+                  className="bg-background border-border focus-visible:ring-[#1A6CF6]"
                   disabled={loading}
                 />
               </div>
