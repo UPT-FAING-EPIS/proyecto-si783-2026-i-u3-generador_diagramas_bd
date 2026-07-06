@@ -272,6 +272,8 @@ export const useEditorStore = create<EditorStore>((set) => ({
  * Call this when converting ParseResult.edges → React Flow edges.
  */
 export function toReactFlowEdge(edge: Edge): Edge {
+  const dialect = useEditorStore.getState().dialect
+
   if (edge.type === 'neo4jEdge') {
     return {
       ...edge,
@@ -286,7 +288,8 @@ export function toReactFlowEdge(edge: Edge): Edge {
 
   return {
     ...edge,
-    type: 'relationship',
+    type: edge.type || 'relationship',
+    data: dialect === 'mongodb' ? { ...edge.data, pathType: 'step' } : edge.data,
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 16,

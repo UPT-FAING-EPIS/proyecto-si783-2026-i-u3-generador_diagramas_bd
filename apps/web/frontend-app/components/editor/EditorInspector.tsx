@@ -31,17 +31,15 @@ export function EditorInspector() {
 
     return (
       <aside
-        className="flex h-full min-h-0 w-full flex-col overflow-y-auto"
-        style={{ background: '#1E293B', borderLeft: '1px solid #334155', color: '#ccc' }}
+        className="flex h-full min-h-0 w-full flex-col overflow-y-auto border-l border-border bg-card text-card-foreground"
       >
-        <div className="shrink-0 p-4" style={{ borderBottom: '1px solid #334155', background: '#0F172A' }}>
-          <p className="text-xs uppercase tracking-[0.18em]" style={{ color: '#64748B' }}>Inspector</p>
+        <div className="shrink-0 border-b border-border bg-muted/40 p-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Inspector</p>
           {neo4jNodes.length > 0 ? (
             <select
               value={selectedNode?.id ?? ''}
               onChange={(e) => setSelectedNodeId(e.target.value)}
-              className="mt-2 w-full rounded-lg px-3 py-2 text-sm font-semibold outline-none"
-              style={{ background: '#0F172A', border: '1px solid #334155', color: '#F8FAFC' }}
+              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground outline-none focus:border-[#1A6CF6]"
             >
               {neo4jNodes.map(n => (
                 <option key={n.id} value={n.id}>
@@ -50,7 +48,7 @@ export function EditorInspector() {
               ))}
             </select>
           ) : (
-            <p className="mt-2 text-xs" style={{ color: '#555' }}>Sin nodos. Escribe Cypher para empezar.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Sin nodos. Escribe Cypher para empezar.</p>
           )}
         </div>
 
@@ -61,32 +59,32 @@ export function EditorInspector() {
               <span
                 style={{ width: 16, height: 16, borderRadius: '50%', background: nodeColor, display: 'inline-block', flexShrink: 0 }}
               />
-              <span className="text-sm font-bold" style={{ color: '#ddd' }}>{tableName}</span>
+              <span className="text-sm font-bold text-foreground">{tableName}</span>
             </div>
 
             {/* Property Keys */}
             <section>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#64748B' }}>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Property Keys
               </p>
               <div className="space-y-1.5">
                 {columns.filter(c => c.type !== 'Relation').map(col => (
-                  <div key={col.name} className="flex items-center justify-between rounded-lg px-3 py-2" style={{ background: '#0F172A', border: '1px solid #334155' }}>
-                    <span className="text-xs font-mono" style={{ color: '#E2E8F0' }}>{col.name}</span>
-                    <span className="text-[10px] rounded px-1.5 py-0.5" style={{ background: '#1E293B', color: '#94A3B8' }}>
+                  <div key={col.name} className="flex items-center justify-between rounded-lg px-3 py-2 border border-border bg-muted/40">
+                    <span className="text-xs font-mono text-foreground">{col.name}</span>
+                    <span className="text-[10px] rounded px-1.5 py-0.5 bg-background text-muted-foreground border border-border">
                       {col.type}
                     </span>
                   </div>
                 ))}
                 {columns.filter(c => c.type !== 'Relation').length === 0 && (
-                  <p className="text-xs" style={{ color: '#444' }}>No hay propiedades definidas en el Cypher.</p>
+                  <p className="text-xs text-muted-foreground">No hay propiedades definidas en el Cypher.</p>
                 )}
               </div>
             </section>
 
             {/* Relationships of this node */}
             <section>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#64748B' }}>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Relaciones
               </p>
               <div className="space-y-1.5">
@@ -96,15 +94,15 @@ export function EditorInspector() {
                   const otherLabel = (otherNode?.data as { tableName?: string })?.tableName ?? (isOut ? edge.target : edge.source)
                   const relLabel = typeof edge.label === 'string' ? edge.label : ''
                   return (
-                    <div key={edge.id} className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: '#0F172A', border: '1px solid #334155' }}>
-                      <span className="text-[10px]" style={{ color: '#94A3B8' }}>{isOut ? '→' : '←'}</span>
-                      <span className="text-[10px] font-mono uppercase" style={{ color: '#888' }}>{relLabel}</span>
-                      <span className="ml-auto text-[10px]" style={{ color: '#555' }}>{otherLabel}</span>
+                    <div key={edge.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border border-border bg-muted/40">
+                      <span className="text-[10px] text-muted-foreground">{isOut ? '→' : '←'}</span>
+                      <span className="text-[10px] font-mono uppercase text-foreground">{relLabel}</span>
+                      <span className="ml-auto text-[10px] text-muted-foreground">{otherLabel}</span>
                     </div>
                   )
                 })}
                 {edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id).length === 0 && (
-                  <p className="text-xs" style={{ color: '#444' }}>Sin relaciones para este nodo.</p>
+                  <p className="text-xs text-muted-foreground">Sin relaciones para este nodo.</p>
                 )}
               </div>
             </section>

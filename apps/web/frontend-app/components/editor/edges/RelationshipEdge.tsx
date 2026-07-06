@@ -1,6 +1,6 @@
 'use client'
 
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from '@xyflow/react'
+import { BaseEdge, EdgeLabelRenderer, getBezierPath, getSmoothStepPath, type EdgeProps } from '@xyflow/react'
 
 export function RelationshipEdge({
   sourceX,
@@ -12,6 +12,7 @@ export function RelationshipEdge({
   style,
   markerEnd,
   label,
+  data,
 }: EdgeProps) {
   if (
     typeof sourceX !== 'number' ||
@@ -24,7 +25,7 @@ export function RelationshipEdge({
     return null
   }
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  let [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -32,6 +33,21 @@ export function RelationshipEdge({
     targetY,
     targetPosition,
   })
+
+  if (data?.pathType === 'step') {
+    const [stepPath, stepLabelX, stepLabelY] = getSmoothStepPath({
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+      borderRadius: 0,
+    })
+    edgePath = stepPath
+    labelX = stepLabelX
+    labelY = stepLabelY
+  }
 
   return (
     <>

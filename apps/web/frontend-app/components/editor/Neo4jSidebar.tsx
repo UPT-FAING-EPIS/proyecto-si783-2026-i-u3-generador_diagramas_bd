@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { useEditorStore } from '@/store/useEditorStore'
-import { CheckCircle2 } from 'lucide-react'
 
 // Updated Palette: Blue/Slate tones instead of rainbow
 const NEO4J_PALETTE = [
@@ -24,7 +23,7 @@ function getLabelColor(label: string): string {
   return NEO4J_PALETTE[Math.abs(hash) % NEO4J_PALETTE.length]
 }
 
-export function Neo4jTopBar() {
+export function Neo4jSidebar() {
   const nodes = useEditorStore((state) => state.nodes)
   const edges = useEditorStore((state) => state.edges)
   const neo4jFilterLabel = useEditorStore((state) => state.neo4jFilterLabel)
@@ -68,26 +67,25 @@ export function Neo4jTopBar() {
     )
   ).sort() as string[]
 
-  const warnings = nodes.filter(n => {
-    const cols = (n.data as { columns?: Array<{ name: string }> })?.columns ?? []
-    return cols.length === 0
-  }).length
-
   const isAllActive = neo4jFilterLabel === null && neo4jFilterRelationship === null
 
   return (
     <div
-      className="flex w-full shrink-0 items-center overflow-x-auto overflow-y-hidden px-4 py-2 gap-6"
-      style={{ background: '#1E293B', borderBottom: '1px solid #334155', minHeight: '52px' }}
+      className="flex h-full min-h-0 w-64 shrink-0 flex-col overflow-y-auto border-l border-border bg-card px-4 py-4 gap-6"
     >
+      <div className="mb-2">
+        <h2 className="text-sm font-semibold text-foreground">Filtros Neo4j</h2>
+        <p className="text-xs text-muted-foreground mt-1">Explora tu base de datos gráfica</p>
+      </div>
+
       {/* Nodes section */}
       {labels.length > 0 && (
-        <div className="flex items-center gap-3 shrink-0">
-          <p className="text-[11px] font-semibold text-slate-400">
-            Nodes ({nodes.length})
+        <div className="flex flex-col gap-3 shrink-0">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Nodos ({nodes.length})
           </p>
 
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {/* Asterisk pill — show ALL nodes */}
             <button
               onClick={() => {
@@ -99,9 +97,9 @@ export function Neo4jTopBar() {
               style={{
                 width: 28,
                 height: 28,
-                background: isAllActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
-                border: isAllActive ? '1.5px solid rgba(255,255,255,0.50)' : '1.5px solid rgba(255,255,255,0.15)',
-                color: isAllActive ? '#fff' : '#888',
+                background: isAllActive ? 'var(--primary-10)' : 'transparent',
+                border: isAllActive ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+                color: isAllActive ? 'var(--primary)' : 'var(--muted-foreground)',
                 fontSize: 13,
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -153,11 +151,11 @@ export function Neo4jTopBar() {
 
       {/* Relationships section */}
       {relTypes.length > 0 && (
-        <div className="flex items-center gap-3 shrink-0 border-l border-slate-700 pl-6">
-          <p className="text-[11px] font-semibold text-slate-400">
-            Relationships ({edges.length})
+        <div className="flex flex-col gap-3 shrink-0 border-t border-border pt-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Relaciones ({edges.length})
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {relTypes.map(rel => {
               const isActive = neo4jFilterRelationship === rel
               return (
@@ -165,11 +163,11 @@ export function Neo4jTopBar() {
                   key={rel}
                   onClick={() => setNeo4jFilterRelationship(isActive ? null : rel)}
                   title={isActive ? `Ocultar filtro de relación: ${rel}` : `Filtrar por relación: ${rel}`}
-                  className="rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-all duration-150"
+                  className="rounded px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-all duration-150"
                   style={{ 
-                    background: isActive ? 'rgba(255,255,255,0.15)' : '#1E293B', 
-                    color: isActive ? '#fff' : '#888', 
-                    border: isActive ? '1px solid rgba(255,255,255,0.4)' : '1px solid #333',
+                    background: isActive ? 'var(--primary)' : 'var(--muted)', 
+                    color: isActive ? 'white' : 'var(--muted-foreground)', 
+                    border: isActive ? '1px solid var(--primary)' : '1px solid var(--border)',
                     cursor: 'pointer',
                     transform: isActive ? 'scale(1.05)' : 'scale(1)',
                   }}
@@ -184,16 +182,15 @@ export function Neo4jTopBar() {
 
       {/* Property Keys section */}
       {propertyKeys.length > 0 && (
-        <div className="flex items-center gap-3 shrink-0 border-l border-slate-700 pl-6 pr-4">
-          <p className="text-[11px] font-semibold text-slate-400">
+        <div className="flex flex-col gap-3 shrink-0 border-t border-border pt-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Property keys
           </p>
-          <div className="flex gap-1.5 flex-nowrap overflow-x-auto max-w-xs hide-scrollbar">
+          <div className="flex flex-wrap gap-1.5">
             {propertyKeys.map(key => (
               <span
                 key={key}
-                className="rounded px-2 py-0.5 text-[10px] shrink-0"
-                style={{ background: '#0F172A', color: '#94A3B8', border: '1px solid #334155' }}
+                className="rounded px-2 py-0.5 text-[10px] bg-muted text-muted-foreground border border-border"
               >
                 {key}
               </span>

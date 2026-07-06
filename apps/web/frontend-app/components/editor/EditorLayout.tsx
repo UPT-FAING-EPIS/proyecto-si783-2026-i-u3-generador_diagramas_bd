@@ -2,11 +2,11 @@
 
 import { useEffect, useState, type ElementType } from 'react'
 import { ReactFlowProvider, useReactFlow, type Edge, type Node } from '@xyflow/react'
-import { ArrowLeft, Braces, CheckCircle2, Code2, Database, DatabaseZap, FileJson, GitBranch, LayoutGrid, PanelRight, Play, Plus, Save, History } from 'lucide-react'
+import { ArrowLeft, Braces, CheckCircle2, Code2, Database, DatabaseZap, FileJson, GitBranch, LayoutGrid, PanelRight, Play, Plus, Save, History, Filter } from 'lucide-react'
 import { toast } from 'sonner'
 import { Canvas } from './Canvas'
 import { EditorPanel } from './EditorPanel'
-import { Neo4jTopBar } from './Neo4jTopBar'
+import { Neo4jSidebar } from './Neo4jSidebar'
 import { EditorInspector } from './EditorInspector'
 import { ExportMenu } from './ExportMenu'
 import { VersionHistorySheet } from './VersionHistorySheet'
@@ -74,6 +74,27 @@ function EditorLayoutInner({
   const [showSqlPanel, setShowSqlPanel] = useState(false)
   const [showInspector, setShowInspector] = useState(true)
   const [diffModal, setDiffModal] = useState<{ open: boolean; originalCode: string; modifiedCode: string; versionLabel: string } | null>(null)
+  
+  const [sqlPanelWidth, setSqlPanelWidth] = useState(400)
+  const [isDragging, setIsDragging] = useState(false)
+  const [showNeo4jFilters, setShowNeo4jFilters] = useState(false)
+
+  useEffect(() => {
+    if (!isDragging) return
+    const handleDragMove = (e: MouseEvent) => {
+      const newWidth = e.clientX - 56 // 56px es el ancho del aside (w-14)
+      if (newWidth >= 200 && newWidth <= 800) {
+        setSqlPanelWidth(newWidth)
+      }
+    }
+    const handleDragUp = () => setIsDragging(false)
+    document.addEventListener('mousemove', handleDragMove)
+    document.addEventListener('mouseup', handleDragUp)
+    return () => {
+      document.removeEventListener('mousemove', handleDragMove)
+      document.removeEventListener('mouseup', handleDragUp)
+    }
+  }, [isDragging])
 
   const { cursors, handleMouseMove } = useCollaboratorCursors(projectId, currentUser.id, currentUser.name)
   const { emitNodeMove, emitSqlChange, consumeRemoteSchemaUpdate } = useRealtimeSync(projectId, currentUser.id)
@@ -208,13 +229,13 @@ function EditorLayoutInner({
   // Now Neo4j uses the same responsive grid as SQL, 
   // with EditorPanel on the left, canvas in the center, and inspector on the right.
   const isNeo4j = mode === 'neo4j'
-  const editorGridClass = showSqlPanel && showInspector
-      ? 'grid-cols-[34%_1fr_320px]'
+  const gridTemplateColumns = showSqlPanel && showInspector
+      ? `${sqlPanelWidth}px 1fr 320px`
       : showSqlPanel
-        ? 'grid-cols-[34%_1fr]'
+        ? `${sqlPanelWidth}px 1fr`
         : showInspector
-          ? 'grid-cols-[1fr_320px]'
-          : 'grid-cols-[1fr]'
+          ? `1fr 320px`
+          : `1fr`
 
   return (
     <div className="flex h-full w-full flex-1 overflow-hidden bg-background text-foreground" onMouseMove={handleMouseMove}>
@@ -268,12 +289,20 @@ function EditorLayoutInner({
           <ThemeToggle />
         </header>
 
-        <section className={`grid min-h-0 flex-1 ${editorGridClass}`}>
+        <section className="grid min-h-0 flex-1" style={{ gridTemplateColumns }}>
 
           {/* ── ALL DIALECTS: Unified 3-column layout ── */}
           <>
             {showSqlPanel && (
-              <div className="flex h-full min-w-0 flex-col border-r border-border bg-card">
+              <div className="relative flex h-full min-w-0 flex-col border-r border-border bg-card">
+                {/* Resizer Handle */}
+                <div
+                  className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-50 transition-colors ${isDragging ? 'bg-[#1A6CF6]' : 'hover:bg-[#1A6CF6]'}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    setIsDragging(true)
+                  }}
+                />
                 <div className="flex h-11 shrink-0 items-center gap-2 border-b border-border px-3">
                   {mode !== 'mongodb' && mode !== 'neo4j' && (
                     <>
@@ -306,10 +335,22 @@ function EditorLayoutInner({
               </div>
             )}
 
-            <div className="relative flex h-full min-w-0 flex-1 flex-col">
+            <div className="relative flex h-full min-w-0 flex-1 flex-row">
+              {isNeo4j && showNeo4jFilters && (
+                <div className="absolute right-0 top-0 bottom-0 z-20 shadow-lg">
+                  <Neo4jSidebar />
+                </div>
+              )}
               {isNeo4j && (
-                <div className="absolute top-0 left-0 w-full z-20">
-                  <Neo4jTopBar />
+                <div className="absolute left-4 top-4 z-20">
+                  <button
+                    onClick={() => setShowNeo4jFilters(!showNeo4jFilters)}
+                    className="flex h-8 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground"
+                    title="Alternar filtros Neo4j"
+                  >
+                    <Filter size={14} />
+                    Filtros
+                  </button>
                 </div>
               )}
               {!isNeo4j && (
@@ -319,7 +360,7 @@ function EditorLayoutInner({
                   <Metric label="Advertencias" value={stats.warnings} />
                 </div>
               )}
-              <div className={`relative min-h-0 flex-1 ${isNeo4j ? 'mt-[52px]' : ''}`}>
+              <div className="relative h-full min-h-0 flex-1">
                 <Canvas emitNodeMove={emitNodeMove} projectId={projectId} onSave={handleSave} />
               </div>
             </div>

@@ -47,14 +47,20 @@ export function parseNeo4j(code: string): ParseResult {
       const label = match[2].trim()
       const propsStr = match[3] ? match[3].trim() : ''
       
+      // Evitar procesar el mismo nodo dos veces o duplicar el mismo Label
+      const existingNode = result.nodes.find(n => (n.data as any).tableName === label)
+      
+      if (existingNode) {
+        if (rawVar) {
+          nodeVarMap.set(rawVar, existingNode.id)
+        }
+        // Podríamos mezclar columnas aquí si fuera necesario, pero por ahora evitamos duplicados
+        continue
+      }
+      
       const nodeId = rawVar || `node_${++nodeCounter}`
       if (rawVar) {
         nodeVarMap.set(rawVar, nodeId)
-      }
-
-      // Evitar procesar el mismo nodo dos veces si se menciona en un MATCH y luego en otra parte
-      if (result.nodes.some(n => n.id === nodeId)) {
-        continue
       }
 
       // Extraer propiedades y sus valores
