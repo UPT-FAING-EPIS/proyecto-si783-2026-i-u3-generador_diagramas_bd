@@ -307,7 +307,7 @@ Para abarcar exhaustivamente el sistema implementado en la arquitectura híbrida
 11. **CU-11:** Ingresar estructura mediante JSON Schema.
 12. **CU-12:** Parsear JSON Schema a diagrama.
 
-#### Módulo III: Interacción y Exportación (UI Mermaid.js)
+#### Módulo III: Interacción y Exportación (React Flow + Mermaid exportable)
 13. **CU-13:** Ampliar o reducir lienzo (Zoom In/Out).
 14. **CU-14:** Desplazarse por el diagrama (Paneo).
 15. **CU-15:** Exportar diagrama a imagen PNG.
@@ -371,7 +371,7 @@ A continuación, se detallan las narrativas de los 20 Casos de Uso del sistema, 
 - **Actor:** Usuario Autenticado
 - **Descripción:** Descarga un diagrama guardado y lo renderiza.
 - **Precondición:** Proyecto existente.
-- **Flujo Principal:** 1) Selección de proyecto en la galería. 2) El sistema obtiene el JSON del API. 3) El motor Mermaid renderiza el esquema.
+- **Flujo Principal:** 1) Selección de proyecto en la galería. 2) El sistema obtiene el JSON del API. 3) El lienzo React Flow renderiza el esquema.
 - **Postcondición:** El diagrama es visible y editable.
 
 **CU-08: Eliminar proyecto de la nube**
@@ -394,7 +394,7 @@ A continuación, se detallan las narrativas de los 20 Casos de Uso del sistema, 
 - **Actor:** Sistema (Parser Automático)
 - **Descripción:** Compila el SQL a un modelo visual.
 - **Precondición:** Texto DDL modificado.
-- **Flujo Principal:** 1) Se dispara evento de cambio (Debounce). 2) El parser compila DDL a `SchemaModel`. 3) Mermaid actualiza el SVG.
+- **Flujo Principal:** 1) Se dispara evento de cambio (Debounce). 2) El parser compila DDL a `SchemaModel`. 3) React Flow actualiza el lienzo.
 - **Postcondición:** Diagrama visual sincronizado con código DDL.
 
 **CU-11: Ingresar estructura mediante JSON Schema**
@@ -408,7 +408,7 @@ A continuación, se detallan las narrativas de los 20 Casos de Uso del sistema, 
 - **Actor:** Sistema (Parser Automático)
 - **Descripción:** Transforma JSON jerárquico a modelo visual.
 - **Precondición:** JSON válido.
-- **Flujo Principal:** 1) Evento de cambio. 2) Parser lee nodos y genera relaciones implícitas. 3) Mermaid actualiza el SVG.
+- **Flujo Principal:** 1) Evento de cambio. 2) Parser lee nodos y genera relaciones implícitas. 3) React Flow actualiza el lienzo.
 - **Postcondición:** Diagrama visual actualizado.
 
 **Módulo III: Interacción Visual**
@@ -645,7 +645,7 @@ flowchart LR
 
 | Tipo     | Objeto              | Responsabilidad                                      |
 |----------|----------------------|------------------------------------------------------|
-| Boundary | DiagramViewer        | Componente visual que muestra el ERD Mermaid          |
+| Boundary | DiagramViewer        | Componente visual que muestra el ERD con React Flow   |
 | Control  | SQLDDLParser         | Compila texto SQL a estructura SchemaModel            |
 | Entity   | SchemaModel          | Modelo intermedio JSON generado por el parser         |
 
@@ -681,7 +681,7 @@ flowchart LR
 
 | Tipo     | Objeto              | Responsabilidad                                      |
 |----------|----------------------|------------------------------------------------------|
-| Boundary | DiagramViewer        | Componente visual que muestra el ERD Mermaid          |
+| Boundary | DiagramViewer        | Componente visual que muestra el ERD con React Flow   |
 | Control  | JSONSchemaParser     | Transforma JSON jerárquico a SchemaModel              |
 | Entity   | SchemaModel          | Modelo intermedio JSON generado por el parser         |
 
@@ -849,7 +849,7 @@ flowchart TD
     B --> C["Sidecar: ConnectionManager recupera credencial"]
     C --> D["Sidecar: Extractor se conecta a BD Local"]
     D --> E["Sidecar: Transforma metadatos a SchemaModel"]
-    E --> F["Tauri UI: Recibe SchemaModel y renderiza Mermaid"]
+    E --> F["Tauri UI: Recibe SchemaModel y renderiza React Flow"]
     F --> G{"¿El usuario sincroniza?"}
     G -- "Sí" --> H["CloudSyncService envía JSON a NestJS"]
     H --> I["DiagramsController lo inserta en DB de la nube"]
@@ -1360,7 +1360,7 @@ classDiagram
 # 7. Conclusiones
 
 1. **Arquitectura Híbrida Zero-Trust Consolidada**: La especificación de requerimientos demuestra que FluxSQL soluciona de manera efectiva la dicotomía entre la privacidad corporativa y la colaboración en línea. La segregación de responsabilidades a través del patrón *Sidecar* (FastAPI + Tauri) garantiza que la introspección de esquemas y la gestión de credenciales nunca vulneren las políticas de seguridad IT, preservando la integridad de los datos locales sin sacrificar las ventajas del Cloud API (NestJS).
-2. **Evolución Visual hacia React Flow**: El análisis confirma la madurez del proyecto al descartar motores gráficos estáticos bidimensionales (como Mermaid.js) en favor de **React Flow** (`@xyflow/react`). Este cambio estructural permite interactividad en tiempo real, redimensionamiento dinámico de nodos, renderizado heurístico de enlaces (ortogonales vs. Bezier) y soporte integral para estructuras anidadas complejas.
+2. **Evolución Visual hacia React Flow**: El análisis confirma la madurez del proyecto al descartar motores gráficos estáticos bidimensionales (como Mermaid.js) en favor de **React Flow** (`@xyflow/react`). Este cambio estructural permite interactividad en tiempo real, redimensionamiento dinámico de nodos, relaciones SQL rectas, layouts de grafo para NoSQL y soporte integral para estructuras anidadas complejas.
 3. **Escalabilidad Multi-Paradigma (SQL y NoSQL)**: La estandarización del modelo `SchemaModel` y la abstracción del *Parser Core* han validado que el sistema no solo soporta bases de datos relacionales tradicionales (PostgreSQL, MySQL, SQL Server), sino que es altamente resiliente para adaptarse a esquemas orientados a documentos (MongoDB) y bases de datos orientadas a grafos (Neo4j). Esta versatilidad convierte a FluxSQL en una herramienta políglota de modelado de datos de próxima generación.
 4. **Fundación para Agentes de Inteligencia Artificial (MCP)**: El uso de estándares universales en las interfaces DTO y la separación limpia de lógica en los controladores establecen una base arquitectónica perfecta para la futura integración del *Model Context Protocol (MCP)*. Esto permitirá que asistentes de inteligencia artificial (LLMs) auditen, refactoricen e interactúen con el modelo de datos de manera autónoma y segura.
 
@@ -1410,7 +1410,7 @@ A continuación se definen los escenarios utilizando lenguaje Gherkin orientados
 
 **CA-02.1:** Parseo en tiempo real (Client-side).
 
-- **Escenario 05:** **Dado** un editor de código DDL activo, **cuando** el usuario termina de escribir un comando SQL válido, **entonces** el diagrama Mermaid se actualiza visualmente en menos de 500ms.
+- **Escenario 05:** **Dado** un editor de código DDL activo, **cuando** el usuario termina de escribir un comando SQL válido, **entonces** el lienzo React Flow se actualiza visualmente en menos de 500ms.
 - **Escenario 06:** **Dado** un error de sintaxis SQL en el editor, **cuando** el parser evalúa el texto, **entonces** el diagrama visual mantiene el estado previo y se resalta la línea con error.
 
 ## HU-03 Sincronización híbrida de proyectos

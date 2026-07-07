@@ -137,7 +137,7 @@ No incluye herramientas para migración destructiva de bases de datos, ya que el
 |-------|---------------------------------------------------------------------------|-----------|
 | RF-01 | Parsear estructuras DDL en el lado del cliente                            | Alta      |
 | RF-02 | Extraer esquemas desde conexiones locales (Sidecar FastAPI)               | Alta      |
-| RF-03 | Generar diagramas relacionales (Mermaid) interactivamente                 | Alta      |
+| RF-03 | Generar diagramas relacionales con React Flow y exportación documental Mermaid | Alta      |
 | RF-04 | Sincronizar artefactos estructurales al Cloud API                         | Alta      |
 | RF-05 | Guardar credenciales locales de forma cifrada (sin enviar a la nube)      | Alta      |
 | RF-06 | Soporte para Skills instalables y flujos MCP                              | Media     |
@@ -259,7 +259,7 @@ sequenceDiagram
     DB -->> SC: Tablas y Relaciones (Raw)
     SC ->> SC: Transforma a SchemaModel JSON
     SC -->> UI: Devuelve SchemaModel
-    UI ->> UI: Genera diagrama interactivo Mermaid
+    UI ->> UI: Genera diagrama interactivo React Flow
     Usuario ->> UI: Clic en "Sincronizar Proyecto"
     UI ->> CL: POST /sync { projectId, SchemaModel }
     Note right of UI: No se envía host, usuario o password a la nube
@@ -553,7 +553,7 @@ flowchart TD
     D --> E["Generación de SchemaModel"]
     C -- "Manual" --> F["Usuario escribe código DDL"]
     F --> G["Parser web genera SchemaModel"]
-    E --> H["Renderizado visual con Mermaid"]
+    E --> H["Renderizado visual con React Flow"]
     G --> H
     H --> I{"¿Sincronizar a la nube?"}
     I -- "Sí" --> J["Cloud API valida sesión JWT"]
@@ -699,6 +699,27 @@ La arquitectura descrita corresponde a los directorios y código implementado en
 | **Despliegue Nube**| `/apps/backend-api` (NestJS) + Infraestructura Vercel/Docker |
 | **Despliegue Local**| `/apps/desktop/src-tauri` (Rust) y `/apps/desktop/backend-python` |
 | **Pipeline de CI/CD** | `.github/workflows` (Scripts de build automatizados) |
+
+## 6.1 Diagrama de GitHub Actions y Releases
+
+El flujo de integración continua cubre seguridad, despliegue en VPS y publicación de binarios instalables. Los workflows se activan por push a `main`, tags de release y ejecuciones manuales cuando se requiere una publicación controlada.
+
+```mermaid
+flowchart LR
+    Dev["Desarrollador"] --> Push["Push a main"]
+    Push --> QS["Quality and Security<br/>Semgrep / Snyk / Sonar"]
+    Push --> Deploy["Deploy VPS<br/>Docker + SSH + Caddy"]
+    Dev --> Tag["Tag desktop-v*"]
+    Tag --> Desktop["Desktop Release<br/>Windows runner + Tauri"]
+    Desktop --> Exe["Instalador .exe<br/>Checksum SHA256"]
+    Desktop --> GHRelease["GitHub Release"]
+    Push --> Skill["Publish FluxSQL Skill<br/>npm / GitHub Packages"]
+    Dev --> VsTag["Tag vscode-v*"]
+    VsTag --> VSCode["VS Code Marketplace<br/>Open VSX / VSCE"]
+    Deploy --> PublicURL["https://fluxsql.sytes.net"]
+    QS --> Gate["Evidencia de calidad"]
+    Exe --> GHRelease
+```
 
 ---
 *Fin del documento.*

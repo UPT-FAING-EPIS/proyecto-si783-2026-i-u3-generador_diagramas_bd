@@ -94,7 +94,7 @@ El proyecto resuelve un dilema histórico entre herramientas locales aisladas y 
 
 **Características principales:**
 - **Zero-Trust:** El API Cloud rechaza intrínsecamente recibir cadenas de conexión. Todo el análisis ocurre localmente.
-- **Renderizado Dinámico:** Diagramas dibujados interactivamente usando aceleración web con Mermaid.js.
+- **Renderizado Dinámico:** Diagramas dibujados interactivamente con React Flow y exportación documental compatible con Mermaid.
 - **Soporte Multi-motor:** Compatible nativamente con PostgreSQL, MySQL y SQLite vía librerías maduras de Python (psycopg2, pymysql).
 - **Consumo Mínimo:** A diferencia de Electron, la aplicación Desktop utiliza Tauri, manteniendo el uso de memoria por debajo de los 150MB.
 
@@ -116,7 +116,7 @@ Construir una plataforma distribuida en monorepo que automatice la documentació
 | Riesgo | Probabilidad | Impacto | Estrategia de Mitigación |
 | :-- | :--: | :--: | :-- |
 | **Puertos ocupados localmente:** El Sidecar FastAPI necesita un puerto libre. | Alta | Alto | Asignación dinámica de puertos desde Tauri en el inicio; paso de variables de entorno al proceso Python. |
-| **Rendimiento de dibujado Mermaid:** Un ERD masivo (> 300 tablas) congela el DOM de React. | Media | Alto | Implementar *debounce* estricto y renderización virtualizada. Limitar auto-render en bases inmensas. |
+| **Rendimiento del lienzo React Flow:** Un ERD masivo (> 300 tablas) puede saturar el DOM de React. | Media | Alto | Implementar *debounce* estricto, renderización optimizada y límites de auto-layout en bases inmensas. |
 | **Vulnerabilidad de inyección SQL (Local):** | Baja | Crítico | El Sidecar no admite parámetros arbitrarios. Únicamente ejecuta queries fijos parametrizados (PRAGMA y vistas de sistema). |
 | **Interoperabilidad DDL:** Discrepancias entre cómo PG y MySQL exponen llaves foráneas. | Alta | Medio | Estandarizar la salida Python al objeto agnóstico `SchemaModel.json`. |
 
@@ -151,7 +151,7 @@ La arquitectura híbrida de **FluxSQL** descentraliza la carga técnica y se bas
 | Backend API | NestJS (TypeScript) + PostgreSQL Cloud | ✅ Alta |
 | Envoltura Nativa | Tauri (Rust) + WebView OS nativo | ✅ Alta |
 | Extractor Nativo (Sidecar) | Python (FastAPI) + Drivers (`psycopg2`, `pymysql`) | ✅ Alta |
-| Render Gráfico | Mermaid.js | ✅ Alta |
+| Render Gráfico | React Flow + Mermaid exportable | ✅ Alta |
 | CI/CD | GitHub Actions + Turborepo | ✅ Alta |
 
 **Conclusión técnica:** Factible. El reemplazo de Electron por Tauri garantiza que el ejecutable de escritorio sea extremadamente ligero. Python proporciona el mejor soporte de conectores SQL del mercado. 

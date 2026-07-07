@@ -71,7 +71,7 @@ DBCanvas resuelve esto siendo ligero (~200 MB con todo incluido), multiplataform
 | Monorepo | pnpm workspaces + Turborepo |
 | Frontend | React 18, Vite 5, TypeScript, TailwindCSS, Shadcn/UI |
 | Editor | Monaco Editor |
-| Diagramas | Mermaid.js |
+| Diagramas | React Flow + Mermaid exportable |
 | Parsers | TypeScript puro (`@dbcanvas/parsers`) |
 | Backend local | Go 1.22 (`net/http` + drivers nativos) |
 | Desktop | Electron 29 + electron-vite |

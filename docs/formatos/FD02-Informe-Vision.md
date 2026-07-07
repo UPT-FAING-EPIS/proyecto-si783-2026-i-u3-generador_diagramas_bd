@@ -150,7 +150,7 @@ FluxSQL separa los "artefactos" (seguros de compartir) de la "infraestructura" (
 - **Propietarios (KIARA/JEFFERSON):** Estudiantes universitarios aplicando paradigmas avanzados (Zero-Trust, IPC, Microservicios API) en su proyecto académico.
 
 ### 3.5 Perfiles de los Usuarios
-- **Usuario Técnico General:** Valora la velocidad por encima de todo. Disfruta un renderizado instantáneo (Debounce bajo de Mermaid) y aborrece los tiempos de compilación lentos de Java o Electron.
+- **Usuario Técnico General:** Valora la velocidad por encima de todo. Disfruta un renderizado instantáneo del lienzo React Flow y aborrece los tiempos de compilación lentos de Java o Electron.
 
 ### 3.6 Necesidades de los interesados y usuarios
 | Necesidad | Prioridad | Solución Propuesta (FluxSQL) |
@@ -190,7 +190,7 @@ El código en el monorepo y todos los subpaquetes serán liberados en GitHub baj
 
 1. **Introspección Blindada:** Extrae *Information Schema* (PG/MySQL) ejecutando queries desde FastAPI y guardando las passwords en el llavero nativo del sistema (Keyring).
 2. **Puente MCP (Model Context Protocol):** Permite en escritorio interactuar con futuros agentes de IA brindando un contexto abstracto sobre la arquitectura.
-3. **Pizarra colaborativa en vivo:** Las visualizaciones web están listas para comentarios y versiones, impulsadas por `Next.js App Router` y un lienzo interactivo enriquecido (React Flow) con soporte para redimensionamiento de paneles, filtros dinámicos flotantes (como en Neo4j) y la generación de enlaces inteligentes adaptativos (ortogonales vs curvas Bezier) dependiendo del contexto SQL o NoSQL.
+3. **Pizarra colaborativa en vivo:** Las visualizaciones web están listas para comentarios y versiones, impulsadas por `Next.js App Router` y un lienzo interactivo enriquecido (React Flow) con soporte para redimensionamiento de paneles, filtros dinámicos flotantes (como en Neo4j), relaciones SQL rectas y layouts de grafo para contextos NoSQL.
 
 ## 6. **Restricciones**
 

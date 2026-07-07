@@ -122,7 +122,7 @@ La implementación de FluxSQL se justifica por la necesidad apremiante de contar
 
 - Reduce drásticamente el tiempo de "onboarding" de un programador nuevo al proyecto, al disponer de ERDs siempre actualizados.
 - Promueve la soberanía de los datos: el *Sidecar local* es auditable y su código garantiza que solo las estructuras (y no los datos o claves) viajen por la red.
-- Renderiza esquemas inmensos usando la aceleración web de Tauri + Mermaid.js.
+- Renderiza esquemas inmensos usando React Flow sobre Next.js/Tauri, manteniendo Mermaid como formato documental exportable.
 - Ofrece interoperabilidad mediante JSON estandarizado (`SchemaModel`).
 
 La justificación también se analiza desde las siguientes perspectivas:
@@ -145,7 +145,7 @@ El alcance comprende el análisis, diseño, construcción y despliegue del ecosi
 - Soporte de introspección para PostgreSQL y MySQL.
 - Parser cliente para transformar `CREATE TABLE` manuales a ERD.
 - Puente local MCP (Model Context Protocol).
-- Renderizador interactivo con Mermaid.js.
+- Renderizador interactivo con React Flow y exportaciones SVG, PNG, JSON y Mermaid.
 
 ### Entregables Comprendidos
 
@@ -165,7 +165,7 @@ Diseñar e implementar una plataforma híbrida (Web/Desktop) que automatice la e
 
 - Construir un *Sidecar* en Python capaz de conectarse a PostgreSQL y MySQL locales para extraer metadatos sin recolectar registros.
 - Desarrollar un *Parser* universal en TypeScript que transforme SQL DDL manual en objetos estructurados.
-- Implementar un motor de renderizado dinámico en React usando Mermaid.js.
+- Implementar un motor de renderizado dinámico en React usando React Flow para el lienzo y Mermaid para documentación/exportación.
 - Desplegar una API en la nube (*NestJS*) orientada a versionar artefactos JSON sin admitir información sensible.
 - Empaquetar la aplicación de escritorio usando *Tauri* para asegurar un consumo mínimo de RAM.
 
@@ -187,7 +187,7 @@ Diseñar e implementar una plataforma híbrida (Web/Desktop) que automatice la e
 
 **Tauri vs Electron.** Tauri es un framework que construye aplicaciones de escritorio utilizando el motor web incorporado en el sistema operativo (WebView2 en Windows, WebKit en macOS), reduciendo el tamaño del binario y el uso de memoria a una fracción de lo que consume Electron (que empaqueta todo el motor Chromium).
 
-**Mermaid.js.** Una herramienta gráfica basada en JavaScript que renderiza diagramas dinámicos a partir de texto y código, ampliamente usada en GitHub y documentación técnica moderna.
+**React Flow y Mermaid.js.** React Flow es el motor interactivo del lienzo de edición de FluxSQL; Mermaid.js se conserva como formato textual para documentación técnica, anexos y exportación compatible con GitHub.
 
 **Model Context Protocol (MCP).** Un protocolo emergente que permite a las aplicaciones locales exponer de manera segura sus datos y contextos a modelos fundacionales o agentes IA (LLMs) ejecutados en la máquina del usuario.
 
@@ -213,7 +213,7 @@ Se optó por tecnologías con un ecosistema open-source masivo. La infraestructu
 | Nube | NestJS (TypeScript) | API escalable y validaciones JWT. |
 | Base de Datos (Cloud)| PostgreSQL | Gestión de Usuarios, Sesiones y diagramas colaborativos. |
 | Base de Datos (Local)| Varios (PG, MySQL) | Sistemas objetivos a analizar por el usuario. |
-| Motor Gráfico | Mermaid.js | Transformar el `SchemaModel` en SVGs interactivos. |
+| Motor Gráfico | React Flow + Mermaid.js | Transformar el `SchemaModel` en diagramas interactivos y exportaciones documentales. |
 | CI/CD | GitHub Actions | Linters, tests, compilación cruzada. |
 
 ## Metodología de Implementación
@@ -221,7 +221,7 @@ Se optó por tecnologías con un ecosistema open-source masivo. La infraestructu
 Se utilizó una adaptación de la metodología iterativa e incremental enfocada en la resolución de riesgos tempranos (Prototipado Evolutivo).
 
 1. **Fase 1: Motor central (Parsers):** Definir el modelo `SchemaModel`. El componente de parser de código TypeScript debía ser 100% libre de efectos secundarios para funcionar tanto en el navegador como en Tauri.
-2. **Fase 2: Interfaz React:** Renderizar un `SchemaModel` usando Mermaid sin interactuar aún con bases de datos.
+2. **Fase 2: Interfaz React:** Renderizar un `SchemaModel` usando React Flow sin interactuar aún con bases de datos.
 3. **Fase 3: Sidecar de Introspección:** Implementar Python FastAPI para extraer desde BDs reales la Information Schema y traducirla a `SchemaModel`.
 4. **Fase 4: Sincronización Segura:** Levantar el backend de NestJS con políticas estrictas de DTOs, asegurando que la conexión local nunca viajase.
 5. **Fase 5: Empaquetado:** Automatización con GitHub Actions y Tauri Builder.
@@ -234,7 +234,7 @@ El sistema fue estructurado en 4 dominios funcionales que abarcan **20 Casos de 
 |---------------|-------------------------|----------------------------------|
 | **I. Autenticación y Nube** | CU-01 al CU-08 (Auth, Proyectos, Push/Pull) | `apps/backend-api` (NestJS) |
 | **II. Modelado Manual** | CU-09 al CU-12 (Parseo DDL y JSON Schema) | `packages/parsers` (TypeScript) |
-| **III. Interacción Visual**| CU-13 al CU-17 (Zoom, Paneo, Exportación PNG/SVG)| `packages/ui` (React / Mermaid.js) |
+| **III. Interacción Visual**| CU-13 al CU-17 (Zoom, Paneo, Exportación PNG/SVG)| `packages/ui` (React Flow / Mermaid exportable) |
 | **IV. Extracción Local**| CU-18 al CU-20 (Credenciales seguras, Introspección)| `apps/desktop/backend-python` (FastAPI) |
 
 ## Arquitectura y Flujo de Análisis
