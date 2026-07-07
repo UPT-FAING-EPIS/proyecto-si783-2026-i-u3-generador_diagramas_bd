@@ -411,81 +411,188 @@ Diagrama lógico completo de la base de datos distribuida en la nube (PostgreSQL
 
 ```mermaid
 erDiagram
-    USUARIO {
+    users {
         uuid id PK
-        string email UK
-        string password_hash
-        string nombre
-        string apellido
-        string avatar_url
+        uuid auth_id UK
+        text email UK
+        text name
+        text avatar_url
         timestamp created_at
-        timestamp updated_at
-        boolean is_active
     }
-    PROYECTO {
+    projects {
         uuid id PK
         uuid owner_id FK
-        string nombre
-        string descripcion
-        string motor_db
-        string estado
+        text name
+        text description
+        text engine_family
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+    diagrams {
+        uuid id PK
+        uuid project_id FK
+        text name
+        text source_code
+        text dialect
+        jsonb flow_json
+        text mermaid_string
+        boolean is_public
+        text share_access
         timestamp created_at
         timestamp updated_at
     }
-    DIAGRAMA {
+    diagram_versions {
         uuid id PK
-        uuid proyecto_id FK
-        string nombre
-        int version
-        jsonb schema_model
-        text mermaid_code
+        uuid diagram_id FK
+        uuid user_id FK
+        text sql_content
+        jsonb flow_json
+        text message
+        integer version_number
+        text active_dialect
+        jsonb snapshots
+        timestamp created_at
+    }
+    collaborators {
+        uuid id PK
+        uuid project_id FK
+        uuid user_id FK
+        text role
+        timestamp joined_at
+    }
+    project_invitations {
+        uuid id PK
+        uuid project_id FK
+        uuid invited_by FK
+        text email
+        text role
+        timestamp accepted_at
+        timestamp created_at
+    }
+    skill_catalog {
+        text id PK
+        text name
+        text description
+        text version
+        text author
+        text license
+        text category
+        text risk_level
+        boolean requires_approval
+        boolean requires_backup
+        boolean requires_sandbox
+        boolean default_enabled
+        text source_url
+        text spec_version
+        jsonb manifest
+        timestamp created_at
+        timestamp updated_at
+    }
+    user_skills {
+        uuid id PK
+        uuid user_id FK
+        text skill_id FK
+        text installed_version
+        boolean enabled
+        text install_source
+        timestamp installed_at
+        timestamp updated_at
+    }
+    agent_memories {
+        uuid id PK
+        uuid user_id FK
+        uuid project_id FK
+        text scope
+        text subject
+        text content
+        timestamp created_at
+        timestamp updated_at
+    }
+    skill_permissions {
+        uuid id PK
+        uuid user_id FK
+        text skill_id FK
+        text environment
+        boolean can_read_schema
+        boolean can_generate_sql
+        boolean can_execute
+        boolean requires_approval
+        timestamp updated_at
+    }
+    approval_requests {
+        uuid id PK
+        uuid project_id FK
+        uuid requested_by FK
+        text title
+        text risk_level
+        text status
+        jsonb details
+        timestamp created_at
+        timestamp updated_at
+    }
+    agent_runs {
+        uuid id PK
+        uuid project_id FK
+        uuid user_id FK
+        text skill_id
+        text status
+        jsonb input
+        jsonb output
+        text rollback_plan
+        timestamp created_at
+    }
+    schema_decisions {
+        uuid id PK
+        uuid project_id FK
+        uuid created_by FK
+        text title
+        text decision
+        text rationale
         text status
         timestamp created_at
+    }
+    environment_guards {
+        uuid id PK
+        uuid user_id FK
+        text environment
+        boolean require_backup
+        boolean require_sandbox
+        boolean require_approval
+        boolean allow_direct_write
         timestamp updated_at
     }
-    COLABORADOR {
+    telemetry_events {
         uuid id PK
-        uuid proyecto_id FK
-        uuid usuario_id FK
-        string rol
-        timestamp invited_at
-        timestamp accepted_at
-    }
-    HISTORIAL_VERSION {
-        uuid id PK
-        uuid diagrama_id FK
-        uuid modified_by FK
-        int version_number
-        jsonb schema_snapshot
-        string change_description
+        uuid user_id FK
+        text platform
+        text event
+        jsonb metadata
         timestamp created_at
-    }
-    TOKEN_ACCESO {
-        uuid id PK
-        uuid usuario_id FK
-        string token_hash
-        string tipo
-        timestamp expires_at
-        timestamp created_at
-        boolean revoked
-    }
-    CONFIGURACION_USUARIO {
-        uuid id PK
-        uuid usuario_id FK
-        string tema_ui
-        string idioma
-        boolean notificaciones
-        jsonb preferencias_editor
     }
 
-    USUARIO ||--o{ PROYECTO : "es dueño de"
-    USUARIO ||--o{ COLABORADOR : "participa como"
-    USUARIO ||--o{ TOKEN_ACCESO : "posee"
-    USUARIO ||--|| CONFIGURACION_USUARIO : "tiene"
-    PROYECTO ||--o{ DIAGRAMA : "contiene"
-    PROYECTO ||--o{ COLABORADOR : "incluye a"
-    DIAGRAMA ||--o{ HISTORIAL_VERSION : "registra"
-    USUARIO ||--o{ HISTORIAL_VERSION : "modifica"
+    users ||--o{ projects : "owner_id"
+    projects ||--o{ diagrams : "project_id"
+    diagrams ||--o{ diagram_versions : "diagram_id"
+    users ||--o{ diagram_versions : "user_id"
+    users ||--o{ collaborators : "user_id"
+    projects ||--o{ collaborators : "project_id"
+    projects ||--o{ project_invitations : "project_id"
+    users ||--o{ project_invitations : "invited_by"
+    users ||--o{ user_skills : "user_id"
+    skill_catalog ||--o{ user_skills : "skill_id"
+    users ||--o{ agent_memories : "user_id"
+    projects ||--o{ agent_memories : "project_id"
+    users ||--o{ skill_permissions : "user_id"
+    skill_catalog ||--o{ skill_permissions : "skill_id"
+    projects ||--o{ approval_requests : "project_id"
+    users ||--o{ approval_requests : "requested_by"
+    projects ||--o{ agent_runs : "project_id"
+    users ||--o{ agent_runs : "user_id"
+    projects ||--o{ schema_decisions : "project_id"
+    users ||--o{ schema_decisions : "created_by"
+    users ||--o{ environment_guards : "user_id"
+    users ||--o{ telemetry_events : "user_id"
 ```
 
 *Nota.* Elaboración propia. Representa el modelo relacional completo persistido en PostgreSQL Cloud.
