@@ -474,21 +474,47 @@ actor "Agente IA (Codex)" as AI
 package "Generador de Diagramas BD - FluxSQL" {
   usecase "CU-01: Iniciar Sesión" as UC1
   usecase "CU-02: Registrar Cuenta" as UC2
-  usecase "CU-06: Sincronizar Diagrama" as UC6
-  usecase "CU-10: Parsear DDL a Diagrama" as UC10
-  usecase "CU-15: Exportar PNG/SVG" as UC15
-  usecase "CU-19: Ejecutar Introspección Local" as UC19
-  usecase "CU-20: Transformar a SchemaModel" as UC20
+  usecase "CU-03: Cerrar Sesión" as UC3
+  usecase "CU-04: Galería Proyectos" as UC4
+  usecase "CU-05: Crear Proyecto" as UC5
+  usecase "CU-06: Sync Push" as UC6
+  usecase "CU-07: Sync Pull" as UC7
+  usecase "CU-08: Eliminar Proyecto" as UC8
+  usecase "CU-09: DDL Manual" as UC9
+  usecase "CU-10: Parsear DDL" as UC10
+  usecase "CU-11: JSON Schema" as UC11
+  usecase "CU-12: Parsear JSON" as UC12
+  usecase "CU-13: Zoom Lienzo" as UC13
+  usecase "CU-14: Paneo Lienzo" as UC14
+  usecase "CU-15: Exportar PNG" as UC15
+  usecase "CU-16: Exportar SVG" as UC16
+  usecase "CU-17: Exportar MMD" as UC17
+  usecase "CU-18: Guardar Credenciales" as UC18
+  usecase "CU-19: Introspección BD" as UC19
+  usecase "CU-20: Mapeo SchemaModel" as UC20
 }
 
 User --> UC1
 User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
 User --> UC6
-User --> UC10
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC11
+User --> UC13
+User --> UC14
 User --> UC15
+User --> UC16
+User --> UC17
+User --> UC18
 User --> UC19
 
 UC19 --> OS : "Lee Credenciales Cifradas"
+UC9 ..> UC10 : <<include>>
+UC11 ..> UC12 : <<include>>
 UC19 ..> UC20 : <<include>>
 AI --> UC20 : "Consume Esquema (MCP)"
 @enduml
@@ -765,11 +791,18 @@ Control --> Entity1 : 3. Destruye JWT
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[DashboardView]
-    Boundary --> Control((ProjectController))
-    Control --> Entity1[(Proyecto)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "DashboardView" as Boundary
+control "ProjectController" as Control
+entity "Proyecto" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -784,12 +817,20 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[NewProjectButton]
-    Boundary --> Control((ProjectController))
-    Control --> Entity1[(Proyecto)]
-    Control --> Entity2[(SchemaModel)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "NewProjectButton" as Boundary
+control "ProjectController" as Control
+entity "Proyecto" as Entity1
+entity "SchemaModel" as Entity2
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+Control --> Entity2
+@enduml
 ```
 
 
@@ -803,11 +844,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[SaveButton]
-    Boundary --> Control((CloudSyncService))
-    Control --> Entity1[(Diagrama)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "SaveButton" as Boundary
+control "CloudSyncService" as Control
+entity "Diagrama" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -821,11 +869,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[ProjectCard]
-    Boundary --> Control((CloudSyncService))
-    Control --> Entity1[(Diagrama)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "ProjectCard" as Boundary
+control "CloudSyncService" as Control
+entity "Diagrama" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -839,11 +894,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[DeleteModal]
-    Boundary --> Control((ProjectController))
-    Control --> Entity1[(Proyecto)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "DeleteModal" as Boundary
+control "ProjectController" as Control
+entity "Proyecto" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -857,11 +919,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[MonacoEditor]
-    Boundary --> Control((EditorController))
-    Control --> Entity1[(DDLBuffer)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "MonacoEditor" as Boundary
+control "EditorController" as Control
+entity "DDLBuffer" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -875,11 +944,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[DiagramViewer]
-    Boundary --> Control((SQLDDLParser))
-    Control --> Entity1[(SchemaModel)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "DiagramViewer" as Boundary
+control "SQLDDLParser" as Control
+entity "SchemaModel" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -893,11 +969,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[MonacoEditorJSON]
-    Boundary --> Control((EditorController))
-    Control --> Entity1[(JSONBuffer)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "MonacoEditorJSON" as Boundary
+control "EditorController" as Control
+entity "JSONBuffer" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -911,11 +994,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[DiagramViewer]
-    Boundary --> Control((JSONSchemaParser))
-    Control --> Entity1[(SchemaModel)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "DiagramViewer" as Boundary
+control "JSONSchemaParser" as Control
+entity "SchemaModel" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -929,11 +1019,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[CanvasView]
-    Boundary --> Control((D3ZoomModule))
-    Control --> Entity1[(ViewBoxState)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "CanvasView" as Boundary
+control "D3ZoomModule" as Control
+entity "ViewBoxState" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -947,11 +1044,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[CanvasView]
-    Boundary --> Control((D3PanModule))
-    Control --> Entity1[(ViewBoxState)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "CanvasView" as Boundary
+control "D3PanModule" as Control
+entity "ViewBoxState" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -965,11 +1069,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[ExportMenu]
-    Boundary --> Control((ExportService))
-    Control --> Entity1[(CanvasBuffer)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "ExportMenu" as Boundary
+control "ExportService" as Control
+entity "CanvasBuffer" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -983,11 +1094,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[ExportMenu]
-    Boundary --> Control((ExportService))
-    Control --> Entity1[(SVGBlob)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "ExportMenu" as Boundary
+control "ExportService" as Control
+entity "SVGBlob" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -1001,11 +1119,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[ExportMenu]
-    Boundary --> Control((ExportService))
-    Control --> Entity1[(MermaidBlob)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "ExportMenu" as Boundary
+control "ExportService" as Control
+entity "MermaidBlob" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -1019,11 +1144,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[ConnectionForm]
-    Boundary --> Control((ConnectionManager))
-    Control --> Entity1[(ConnectionProfile)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "ConnectionForm" as Boundary
+control "ConnectionManager" as Control
+entity "ConnectionProfile" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -1037,11 +1169,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[ExtractButton]
-    Boundary --> Control((ExtractorFactory))
-    Control --> Entity1[(RawMetadata)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "ExtractButton" as Boundary
+control "ExtractorFactory" as Control
+entity "RawMetadata" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
@@ -1055,11 +1194,18 @@ flowchart LR
 
 **Gráfico de objetos:**
 
-```mermaid
-flowchart LR
-    Actor((Usuario)) --> Boundary[DiagramViewer]
-    Boundary --> Control((SchemaTransformer))
-    Control --> Entity1[(SchemaModel)]
+```plantuml
+@startuml
+left to right direction
+actor "Usuario" as Actor
+boundary "DiagramViewer" as Boundary
+control "SchemaTransformer" as Control
+entity "SchemaModel" as Entity1
+
+Actor --> Boundary
+Boundary --> Control
+Control --> Entity1
+@enduml
 ```
 
 
