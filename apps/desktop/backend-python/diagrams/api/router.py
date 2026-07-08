@@ -46,10 +46,17 @@ def quote_identifier(name: str, dialect: str) -> str:
 
 def fetch_table_rows(connection: ConexionRequest, table_name: str, page: int, page_size: int):
     dialect = connection.motor.value if connection.motor else ""
+    
+    if dialect in {"mongodb", "neo4j", "cassandra"}:
+        raise ValueError(f"El motor {dialect} no soporta consultas de tablas mediante SQL tradicional. Asegúrate de tener seleccionada la conexión correcta.")
+        
     quoted_table = quote_identifier(table_name, dialect)
     offset = (page - 1) * page_size
 
     with get_connector(connection) as connector:
+        if not connector._connection:
+            raise ValueError(f"La conexión para {dialect} no se estableció correctamente o no soporta cursores SQL.")
+            
         cursor = connector._connection.cursor()
         cursor.execute(f"SELECT COUNT(*) FROM {quoted_table}")
         count_row = cursor.fetchone()

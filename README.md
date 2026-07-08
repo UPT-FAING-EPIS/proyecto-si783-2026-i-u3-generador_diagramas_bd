@@ -1,5 +1,8 @@
 # FluxSQL
 
+▶️ **Video Demostrativo**: [Ver en YouTube](https://youtu.be/g_P9OpaeNcw)  
+🌐 **Sitio Web**: [https://fluxsql.sytes.net/](https://fluxsql.sytes.net/)
+
 FluxSQL es un generador de diagramas de bases de datos para proyectos SQL y NoSQL. El repositorio contiene la aplicacion web, API cloud, aplicacion desktop, extension de VS Code, skill de Codex/MCP y automatizaciones de despliegue/publicacion.
 
 ## Alcance Del Proyecto

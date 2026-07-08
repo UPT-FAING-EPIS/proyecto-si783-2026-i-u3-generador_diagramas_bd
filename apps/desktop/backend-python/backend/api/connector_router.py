@@ -127,6 +127,10 @@ def get_external_schema(req: ConexionRequest, db: Session = Depends(get_db)):
 def list_rows_for_connection(connection: ConexionRequest, table_name: str, page: int, page_size: int, filter_text: str | None = None) -> TableRowsResponse:
     try:
         motor = connection.motor.value if connection.motor else ""
+        
+        if motor in {"mongodb", "neo4j", "cassandra"}:
+            raise ValueError(f"El motor {motor} no soporta consultas relacionales SQL. Selecciona una conexión válida.")
+            
         with get_connector(connection) as connector:
             schema = analyze_schema(connector)
             allowed_tables = {table.name for table in schema.tables}
@@ -136,6 +140,10 @@ def list_rows_for_connection(connection: ConexionRequest, table_name: str, page:
             table = quote_table(table_name, motor)
             offset = (page - 1) * page_size
             where_clause = f" WHERE {filter_text}" if filter_text and filter_text.strip() else ""
+            
+            if not connector._connection:
+                raise ValueError(f"La conexión para {motor} no se estableció correctamente o no soporta cursores SQL.")
+                
             cursor = connector._connection.cursor()
             cursor.execute(f"SELECT COUNT(*) FROM {table}{where_clause}")
             count_row = cursor.fetchone()
